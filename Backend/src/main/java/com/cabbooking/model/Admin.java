@@ -3,25 +3,31 @@ package com.cabbooking.model;
 import jakarta.persistence.Entity;
 
 /**
- * Admin Entity: Represents administrator users for the Cab Booking Platform.
- *
- * - Extends AbstractUser, so inherits all core user fields (id, username, password, address, etc.).
- * - Mapped as a JPA entity, so will create a dedicated ADMIN table in the DB.
- * - Used for all admin-specific logic, authentication, authorization and privilege management.
- * - You can add admin-only properties here as your system grows, e.g., admin roles, activity logs, etc.
- *
- * Used in:
- *   - AdminRepository: for database access.
- *   - Login, Admin-related services: for authentication, authorization, admin actions.
- *   - DataInitializer: for seeding admin users.
+ * Admin Entity:
+ * 
+ * Represents an administrator user in the cab booking platform.
+ * Extends AbstractUser to inherit common user properties.
+ * 
+ * Additional field:
+ * - verified: Indicates whether this admin has been approved by superadmin.
+ * 
+ * The superadmin (preset with username "harshit") should have verified = true.
  */
 @Entity
 public class Admin extends AbstractUser {
-    // Place any admin-unique fields here in the future.
-    // For now, it is a simple user with elevated privileges.
 
-    // Example for possible extension:
-    // private boolean superAdmin;
-    // public boolean isSuperAdmin() { return superAdmin; }
-    // public void setSuperAdmin(boolean superAdmin) { this.superAdmin = superAdmin; }
+    /**
+     * Indicates if the admin account is verified/activated by the superadmin.
+     */
+    private Boolean verified = false;
+
+    // ===== Getters and Setters =====
+
+    public Boolean getVerified() {
+        return verified;
+    }
+
+    public void setVerified(Boolean verified) {
+        this.verified = verified;
+    }
 }

@@ -10,29 +10,38 @@ import com.cabbooking.repository.CustomerRepository;
 import com.cabbooking.repository.AdminRepository;
 import com.cabbooking.repository.DriverRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Implementation of LoginService interface.
+ * Implementation of the LoginService interface.
  * 
- * Responsible for authenticating users of different types:
- * Admin, Driver, and Customer.
+ * This service is responsible for authenticating users of various types:
+ * - Admin
+ * - Driver
+ * - Customer
  * 
- * Login checks order:
- * 1. Admin Repository
- * 2. Driver Repository
- * 3. Customer Repository
+ * The authentication process checks the users in the following order:
+ * 1. Admin repository
+ * 2. Driver repository
+ * 3. Customer repository
  * 
- * Logs key events for monitoring and debugging purposes.
- * Throws AuthenticationException if credentials are invalid or user not found.
+ * It uses Spring Security's PasswordEncoder to verify the hashed password
+ * stored in the database against the plaintext password provided by the user.
+ * 
+ * Important:
+ * - Throws AuthenticationException on invalid login credentials or if no matching user is found.
+ * - Logs login attempts, successes, and failures for monitoring and debugging.
  */
 @Service
 public class LoginServiceImpl implements LoginService {
 
+    // Logger for recording login attempt details and errors
     private static final Logger logger = LoggerFactory.getLogger(LoginServiceImpl.class);
 
+    // Spring Data JPA repositories for accessing persistent user data by username
     @Autowired
     private CustomerRepository customerRepository;
 
@@ -42,22 +51,39 @@ public class LoginServiceImpl implements LoginService {
     @Autowired
     private DriverRepository driverRepository;
 
+    // PasswordEncoder to compare raw password from request with hashed password from DB
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     /**
-     * Tries to authenticate the user based on username and password.
-     * Checks repositories in the order: Admin -> Driver -> Customer.
+     * Attempts to authenticate a user based on username and password.
+     * Checks each user type repository in order: Admin -> Driver -> Customer.
      * 
-     * @param request The login request containing username and password.
-     * @return LoginResponse containing login status and user info.
-     * @throws AuthenticationException on invalid credentials or user absence.
+     * Workflow:
+     * - Searches for an Admin with the given username; if found, verifies password:
+     *      * If password matches, returns a successful LoginResponse with admin info.
+     *      * Otherwise, throws AuthenticationException for invalid credentials.
+     * - If not found/failed, repeats above steps for Driver repository.
+     * - If still no match, repeats for Customer repository.
+     * - If no user found in any repository, throws AuthenticationException.
+     * 
+     * Logging:
+     * - Logs login attempt receipt.
+     * - Logs successful authentications including username.
+     * - Logs authentication failures including invalid password attempts and missing users.
+     * 
+     * @param request LoginRequest object containing username and plaintext password
+     * @return LoginResponse with success message, user ID, and user type on successful auth
+     * @throws AuthenticationException if username/password invalid or user not found
      */
     @Override
     public LoginResponse login(LoginRequest request) {
         logger.info("Login attempt received for username: {}", request.getUsername());
 
-        // 1. Try to find and authenticate Admin
+        // 1. Attempt Admin authentication
         Admin admin = adminRepository.findByUsername(request.getUsername());
         if (admin != null) {
-            if (admin.getPassword().equals(request.getPassword())) {
+            if (passwordEncoder.matches(request.getPassword(), admin.getPassword())) {
                 logger.info("Admin authentication successful for username: {}", request.getUsername());
                 return new LoginResponse("Admin login successful", admin.getId(), "Admin");
             } else {
@@ -66,10 +92,10 @@ public class LoginServiceImpl implements LoginService {
             }
         }
 
-        // 2. Try to find and authenticate Driver
+        // 2. Attempt Driver authentication
         Driver driver = driverRepository.findByUsername(request.getUsername());
         if (driver != null) {
-            if (driver.getPassword().equals(request.getPassword())) {
+            if (passwordEncoder.matches(request.getPassword(), driver.getPassword())) {
                 logger.info("Driver authentication successful for username: {}", request.getUsername());
                 return new LoginResponse("Driver login successful", driver.getId(), "Driver");
             } else {
@@ -78,10 +104,10 @@ public class LoginServiceImpl implements LoginService {
             }
         }
 
-        // 3. Try to find and authenticate Customer
+        // 3. Attempt Customer authentication
         Customer customer = customerRepository.findByUsername(request.getUsername());
         if (customer != null) {
-            if (customer.getPassword().equals(request.getPassword())) {
+            if (passwordEncoder.matches(request.getPassword(), customer.getPassword())) {
                 logger.info("Customer authentication successful for username: {}", request.getUsername());
                 return new LoginResponse("Customer login successful", customer.getId(), "Customer");
             } else {
@@ -90,7 +116,7 @@ public class LoginServiceImpl implements LoginService {
             }
         }
 
-        // User not found in any repository
+        // No user found in any repository
         logger.warn("Authentication failed - user not found for username: {}", request.getUsername());
         throw new AuthenticationException("Invalid username or password");
     }

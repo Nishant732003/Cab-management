@@ -20,11 +20,11 @@ import jakarta.persistence.Entity;
  */
 @Entity
 public class Customer extends AbstractUser {
-  
+
     // Add customer-specific fields here as your application requirements grow.
     // For example:
     // private String paymentMethod;
     // private int loyaltyPoints;
 
-    // Corresponding getters and setters should be added.
+    // Corresponding getters and setters should be added if fields are added.
 }

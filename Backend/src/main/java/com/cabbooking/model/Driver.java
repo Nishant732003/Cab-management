@@ -11,6 +11,7 @@ import jakarta.persistence.Entity;
  * Additional fields specific to drivers:
  * - licenceNo: The driver's license number.
  * - rating: The driver's rating based on customer feedback.
+ * - verified: Indicates whether the driver has been approved by an admin.
  * 
  * This class is a JPA entity and maps to a DRIVER table in the database.
  * It is used in driver management, authentication, and trip assignments.
@@ -29,6 +30,12 @@ public class Driver extends AbstractUser {
      * Used to assess driver quality and help customers choose drivers.
      */
     private Float rating;
+
+    /**
+     * Indicates if the driver account is verified/activated by an admin.
+     * Default is false on registration until verified.
+     */
+    private Boolean verified = false;
 
     // ===== Getters and Setters =====
 
@@ -58,5 +65,19 @@ public class Driver extends AbstractUser {
      */
     public void setRating(Float rating) {
         this.rating = rating;
+    }
+
+    /**
+     * Gets the verification status of the driver.
+     */
+    public Boolean getVerified() {
+        return verified;
+    }
+
+    /**
+     * Sets the verification status of the driver.
+     */
+    public void setVerified(Boolean verified) {
+        this.verified = verified;
     }
 }
