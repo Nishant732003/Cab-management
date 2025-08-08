@@ -2,6 +2,7 @@ package com.cabbooking.exception;
 
 import com.cabbooking.dto.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;
+import io.jsonwebtoken.JwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -16,7 +17,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
  * logs detailed error information including stack traces, HTTP method, and request URI,
  * and returns a standardized error response with accurate HTTP status code.
  * 
- * This improves error traceability and provides consistent feedback to API clients.
+ * This improves error traceability and provides consistent feedback to API clients,
+ * especially for authentication and token-related errors.
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -24,23 +26,16 @@ public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     /**
-     * Handles all exceptions not explicitly handled elsewhere.
+     * Handles all uncaught exceptions not explicitly handled elsewhere.
      * Logs full stack trace with request details.
-     * Returns a structured JSON error response with timestamp, error status, message, and path.
-     * 
-     * @param request HTTP request information to extract URI and method
-     * @param ex The uncaught exception thrown during processing
-     * @return ResponseEntity with ErrorResponse body and HTTP 500 status
+     * Returns a standardized error response with HTTP 500 status.
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAllExceptions(HttpServletRequest request, Exception ex) {
-        // Log exception with full stack trace
         logger.error("Exception occurred at [{} {}]: {}", request.getMethod(), request.getRequestURI(), ex.getMessage(), ex);
 
-        // Build a detailed error message including source file and line number
         String detailedMessage = buildErrorMessageWithSource(ex);
 
-        // Prepare standardized error response DTO
         ErrorResponse error = new ErrorResponse(
             HttpStatus.INTERNAL_SERVER_ERROR.value(),
             HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
@@ -48,16 +43,48 @@ public class GlobalExceptionHandler {
             request.getRequestURI()
         );
 
-        // Return the error response with HTTP 500 status code
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**
-     * Builds a detailed error message from exception including file and line number where the error originated,
-     * for easier troubleshooting.
-     * 
-     * @param ex The exception from which to extract information
-     * @return A formatted string with message, file name, and line number
+     * Handles custom AuthenticationException thrown when authentication fails.
+     * Returns HTTP 401 Unauthorized with error details.
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(HttpServletRequest request, AuthenticationException ex) {
+        logger.warn("Authentication failure at [{} {}]: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.UNAUTHORIZED.value(),
+            HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+            ex.getMessage(),
+            request.getRequestURI()
+        );
+
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
+    /**
+     * Handles JWT exceptions, e.g., invalid, expired, malformed tokens.
+     * Returns HTTP 401 Unauthorized to prompt re-authentication.
+     */
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ErrorResponse> handleJwtException(HttpServletRequest request, JwtException ex) {
+        logger.warn("JWT error at [{} {}]: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+
+        ErrorResponse error = new ErrorResponse(
+            HttpStatus.UNAUTHORIZED.value(),
+            HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+            "Invalid or expired JWT token",
+            request.getRequestURI()
+        );
+
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+
+    /**
+     * Builds a detailed error message from the exception including the file and line number 
+     * where the error originated, for easier troubleshooting.
      */
     private String buildErrorMessageWithSource(Exception ex) {
         StackTraceElement[] stack = ex.getStackTrace();
