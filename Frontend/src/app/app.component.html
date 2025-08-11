@@ -1,0 +1,48 @@
+<div class="min-h-screen flex flex-col bg-gray-50">
+  <!-- Header (will be hidden on login page) -->
+  @if (isAuthenticated) {
+    <header class="bg-indigo-600 text-white shadow">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+          <div class="flex items-center">
+            <div class="flex-shrink-0">
+              <h1 class="text-xl font-bold">Cab Management System</h1>
+            </div>
+            <nav class="hidden md:block ml-10">
+              <div class="flex space-x-4">
+                <a routerLink="/" class="px-3 py-2 rounded-md text-sm font-medium" 
+                   >
+                  Dashboard
+                </a>
+                <a routerLink="" class="px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Bookings
+                </a>
+              </div>
+            </nav>
+          </div>
+          <div class="flex items-center">
+            <button (click)="logout()" 
+                    class="px-4 py-2 text-sm bg-indigo-700 hover:bg-indigo-800 rounded-md">
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+  }
+
+  <!-- Main Content Area -->
+  <main class="flex-grow">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- Footer (hidden on login page) -->
+  @if (isAuthenticated) {
+    <footer class="bg-gray-800 text-white py-4">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-sm">
+        &copy; {{ currentYear }} Cab Management System. All rights reserved.
+      </div>
+    </footer>
+  }
+</div>
