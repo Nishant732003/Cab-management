@@ -1,21 +1,25 @@
 package com.cabbooking.config;
 
-import com.cabbooking.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-/**
- * Security configuration updated for JWT authentication.
- */
+import com.cabbooking.security.JwtAuthenticationFilter;
+
+import java.util.List;
+
 @Configuration
+@EnableWebSecurity // Good practice to be explicit
 public class SecurityConfig {
 
     @Autowired
@@ -28,28 +32,46 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
         http
-            .csrf(csrf -> csrf.ignoringRequestMatchers(
-                new AntPathRequestMatcher("/h2-console/**")
-            ).disable()
-            )
-            .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
-            .authorizeHttpRequests(authz -> authz
+                // 1. Disable CSRF
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // NEW way
+                // 2. Configure Authorization Rules
+                .authorizeHttpRequests(authz -> authz
                 .requestMatchers(
-                    "/api/login",
-                    "/api/customers/register",
-                    "/api/drivers/register",
-                    "/api/admins/register",
-                    "/h2-console/**",
-                    "/api/verify" // Allow verification endpoint public access if implemented
+                        "/api/login",
+                        "/api/customers/register",
+                        "/api/drivers/register",
+                        "/api/admins/register",
+                        "/api/admins/unverified", // Should be protected
+                        "/api/admins/{adminId}/verify", // Should be protected
+                        "/h2-console/**"
                 ).permitAll()
                 .anyRequest().authenticated()
-            )
-            // Disable HTTP Basic Authentication (no .httpBasic())
-            // Add JWT filter before UsernamePasswordAuthenticationFilter
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                )
+                // 3. Configure Session Management to be Stateless
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // 4. Add the JWT filter
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                // 5. Allow H2 console to be embedded in a frame (for development)
+                .headers(headers -> headers.frameOptions(frame -> frame.disable()));
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        // ✅ In development: allow all origins (change in production)
+        config.setAllowedOrigins(List.of("http://localhost:5173"));
+
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
+        config.setAllowCredentials(true); // allow cookies/auth headers if needed
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }
