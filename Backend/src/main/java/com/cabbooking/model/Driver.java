@@ -1,6 +1,9 @@
 package com.cabbooking.model;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 
 /**
  * Driver Entity:
@@ -37,7 +40,20 @@ public class Driver extends AbstractUser {
      */
     private Boolean verified = false;
 
+    // ==> ADD THIS RELATIONSHIP MAPPING <==
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "cab_id", referencedColumnName = "cabId")
+    private Cab cab;
+
     // ===== Getters and Setters =====
+
+    public Cab getCab() {
+        return cab;
+    }
+
+    public void setCab(Cab cab) {
+        this.cab = cab;
+    }
 
     /**
      * Gets the driver's license number.
