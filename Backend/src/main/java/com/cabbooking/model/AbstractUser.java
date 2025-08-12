@@ -52,6 +52,7 @@ public abstract class AbstractUser {
     /**
      * Email address of the user.
      */
+    @Column(unique = true, nullable = false)
     private String email;
 
     // ====== Getters and Setters =======
