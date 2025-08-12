@@ -24,23 +24,26 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/auth")
 public class AuthController {
     // SLF4J Logger instance for this controller
     // Useful for runtime monitoring and debugging
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
-    // LoginService instance is auto-injected by Spring's Dependency Injection.
-    // This service encapsulates the core authentication/business logic.
     @Autowired
     private LoginService loginService;
     
     @Autowired
     private LogoutService logoutService;
 
-    // Injected service responsible for business logic related to admin registration
     @Autowired
     private AdminRegistrationService adminRegistrationService;
+
+    @Autowired
+    private CustomerRegistrationService customerRegistrationService;
+
+    @Autowired
+    private DriverRegistrationService driverRegistrationService;
 
     /**
      * Handles POST requests to register a new admin.
@@ -91,10 +94,6 @@ public class AuthController {
         }
     }
 
-    // Service class injected by Spring to handle business logic for customer registration
-    @Autowired
-    private CustomerRegistrationService customerRegistrationService;
-
     /**
      * Endpoint to handle customer registration requests.
      * 
@@ -139,9 +138,6 @@ public class AuthController {
             return ResponseEntity.internalServerError().body("An error occurred");
         }
     }
-
-    @Autowired
-    private DriverRegistrationService driverRegistrationService;
 
     /**
      * Endpoint to handle driver registration.
@@ -224,6 +220,16 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(HttpServletRequest request) {
+        final String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            logoutService.blacklistToken(token);
+        }
+        return ResponseEntity.ok("Logged out successfully");
+    }
+
     /**
      * Health-check endpoint for quick verification that login controller is active.
      * 
@@ -246,15 +252,5 @@ public class AuthController {
 
         // Return status message
         return "Login controller is active";
-    }
-
-    @PostMapping("/logout")
-    public ResponseEntity<String> logout(HttpServletRequest request) {
-        final String authHeader = request.getHeader("Authorization");
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
-            logoutService.blacklistToken(token);
-        }
-        return ResponseEntity.ok("Logged out successfully");
     }
 }

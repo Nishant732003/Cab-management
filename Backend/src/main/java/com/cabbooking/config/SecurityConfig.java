@@ -5,7 +5,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -41,22 +40,12 @@ public class SecurityConfig {
                 // 2. Configure Authorization Rules
                 .authorizeHttpRequests(authz -> authz
                 .requestMatchers(
-                        "/api/login",
-                        "/api/customer/register",
-                        "/api/driver/register",
-                        "/api/admin/register",
-                        "/api/admin/unverified", // Should be protected
-                        "/api/admin/{adminId}/verify", // Should be protected
-                        "/h2-console/**"
+                        "/api/auth/**"
                 ).permitAll()
                 .anyRequest().authenticated()
                 )
-                // 3. Configure Session Management to be Stateless
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // 4. Add the JWT filter
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                // 5. Allow H2 console to be embedded in a frame (for development)
-                .headers(headers -> headers.frameOptions(frame -> frame.disable()));
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
