@@ -42,11 +42,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                 .requestMatchers(
                         "/api/login",
-                        "/api/customers/register",
-                        "/api/drivers/register",
-                        "/api/admins/register",
-                        "/api/admins/unverified", // Should be protected
-                        "/api/admins/{adminId}/verify", // Should be protected
+                        "/api/customer/register",
+                        "/api/driver/register",
+                        "/api/admin/register",
+                        "/api/admin/unverified", // Should be protected
+                        "/api/admin/{adminId}/verify", // Should be protected
                         "/h2-console/**"
                 ).permitAll()
                 .anyRequest().authenticated()
