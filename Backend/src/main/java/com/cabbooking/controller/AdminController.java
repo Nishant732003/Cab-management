@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/admin")
 @PreAuthorize("hasRole('Admin')") // Ensure only Admins can access these endpoints
@@ -18,11 +20,18 @@ public class AdminController {
     @Autowired
     private IDriverService driverService;
 
-    @PostMapping("/drivers/{driverId}/assign-cab/{cabId}")
-    public ResponseEntity<Driver> assignCab(@PathVariable int driverId, @PathVariable int cabId) {
-        Driver updatedDriver = driverService.assignCabToDriver(driverId, cabId);
-        return ResponseEntity.ok(updatedDriver);
+    // We will add other admin-specific endpoints here, like viewing best drivers, verifying drivers, etc.
+    // ==> ADD THESE NEW DRIVER VERIFICATION ENDPOINTS <==
+
+    @GetMapping("/drivers/unverified")
+    public ResponseEntity<List<Driver>> getUnverifiedDrivers() {
+        List<Driver> unverifiedDrivers = driverService.viewUnverifiedDrivers();
+        return ResponseEntity.ok(unverifiedDrivers);
     }
 
-    // We will add other admin-specific endpoints here, like viewing best drivers, verifying drivers, etc.
+    @PostMapping("/drivers/{driverId}/verify")
+    public ResponseEntity<Driver> verifyDriver(@PathVariable int driverId) {
+        Driver verifiedDriver = driverService.verifyDriver(driverId);
+        return ResponseEntity.ok(verifiedDriver);
+    }
 }
