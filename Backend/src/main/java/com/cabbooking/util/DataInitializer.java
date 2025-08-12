@@ -1,7 +1,9 @@
 package com.cabbooking.util;
 
 import com.cabbooking.model.Admin;
+import com.cabbooking.model.Cab;
 import com.cabbooking.repository.AdminRepository;
+import com.cabbooking.repository.CabRepository;
 import com.cabbooking.repository.CustomerRepository;
 import com.cabbooking.repository.DriverRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,24 +13,6 @@ import org.springframework.stereotype.Component;
 import com.cabbooking.model.Customer;
 import com.cabbooking.model.Driver;
 
-/**
- * DataInitializer is a Spring Component implementing CommandLineRunner to seed initial data
- * into the database when the Spring Boot application starts.
- * 
- * This class is useful for development and testing environments to ensure essential data
- * like the superadmin account and some sample users exist at startup.
- * 
- * Key Features:
- * - Creates a special superadmin user with username "harshit" if not already present.
- * - Adds a default unverified admin user if none exist.
- * - Creates sample customer and driver records for testing purposes.
- * - Passwords are securely hashed using the injected PasswordEncoder before saving.
- * 
- * IMPORTANT:
- * - This initializer runs on every application startup.
- * - It checks for existing entries before inserting to avoid duplicates.
- * - In production, you may want to disable this or use more sophisticated data migration tools.
- */
 @Component
 public class DataInitializer implements CommandLineRunner {
 
@@ -40,36 +24,22 @@ public class DataInitializer implements CommandLineRunner {
 
     @Autowired
     private DriverRepository driverRepo;
+    
+    @Autowired
+    private CabRepository cabRepo;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    /**
-     * Called by Spring Boot after the application context is loaded.
-     * Seeds initial data by checking and inserting base users.
-     *
-     * @param args Optional command line arguments
-     * @throws Exception if any error occurs during data seeding
-     */
     @Override
     public void run(String... args) throws Exception {
         // Seed superadmin user "harshit" with verified status
         if (adminRepo.findByUsername("harshit") == null) {
             Admin superadmin = new Admin();
             superadmin.setUsername("harshit");
-            // Hash the password securely before saving
-            superadmin.setPassword(passwordEncoder.encode("SuperSecret123")); // use a strong password here
+            superadmin.setPassword(passwordEncoder.encode("SuperSecret123"));
             superadmin.setVerified(true);
             adminRepo.save(superadmin);
-        }
-
-        // Seed a default admin if no admins exist in the system
-        if (adminRepo.count() == 0) {
-            Admin admin = new Admin();
-            admin.setUsername("admin");
-            admin.setPassword(passwordEncoder.encode("adminpass"));
-            admin.setVerified(false);  // default new admins are unverified
-            adminRepo.save(admin);
         }
 
         // Seed a sample customer if none exists
@@ -85,10 +55,18 @@ public class DataInitializer implements CommandLineRunner {
             Driver driver = new Driver();
             driver.setUsername("driver");
             driver.setPassword(passwordEncoder.encode("driverpass"));
-            driver.setLicenceNo("LIC123");   // sample license number
-            driver.setRating(4.5f);           // sample driver rating
-            driver.setVerified(false);        // unverified by default
+            driver.setLicenceNo("LIC123");
+            driver.setRating(4.5f);
+            driver.setVerified(true); // Set to true for testing booking
             driverRepo.save(driver);
+        }
+        
+        // Seed a sample cab
+        if (cabRepo.count() == 0) {
+            Cab cab = new Cab();
+            cab.setCarType("Sedan");
+            cab.setPerKmRate(15.0f);
+            cabRepo.save(cab);
         }
     }
 }
