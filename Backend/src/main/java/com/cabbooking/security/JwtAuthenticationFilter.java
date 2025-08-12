@@ -2,6 +2,7 @@ package com.cabbooking.security;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List; // Import List
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -13,6 +14,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.cabbooking.repository.BlacklistedTokenRepository;
 
+import io.jsonwebtoken.Claims; // Import Claims
+import io.jsonwebtoken.Jws; // Import Jws
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,12 +35,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+            HttpServletResponse response,
+            FilterChain filterChain) throws ServletException, IOException {
 
         final String header = request.getHeader("Authorization");
         String username = null;
-        String token;
+        String token = null;
 
         // JWT token is expected as: "Bearer <token>"
         if (header != null && header.startsWith("Bearer ")) {
@@ -63,12 +66,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // If username extracted from token and SecurityContext not yet authenticated
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            // Create a simple GrantedAuthority - here a default ROLE_USER assigned.
-            // You can adapt your JWT token to include user roles if you wish.
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(
+            // Extract claims to get the role
+            Jws<Claims> claims = jwtUtil.getClaimsFromJWT(token);
+            String role = claims.getPayload().get("role", String.class);
+
+            // ==> THIS IS THE FIX <==
+            // Create a list of authorities from the role, ADDING the 'ROLE_' prefix.
+            List<SimpleGrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
+
+            // Create the authentication token with the authorities
+            UsernamePasswordAuthenticationToken authentication
+                    = new UsernamePasswordAuthenticationToken(
                             username, null,
-                            Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+                            authorities // Use the corrected authorities list
                     );
 
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

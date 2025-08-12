@@ -24,12 +24,13 @@ public class JwtUtil {
     // Create a reusable, thread-safe parser instance
     private final JwtParser jwtParser = Jwts.parser().verifyWith(jwtSecret).build();
 
-    public String generateToken(String username) {
+    public String generateToken(String username, String role) {
         Instant now = Instant.now();
         Instant expiry = now.plusMillis(jwtExpirationInMs);
 
         return Jwts.builder()
                 .subject(username)
+                .claim("role", role) // Add role as a claim
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiry))
                 .signWith(jwtSecret)
@@ -51,4 +52,11 @@ public class JwtUtil {
             return false;
         }
     }
-}
+
+    // Add this new method
+    public Jws<Claims> getClaimsFromJWT(String token) {
+        return jwtParser.parseSignedClaims(token);
+    }
+
+    }
+            

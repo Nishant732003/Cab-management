@@ -89,7 +89,7 @@ public class LoginServiceImpl implements LoginService {
             if (passwordEncoder.matches(request.getPassword(), admin.getPassword())) {
                 logger.info("Admin authentication successful for username: {}", request.getUsername());
 
-                String token = jwtUtil.generateToken(admin.getUsername());
+                String token = jwtUtil.generateToken(admin.getUsername(), "Admin");
                 return new LoginResponse("Admin login successful", admin.getId(), "Admin", token);
             } else {
                 logger.warn("Admin authentication failed - invalid password for username: {}", request.getUsername());
@@ -103,7 +103,7 @@ public class LoginServiceImpl implements LoginService {
             if (passwordEncoder.matches(request.getPassword(), driver.getPassword())) {
                 logger.info("Driver authentication successful for username: {}", request.getUsername());
 
-                String token = jwtUtil.generateToken(driver.getUsername());
+                String token = jwtUtil.generateToken(driver.getUsername(), "Driver");
                 return new LoginResponse("Driver login successful", driver.getId(), "Driver", token);
             } else {
                 logger.warn("Driver authentication failed - invalid password for username: {}", request.getUsername());
@@ -117,7 +117,7 @@ public class LoginServiceImpl implements LoginService {
             if (passwordEncoder.matches(request.getPassword(), customer.getPassword())) {
                 logger.info("Customer authentication successful for username: {}", request.getUsername());
 
-                String token = jwtUtil.generateToken(customer.getUsername());
+                String token = jwtUtil.generateToken(customer.getUsername(), "Customer");
                 return new LoginResponse("Customer login successful", customer.getId(), "Customer", token);
             } else {
                 logger.warn("Customer authentication failed - invalid password for username: {}", request.getUsername());
