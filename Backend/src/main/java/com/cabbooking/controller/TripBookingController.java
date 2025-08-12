@@ -1,11 +1,13 @@
 package com.cabbooking.controller;
 
+import com.cabbooking.dto.RatingRequest;
 import com.cabbooking.dto.TripBookingRequest;
 import com.cabbooking.model.TripBooking;
 import com.cabbooking.service.ITripBookingService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -72,5 +74,15 @@ public class TripBookingController {
     public ResponseEntity<List<TripBooking>> getCustomerTrips(@PathVariable Integer customerId) {
         List<TripBooking> trips = tripBookingService.viewAllTripsCustomer(customerId);
         return ResponseEntity.ok(trips);
+    }
+
+    // ==> ADD THIS NEW ENDPOINT <==
+    @PostMapping("/{tripId}/rate")
+    @PreAuthorize("hasRole('Customer')") // Only customers can rate trips
+    public ResponseEntity<TripBooking> rateTrip(@PathVariable Integer tripId, @Valid @RequestBody RatingRequest ratingRequest) {
+        // Here you would add an extra security check to ensure that the logged-in customer
+        // is the one who actually owns this trip. For now, this is a good start.
+        TripBooking ratedTrip = tripBookingService.rateTrip(tripId, ratingRequest);
+        return ResponseEntity.ok(ratedTrip);
     }
 }

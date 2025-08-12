@@ -1,11 +1,9 @@
 package com.cabbooking.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToOne;
 
 @Entity
 public class Cab {
@@ -18,9 +16,7 @@ public class Cab {
 
     private Float perKmRate;
 
-    @OneToOne(mappedBy = "cab")
-    @JsonIgnore // Prevents infinite loops when serializing
-    private Driver driver;
+    private Boolean isAvailable;
 
     // --- Getters and Setters ---
 
@@ -48,11 +44,11 @@ public class Cab {
         this.perKmRate = perKmRate;
     }
 
-    public Driver getDriver() {
-        return driver;
+    public Boolean getIsAvailable() {
+        return isAvailable;
     }
 
-    public void setDriver(Driver driver) {
-        this.driver = driver;
+    public void setIsAvailable(Boolean isAvailable) {
+        this.isAvailable = isAvailable;
     }
 }

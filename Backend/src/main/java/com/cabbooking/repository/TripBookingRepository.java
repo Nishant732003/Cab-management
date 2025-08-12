@@ -20,5 +20,6 @@ public interface TripBookingRepository extends JpaRepository<TripBooking, Intege
      * @param customerId The ID of the customer whose trips are to be retrieved.
      * @return A list of {@link TripBooking} entities.
      */
-    List<TripBooking> findByCustomerId(Integer customerId);
+    // Correct way to query by the ID of the nested Customer object
+    List<TripBooking> findByCustomer_Id(Integer customerId);
 }

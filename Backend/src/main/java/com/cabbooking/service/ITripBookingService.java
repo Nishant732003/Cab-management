@@ -1,5 +1,6 @@
 package com.cabbooking.service;
 
+import com.cabbooking.dto.RatingRequest;
 import com.cabbooking.dto.TripBookingRequest;
 import com.cabbooking.model.TripBooking;
 
@@ -44,4 +45,7 @@ public interface ITripBookingService {
      * @return A list of {@link TripBooking} entities representing the customer's trip history.
      */
     List<TripBooking> viewAllTripsCustomer(Integer customerId);
+
+    // ==> ADD THIS NEW METHOD <==
+    TripBooking rateTrip(Integer tripId, RatingRequest ratingRequest);
 }

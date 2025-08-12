@@ -86,6 +86,9 @@ public class TripBooking {
      */
     private float bill;
 
+    // ==> ADD THIS NEW FIELD <==
+    private Integer customerRating;
+
     // Getters and Setters
 
     public Integer getTripBookingId() {
@@ -174,5 +177,13 @@ public class TripBooking {
 
     public void setBill(float bill) {
         this.bill = bill;
+    }
+
+    public Integer getCustomerRating() {
+        return customerRating;
+    }
+
+    public void setCustomerRating(Integer customerRating) {
+        this.customerRating = customerRating;
     }
 }
