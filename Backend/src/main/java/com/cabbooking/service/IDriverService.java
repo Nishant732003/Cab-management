@@ -7,7 +7,10 @@ import java.util.List;
 public interface IDriverService {
     // We will add other methods like insertDriver, updateDriver later...
 
-    Driver assignCabToDriver(int driverId, int cabId);
-
     List<Driver> viewBestDrivers();
+
+    // ==> ADD THESE NEW METHODS <==
+    List<Driver> viewUnverifiedDrivers();
+
+    Driver verifyDriver(int driverId);
 }

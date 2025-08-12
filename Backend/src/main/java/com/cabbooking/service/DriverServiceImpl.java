@@ -16,26 +16,6 @@ public class DriverServiceImpl implements IDriverService {
     @Autowired
     private DriverRepository driverRepository;
 
-    @Autowired
-    private CabRepository cabRepository;
-
-    @Override
-    public Driver assignCabToDriver(int driverId, int cabId) {
-        // 1. Find the driver
-        Driver driver = driverRepository.findById(driverId)
-                .orElseThrow(() -> new IllegalArgumentException("Driver not found with id: " + driverId));
-
-        // 2. Find the cab
-        Cab cab = cabRepository.findById(cabId)
-                .orElseThrow(() -> new IllegalArgumentException("Cab not found with id: " + cabId));
-
-        // 3. Assign the cab to the driver
-        driver.setCab(cab);
-
-        // 4. Save the updated driver record
-        return driverRepository.save(driver);
-    }
-
     @Override
     public List<Driver> viewBestDrivers() {
         // As per the PDF, best drivers have a rating of 4.5 or higher
@@ -45,4 +25,21 @@ public class DriverServiceImpl implements IDriverService {
     }
 
     // We will implement other driver-related methods here later...
+    // ==> ADD IMPLEMENTATION FOR THE NEW METHODS <==
+
+    @Override
+    public List<Driver> viewUnverifiedDrivers() {
+        return driverRepository.findAll().stream()
+                .filter(driver -> driver.getVerified() != null && !driver.getVerified())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Driver verifyDriver(int driverId) {
+        Driver driver = driverRepository.findById(driverId)
+                .orElseThrow(() -> new IllegalArgumentException("Driver not found with id: " + driverId));
+        
+        driver.setVerified(true);
+        return driverRepository.save(driver);
+    }
 }
