@@ -26,15 +26,29 @@ To start the server, follow these steps:
 
 The backend provides the following API endpoints:
 
-1. **Authentication APIs**
-	* `POST /api/admins/register`: Registration endpoint for new admins
-    * `POST /api/drivers/register`: Registration endpoint for new drivers
-    * `POST /api/customers/register`: Registration endpoint for new customers
-	* `POST /api/login`: Login endpoint for users
-    * `POST /api/logout`: Logout endpoint for users
-2. **Admin Verification**
-	* `GET /api/admins/unverified`: Get all unverified admin accounts
-	* `POST /api/admins/{adminId}/verify`: Verify an admin account
+1. **Auth APIs**
+   - `POST /api/auth/register/admin`: Registration endpoint for new admins
+   - `POST /api/auth/register/driver`: Registration endpoint for new drivers
+   - `POST /api/auth/register/customer`: Registration endpoint for new customers
+   - `POST /api/auth/login`: Login endpoint for users
+   - `POST /api/auth/logout`: Logout endpoint for users
+2. **Cab APIs**
+   - `POST /api/cabs/add`: Add a new Cab
+   - `PUT /api/cabs/update`: Update existing Cab details
+   - `DELETE /api/cabs/delete/{cabId}`: Delete existing Cab
+   - `GET /api/cabs/view/{carType}`: Get all Cabs of a particular carType
+   - `GET /api/cabs/count/{carType}`: Get count of all Cabs of a particular carType
+3. **Trip Booking APIs**
+   - `POST /api/trips/book`: Book a new Trip from a source to destination
+   - `PUT /api/trips/{tripId}/status?status=status`: Change the status of a trip
+   - `PUT /api/trips/{tripId}/complete`: Complete/End a trip
+   - `GET /api/trips/customer/{customerId}`: Get all trips of a customer
+   - `POST /api/trips/{tripId}/rate`: Rate a trip
+4. **Admin APIs**
+   - `GET /api/admin/unverified/drivers`: Get list of all unverified drivers
+   - `POST /api/admin/verify/drivers/{driverId}`: Verify a driver
+   - `GET /api/admin/unverified/admins`: Get list of all unverified admins
+   - `POST /api/admin/verify/admins/{adminId}`: Verify an admin
 
 **Security**
 
