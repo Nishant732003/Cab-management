@@ -3,7 +3,7 @@ package com.cabbooking.service;
 import com.cabbooking.dto.AdminRegistrationRequest;
 import com.cabbooking.model.Admin;
 
-public interface AdminRegistrationService {
+public interface IAdminRegistrationService {
 
     /**
      * Registers a new admin with verified=false by default.

@@ -6,7 +6,7 @@ import com.cabbooking.model.Driver;
 /**
  * Service interface for driver registration.
  */
-public interface DriverRegistrationService {
+public interface IDriverRegistrationService {
 
     /**
      * Registers a new driver account with unverified status.

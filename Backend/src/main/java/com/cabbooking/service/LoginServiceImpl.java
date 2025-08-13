@@ -17,7 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Implementation of the LoginService interface.
+ * Implementation of the ILoginService interface.
  * 
  * This service is responsible for authenticating users of various types:
  * - Admin
@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
  * - Logs login attempts, successes, and failures for monitoring and debugging.
  */
 @Service
-public class LoginServiceImpl implements LoginService {
+public class LoginServiceImpl implements ILoginService {
 
     private static final Logger logger = LoggerFactory.getLogger(LoginServiceImpl.class);
 

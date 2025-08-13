@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 /**
- * Implementation of the CustomerRegistrationService interface.
+ * Implementation of the ICustomerRegistrationService interface.
  * 
  * This service manages the business logic related to registering new Customer accounts.
  * 
@@ -23,7 +23,7 @@ import java.util.Optional;
  * can be injected into controllers or other services.
  */
 @Service
-public class CustomerRegistrationServiceImpl implements CustomerRegistrationService {
+public class CustomerRegistrationServiceImpl implements ICustomerRegistrationService {
 
     /**
      * Repository used to access and persist Customer entities.

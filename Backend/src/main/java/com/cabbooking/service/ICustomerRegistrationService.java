@@ -6,7 +6,7 @@ import com.cabbooking.model.Customer;
 /**
  * Service interface for customer registration.
  */
-public interface CustomerRegistrationService {
+public interface ICustomerRegistrationService {
 
     /**
      * Register a new customer.

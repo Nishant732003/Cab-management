@@ -4,7 +4,7 @@ import com.cabbooking.dto.LoginRequest;
 import com.cabbooking.dto.LoginResponse;
 
 /**
- * LoginService interface defines the contract for all login-related business logic.
+ * ILoginService interface defines the contract for all login-related business logic.
  * 
  * Any implementation of this interface should handle user authentication,
  * validating credentials provided in LoginRequest, and returning an appropriate
@@ -13,7 +13,7 @@ import com.cabbooking.dto.LoginResponse;
  * This abstraction promotes loose coupling, easier testing, and flexibility
  * to swap implementations (e.g., with JWT, OAuth).
  */
-public interface LoginService {
+public interface ILoginService {
 
     /**
      * Validates user credentials for authentication.

@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Service interface for superadmin actions related to verifying admin accounts.
  */
-public interface AdminVerificationService {
+public interface IAdminVerificationService {
 
     /**
      * Lists all admins that are not yet verified (verified == false)

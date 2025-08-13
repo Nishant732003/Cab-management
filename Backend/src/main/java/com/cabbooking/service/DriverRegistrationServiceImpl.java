@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 /**
- * Implementation of the DriverRegistrationService interface.
+ * Implementation of the IDriverRegistrationService interface.
  * 
  * This service handles the business logic for registering new drivers into the system.
  * 
@@ -36,7 +36,7 @@ import java.util.Optional;
  * - Password hashing ensures security of stored credentials.
  */
 @Service
-public class DriverRegistrationServiceImpl implements DriverRegistrationService {
+public class DriverRegistrationServiceImpl implements IDriverRegistrationService {
 
     /**
      * Repository to handle CRUD operations for Driver entities.

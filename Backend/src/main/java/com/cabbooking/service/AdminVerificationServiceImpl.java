@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * Service implementation class for the AdminVerificationService interface.
+ * Service implementation class for the IAdminVerificationService interface.
  *
  * Responsible for managing verification status of Admin accounts,
  * specifically:
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  * This service interacts directly with the AdminRepository to perform database operations.
  */
 @Service
-public class AdminVerificationServiceImpl implements AdminVerificationService {
+public class AdminVerificationServiceImpl implements IAdminVerificationService {
 
     /**
      * Repository used for CRUD operations on Admin entities.

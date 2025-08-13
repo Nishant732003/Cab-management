@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 /**
- * Implementation of the AdminRegistrationService interface.
+ * Implementation of the IAdminRegistrationService interface.
  * 
  * This service handles the business logic for registering new Admin users
  * into the system. It performs necessary validations such as checking for
@@ -24,7 +24,7 @@ import java.util.Optional;
  * - PasswordEncoder for securely hashing admin passwords.
  */
 @Service
-public class AdminRegistrationServiceImpl implements AdminRegistrationService {
+public class AdminRegistrationServiceImpl implements IAdminRegistrationService {
 
     // AdminRepository handles CRUD and query operations for Admin entities
     @Autowired
