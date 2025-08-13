@@ -5,7 +5,7 @@ import java.util.Date;
 
 import javax.crypto.SecretKey;
 
-import org.springframework.stereotype.Component; // Import JwtParser
+import org.springframework.stereotype.Component;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -14,38 +14,70 @@ import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
+/**
+ * A utility component for handling JSON Web Tokens (JWTs).
+ *
+ * Main Responsibilities:
+ * - Generating new JWTs for authenticated users.
+ * - Parsing and validating incoming JWTs.
+ * - Extracting claims (like username and role) from tokens.
+ *
+ * Workflow:
+ * - After a user successfully logs in, the `LoginService` calls `generateToken` to create a JWT.
+ * - For every subsequent request to a protected endpoint, the `JwtAuthenticationFilter` uses this utility
+ * to validate the token and extract user details.
+ */
 @Component
 public class JwtUtil {
 
+    // A secure, private key used to sign and verify all JWTs.
     private final SecretKey jwtSecret = Keys.hmacShaKeyFor("your-256-bit-secret-your-256-bit-secret".getBytes());
 
+    // The validity duration for a token, set to 24 hours in milliseconds.
     private final long jwtExpirationInMs = 24 * 60 * 60 * 1000;
 
-    // Create a reusable, thread-safe parser instance
+    // A pre-built, reusable, and thread-safe parser instance for efficiency.
     private final JwtParser jwtParser = Jwts.parser().verifyWith(jwtSecret).build();
 
+    /**
+     * Generates a new JWT for a given user.
+     *
+     * @param username The username of the user for whom the token is generated.
+     * @param role The role of the user (e.g., "Admin", "Customer"), which is added as a custom claim.
+     * @return A compact, URL-safe JWT string.
+     */
     public String generateToken(String username, String role) {
         Instant now = Instant.now();
         Instant expiry = now.plusMillis(jwtExpirationInMs);
 
         return Jwts.builder()
                 .subject(username)
-                .claim("role", role) // Add role as a claim
+                .claim("role", role) // Add the user's role as a custom claim
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiry))
                 .signWith(jwtSecret)
                 .compact();
     }
 
+    /**
+     * Extracts the username (subject) from a given JWT.
+     *
+     * @param token The JWT string to parse.
+     * @return The username contained within the token.
+     */
     public String getUsernameFromJWT(String token) {
-        // Use the pre-built parser
         Jws<Claims> claims = jwtParser.parseSignedClaims(token);
         return claims.getPayload().getSubject();
     }
 
+    /**
+     * Validates a JWT to ensure it has not been tampered with and has not expired.
+     *
+     * @param token The JWT string to validate.
+     * @return True if the token is valid, false otherwise.
+     */
     public boolean validateToken(String token) {
         try {
-            // Use the pre-built parser
             jwtParser.parse(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
@@ -53,10 +85,14 @@ public class JwtUtil {
         }
     }
 
-    // Add this new method
+    /**
+     * Parses the JWT and returns the full set of claims.
+     * This is used to extract custom data like the user's role.
+     *
+     * @param token The JWT string to parse.
+     * @return A Jws object containing all the token's claims.
+     */
     public Jws<Claims> getClaimsFromJWT(String token) {
         return jwtParser.parseSignedClaims(token);
     }
-
-    }
-            
+}
