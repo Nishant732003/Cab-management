@@ -105,4 +105,19 @@ public class CabController {
         int count = cabService.countCabsOfType(carType);
         return ResponseEntity.ok(count);
     }
+
+    /**
+     * Endpoint to get the details of a specific cab by its ID.
+     *
+     * GET /api/cabs/{cabId}
+     *
+     * @param cabId The unique ID of the cab to retrieve.
+     * @return A ResponseEntity containing the Cab object if found, or a 404 Not Found response.
+     */
+    @GetMapping("/{cabId}")
+    public ResponseEntity<Cab> getCabById(@PathVariable int cabId) {
+        return cabService.viewCab(cabId)
+                .map(cab -> ResponseEntity.ok(cab)) // If cab is found, wrap it in a 200 OK response
+                .orElse(ResponseEntity.notFound().build()); // If not found, return a 404 Not Found
+    }
 }

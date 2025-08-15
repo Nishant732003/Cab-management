@@ -1,16 +1,27 @@
 package com.cabbooking.controller;
 
-import com.cabbooking.dto.RatingRequest;
-import com.cabbooking.dto.TripBookingRequest;
-import com.cabbooking.model.TripBooking;
-import com.cabbooking.service.ITripBookingService;
-import jakarta.validation.Valid;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.cabbooking.dto.FareEstimateResponse;
+import com.cabbooking.dto.RatingRequest;
+import com.cabbooking.dto.TripBookingRequest;
+import com.cabbooking.model.TripBooking;
+import com.cabbooking.service.ICabService;
+import com.cabbooking.service.ITripBookingService;
+
+import jakarta.validation.Valid;
 
 /**
  * REST Controller for handling all HTTP requests related to Trip Bookings.
@@ -25,6 +36,23 @@ public class TripBookingController {
 
     @Autowired
     private ITripBookingService tripBookingService;
+
+    @Autowired
+    private ICabService cabService;
+    
+    /**
+     * Endpoint to get a list of fare estimates for all available car types.
+     * Customers can use this to see the price range for their trip across all options.
+     *
+     * @param distance The estimated distance of the trip in kilometers.
+     * @return A ResponseEntity containing a list of fare estimates.
+     */
+    @GetMapping("/estimate")
+    @PreAuthorize("hasRole('Customer')")
+    public ResponseEntity<List<FareEstimateResponse>> getFareEstimates(@RequestParam float distance) {
+        List<FareEstimateResponse> estimates = cabService.getAllFareEstimates(distance);
+        return ResponseEntity.ok(estimates);
+    }
 
     /**
      * Endpoint for a customer to book a new trip.

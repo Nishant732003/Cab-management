@@ -1,7 +1,9 @@
 package com.cabbooking.service;
 
 import java.util.List;
+import java.util.Optional;
 
+import com.cabbooking.dto.FareEstimateResponse;
 import com.cabbooking.model.Cab;
 
 /**
@@ -56,4 +58,20 @@ public interface ICabService {
      * @return The total number of cabs found for the given type.
      */
     int countCabsOfType(String carType);
+
+    /**
+     * Calculates fare estimates for all available car types for a given distance.
+     *
+     * @param distance The distance of the trip in kilometers.
+     * @return A list of FareEstimateResponse DTOs, one for each available car type.
+     */
+    List<FareEstimateResponse> getAllFareEstimates(float distance);
+
+    /**
+     * Retrieves a single cab by its unique ID.
+     *
+     * @param cabId The ID of the cab to retrieve.
+     * @return An Optional containing the Cab if found, otherwise empty.
+     */
+    Optional<Cab> viewCab(int cabId);
 }
