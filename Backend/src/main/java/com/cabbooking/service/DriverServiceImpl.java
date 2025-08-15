@@ -2,9 +2,12 @@ package com.cabbooking.service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.cabbooking.model.Driver;
 import com.cabbooking.repository.DriverRepository;
@@ -27,6 +30,9 @@ public class DriverServiceImpl implements IDriverService {
     // Repository for handling database operations for Driver entities.
     @Autowired
     private DriverRepository driverRepository;
+
+    @Autowired
+    private IFileUploadService fileUploadService;
 
     /**
      * Retrieves a list of the best-performing drivers.
@@ -82,5 +88,64 @@ public class DriverServiceImpl implements IDriverService {
         
         driver.setVerified(true);
         return driverRepository.save(driver);
+    }
+
+    /*
+     * Uploads a profile photo for a driver and updates their record.
+     *
+     * Workflow:
+     * - Finds the driver by their unique ID.
+     * - Throws an exception if no driver is found.
+     * - Uses the IFileUploadService to upload the file and get its unique filename.
+     * - Constructs the API path to serve the file and sets it on the driver's profile.
+     * - Saves the updated driver entity back to the database.
+     *
+     * @param driverId The ID of the driver.
+     * @param file The image file to upload.
+     * @return The updated Driver object with the new photo URL.
+     * @throws IOException if the file upload fails.
+     */
+    @Override
+    public Driver uploadProfilePhoto(int driverId, MultipartFile file) throws IOException {
+        // 1. Find the driver
+        Driver driver = driverRepository.findById(driverId)
+                .orElseThrow(() -> new IllegalArgumentException("Driver not found..."));
+
+        // 2. Upload the file and get its unique filename
+        String fileName = fileUploadService.uploadFile(file);
+
+        // 3. Construct the API path to serve the file and set it on the driver
+        String fileApiUrl = "/api/files/" + fileName;
+        driver.setProfilePhotoUrl(fileApiUrl);
+        
+        return driverRepository.save(driver);
+    }
+
+    @Override
+    @Transactional
+    public Driver removeProfilePhoto(int driverId) throws IOException {
+        // 1. Find the driver
+        Driver driver = driverRepository.findById(driverId)
+                .orElseThrow(() -> new IllegalArgumentException("Driver not found with id: " + driverId));
+        
+        String photoUrl = driver.getProfilePhotoUrl();
+
+        // 2. Check if a photo URL exists
+        if (photoUrl != null && !photoUrl.isEmpty()) {
+            // Extract the filename from the URL (e.g., from "/api/files/image.jpg")
+            String fileName = photoUrl.substring(photoUrl.lastIndexOf('/') + 1);
+            
+            // 3. Delete the physical file
+            fileUploadService.deleteFile(fileName);
+            
+            // 4. Clear the URL from the driver's record
+            driver.setProfilePhotoUrl(null);
+            
+            // 5. Save the updated driver
+            return driverRepository.save(driver);
+        }
+        
+        // If no photo existed, just return the driver as is
+        return driver;
     }
 }
