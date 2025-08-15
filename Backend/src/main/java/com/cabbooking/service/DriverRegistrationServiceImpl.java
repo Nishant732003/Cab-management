@@ -1,13 +1,16 @@
 package com.cabbooking.service;
 
-import com.cabbooking.dto.DriverRegistrationRequest;
-import com.cabbooking.model.Driver;
-import com.cabbooking.repository.DriverRepository;
+// import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import com.cabbooking.dto.DriverRegistrationRequest;
+import com.cabbooking.model.Driver;
+import com.cabbooking.repository.DriverRepository;
+import com.cabbooking.repository.AdminRepository;
+import com.cabbooking.repository.CustomerRepository;
 
 /**
  * Implementation of the IDriverRegistrationService interface.
@@ -39,8 +42,15 @@ import java.util.Optional;
 public class DriverRegistrationServiceImpl implements IDriverRegistrationService {
 
     /**
-     * Repository to handle CRUD operations for Driver entities.
+     * Repository to handle CRUD operations for Admin, Customer and Driver entities.
+     * Provides methods to check for existing usernames and emails.
      */
+    @Autowired
+    private AdminRepository adminRepository;
+
+    @Autowired
+    private CustomerRepository customerRepository;
+
     @Autowired
     private DriverRepository driverRepository;
 
@@ -59,18 +69,20 @@ public class DriverRegistrationServiceImpl implements IDriverRegistrationService
      */
     @Override
     public Driver registerDriver(DriverRegistrationRequest request) {
-        // Check if requested username already exists
-        Optional<Driver> existingDriverByUsername = Optional.ofNullable(
-            driverRepository.findByUsername(request.getUsername())
-        );
-        if (existingDriverByUsername.isPresent()) {
+        // // Check if requested username already exists
+        // Optional<Driver> existingDriverByUsername = Optional.ofNullable(
+        //     driverRepository.findByUsername(request.getUsername())
+        // );
+        // if (existingDriverByUsername.isPresent()) {
+        //     throw new IllegalArgumentException("Username is already taken.");
+        // }
+
+        if (adminRepository.existsByUsername(request.getUsername()) || customerRepository.existsByUsername(request.getUsername()) || driverRepository.existsByUsername(request.getUsername())) {
             throw new IllegalArgumentException("Username is already taken.");
         }
 
-        // Check if email already registered (ignoring case and null)
-        boolean emailExists = driverRepository.findAll().stream()
-            .anyMatch(d -> d.getEmail() != null && d.getEmail().equalsIgnoreCase(request.getEmail()));
-        if (emailExists) {
+        // Check if email already registered at the database level
+        if (adminRepository.existsByEmail(request.getEmail()) || customerRepository.existsByEmail(request.getEmail()) || driverRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email is already registered.");
         }
 

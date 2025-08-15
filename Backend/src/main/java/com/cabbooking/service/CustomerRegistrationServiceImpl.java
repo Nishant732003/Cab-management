@@ -1,13 +1,16 @@
 package com.cabbooking.service;
 
-import com.cabbooking.dto.CustomerRegistrationRequest;
-import com.cabbooking.model.Customer;
-import com.cabbooking.repository.CustomerRepository;
+// import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import com.cabbooking.dto.CustomerRegistrationRequest;
+import com.cabbooking.model.Customer;
+import com.cabbooking.repository.CustomerRepository;
+import com.cabbooking.repository.AdminRepository;
+import com.cabbooking.repository.DriverRepository;
 
 /**
  * Implementation of the ICustomerRegistrationService interface.
@@ -26,11 +29,17 @@ import java.util.Optional;
 public class CustomerRegistrationServiceImpl implements ICustomerRegistrationService {
 
     /**
-     * Repository used to access and persist Customer entities.
-     * Provides CRUD and query methods for customer data.
+     * Repository to handle CRUD operations for Admin, Customer and Driver entities.
+     * Provides methods to check for existing usernames and emails.
      */
     @Autowired
+    private AdminRepository adminRepository;
+
+    @Autowired
     private CustomerRepository customerRepository;
+
+    @Autowired
+    private DriverRepository driverRepository;
 
     /**
      * PasswordEncoder provided by Spring Security.
@@ -60,18 +69,20 @@ public class CustomerRegistrationServiceImpl implements ICustomerRegistrationSer
      */
     @Override
     public Customer registerCustomer(CustomerRegistrationRequest request) {
-        // Validate username uniqueness
-        Optional<Customer> existingUserByUsername = Optional.ofNullable(
-            customerRepository.findByUsername(request.getUsername())
-        );
-        if (existingUserByUsername.isPresent()) {
+        // // Validate username uniqueness
+        // Optional<Customer> existingUserByUsername = Optional.ofNullable(
+        //     customerRepository.findByUsername(request.getUsername())
+        // );
+        // if (existingUserByUsername.isPresent()) {
+        //     throw new IllegalArgumentException("Username is already taken.");
+        // }
+
+        if (adminRepository.existsByUsername(request.getUsername()) || customerRepository.existsByUsername(request.getUsername()) || driverRepository.existsByUsername(request.getUsername())) {
             throw new IllegalArgumentException("Username is already taken.");
         }
 
-        // Validate email uniqueness (inefficient in-memory approach)
-        boolean emailExists = customerRepository.findAll().stream()
-            .anyMatch(c -> c.getEmail() != null && c.getEmail().equalsIgnoreCase(request.getEmail()));
-        if (emailExists) {
+        // Validate email uniqueness at the database level
+        if (adminRepository.existsByEmail(request.getEmail()) || customerRepository.existsByEmail(request.getEmail()) || driverRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email is already registered.");
         }
 
