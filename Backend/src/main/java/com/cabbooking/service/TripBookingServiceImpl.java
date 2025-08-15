@@ -1,26 +1,30 @@
 package com.cabbooking.service;
 
-import com.cabbooking.dto.RatingRequest;
-import com.cabbooking.dto.TripBookingRequest;
-import com.cabbooking.exception.AuthenticationException;
-import com.cabbooking.model.*;
-import com.cabbooking.repository.CustomerRepository;
-import com.cabbooking.repository.DriverRepository;
-import com.cabbooking.repository.TripBookingRepository;
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.cabbooking.dto.RatingRequest;
+import com.cabbooking.dto.TripBookingRequest;
+import com.cabbooking.exception.AuthenticationException;
+import com.cabbooking.model.Cab;
+import com.cabbooking.model.Customer;
+import com.cabbooking.model.Driver;
+import com.cabbooking.model.TripBooking;
+import com.cabbooking.model.TripStatus;
 import com.cabbooking.repository.CabRepository;
-import java.util.Comparator;
-
-import java.time.LocalDateTime;
-import java.util.List;
+import com.cabbooking.repository.CustomerRepository;
+import com.cabbooking.repository.DriverRepository;
+import com.cabbooking.repository.TripBookingRepository;
 
 /**
- * Implementation of the {@link ITripBookingService} interface.
- * This class contains the core business logic for managing trip bookings.
- * It coordinates between different repositories to create and manage trip data.
+ * Implementation of the {@link ITripBookingService} interface. This class
+ * contains the core business logic for managing trip bookings. It coordinates
+ * between different repositories to create and manage trip data.
  */
 @Service
 public class TripBookingServiceImpl implements ITripBookingService {
@@ -40,7 +44,8 @@ public class TripBookingServiceImpl implements ITripBookingService {
     /**
      * Handles the logic for booking a new trip.
      *
-     * @param tripBookingRequest The request from the customer containing trip details.
+     * @param tripBookingRequest The request from the customer containing trip
+     * details.
      * @return The saved {@link TripBooking} object.
      * @throws AuthenticationException if the customer ID is invalid.
      * @throws RuntimeException if no drivers or cabs are available.
@@ -83,26 +88,70 @@ public class TripBookingServiceImpl implements ITripBookingService {
         newTrip.setStatus(TripStatus.CONFIRMED);
         newTrip.setFromDateTime(LocalDateTime.now());
 
-
         return tripBookingRepository.save(newTrip);
     }
 
     /**
-     * Updates the status of a trip.
+     * Updates the status of a trip according to predefined business rules.
      *
      * @param tripId The ID of the trip.
-     * @param status The new status as a string.
+     * @param newStatusStr The new status as a string (e.g., "IN_PROGRESS",
+     * "CANCELLED").
      * @return The updated trip.
+     * @throws IllegalStateException if the status transition is not allowed.
      */
     @Override
-    public TripBooking updateTripStatus(Integer tripId, String status) {
+    @Transactional
+    public TripBooking updateTripStatus(Integer tripId, String newStatusStr) {
+        // 1. Find the trip or throw an exception if it doesn't exist.
         TripBooking trip = tripBookingRepository.findById(tripId)
                 .orElseThrow(() -> new RuntimeException("Trip not found with ID: " + tripId));
-        // Convert the string status to the TripStatus enum
-        trip.setStatus(TripStatus.valueOf(status.toUpperCase()));
+
+        TripStatus newStatus = TripStatus.valueOf(newStatusStr.toUpperCase());
+        TripStatus currentStatus = trip.getStatus();
+
+        // 2. Apply the business rules for status transitions.
+        switch (currentStatus) {
+            case CONFIRMED:
+                if (newStatus == TripStatus.IN_PROGRESS || newStatus == TripStatus.CANCELLED) {
+                    trip.setStatus(newStatus);
+                } else {
+                    throw new IllegalStateException("A confirmed trip can only be moved to IN_PROGRESS or CANCELLED.");
+                }
+                break;
+
+            case IN_PROGRESS:
+                if (newStatus == TripStatus.CANCELLED) {
+                    trip.setStatus(newStatus);
+                } else {
+                    throw new IllegalStateException("An in-progress trip can only be CANCELLED.");
+                }
+                break;
+
+            case COMPLETED:
+            case CANCELLED:
+                // If the trip is already completed or cancelled, no further status changes are allowed.
+                throw new IllegalStateException("A " + currentStatus.toString().toLowerCase() + " trip cannot be changed.");
+        }
+
+        // 3. If the trip is cancelled, make the driver and cab available again.
+        if (newStatus == TripStatus.CANCELLED) {
+            Driver driver = trip.getDriver();
+            if (driver != null) {
+                driver.setIsAvailable(true);
+                driverRepository.save(driver);
+            }
+
+            Cab cab = trip.getCab();
+            if (cab != null) {
+                cab.setIsAvailable(true);
+                cabRepository.save(cab);
+            }
+        }
+
         return tripBookingRepository.save(trip);
     }
-    
+
     /**
      * Completes a trip, calculates the bill, and sets the end time.
      *
@@ -117,10 +166,10 @@ public class TripBookingServiceImpl implements ITripBookingService {
 
         trip.setToDateTime(LocalDateTime.now());
         trip.setStatus(TripStatus.COMPLETED);
-        
+
         float bill = trip.getDistanceInKm() * trip.getCab().getPerKmRate();
         trip.setBill(bill);
-        
+
         Driver driver = trip.getDriver();
         if (driver != null) {
             driver.setIsAvailable(true);
@@ -154,7 +203,7 @@ public class TripBookingServiceImpl implements ITripBookingService {
         // 1. Find the trip
         TripBooking trip = tripBookingRepository.findById(tripId)
                 .orElseThrow(() -> new RuntimeException("Trip not found with ID: " + tripId));
-        
+
         // 2. Validate the request
         if (trip.getStatus() != TripStatus.COMPLETED) {
             throw new IllegalStateException("Trip must be completed before it can be rated.");
@@ -166,17 +215,17 @@ public class TripBookingServiceImpl implements ITripBookingService {
         // 3. Get the driver and the new rating
         Driver driver = trip.getDriver();
         Integer newRating = ratingRequest.getRating();
-        
+
         // 4. Calculate the new average rating
         float currentTotalPoints = driver.getRating() * driver.getTotalRatings();
         int newTotalRatings = driver.getTotalRatings() + 1;
         float newAverageRating = (currentTotalPoints + newRating) / newTotalRatings;
-        
+
         // 5. Update and save the driver
         driver.setRating(newAverageRating);
         driver.setTotalRatings(newTotalRatings);
         driverRepository.save(driver);
-        
+
         // 6. Update and save the trip with the customer's rating
         trip.setCustomerRating(newRating);
         return tripBookingRepository.save(trip);
