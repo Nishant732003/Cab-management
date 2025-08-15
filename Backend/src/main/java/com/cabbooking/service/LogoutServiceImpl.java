@@ -19,7 +19,7 @@ import com.cabbooking.repository.BlacklistedTokenRepository;
  * for future requests.
  */
 @Service
-public class LogoutService implements ILogoutService {
+public class LogoutServiceImpl implements ILogoutService {
 
     // Repository for managing the persistence of blacklisted JWTs.
     @Autowired
