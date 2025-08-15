@@ -55,6 +55,8 @@ public abstract class AbstractUser {
     @Column(unique = true, nullable = false)
     private String email;
 
+    private Boolean emailVerified = false;
+
     // ====== Getters and Setters =======
 
     /**
@@ -98,4 +100,11 @@ public abstract class AbstractUser {
     public String getEmail() { return email; }
 
     public void setEmail(String email) { this.email = email; }
+
+    /**
+     * Gets/sets the email verification status.
+     */
+    public Boolean getEmailVerified() { return emailVerified; }
+
+    public void setEmailVerified(Boolean emailVerified) { this.emailVerified = emailVerified; }
 }

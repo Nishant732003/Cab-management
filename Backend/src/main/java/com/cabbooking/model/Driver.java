@@ -48,6 +48,12 @@ public class Driver extends AbstractUser {
      */
     private Integer totalRatings = 0;
 
+    /**
+     * URL to the driver's profile photo.
+     * Optional field to enhance user experience in the app.
+     */
+    private String profilePhotoUrl;
+
     // ===== Getters and Setters =====
 
     /**
@@ -128,5 +134,21 @@ public class Driver extends AbstractUser {
      */
     public void setTotalRatings(Integer totalRatings) {
         this.totalRatings = totalRatings;
+    }
+
+    /**
+     * Gets the URL of the driver's profile photo.
+     * @return The profile photo URL as a String.
+     */
+    public String getProfilePhotoUrl() {
+        return profilePhotoUrl;
+    }
+
+    /**
+     * Sets the URL of the driver's profile photo.
+     * @param profilePhotoUrl The new profile photo URL to set.
+     */
+    public void setProfilePhotoUrl(String profilePhotoUrl) {
+        this.profilePhotoUrl = profilePhotoUrl;
     }
 }
