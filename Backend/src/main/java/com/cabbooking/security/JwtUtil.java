@@ -10,7 +10,6 @@ import org.springframework.stereotype.Component;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
@@ -30,14 +29,12 @@ import io.jsonwebtoken.security.Keys;
 @Component
 public class JwtUtil {
 
-    // A secure, private key used to sign and verify all JWTs.
-    private final SecretKey jwtSecret = Keys.hmacShaKeyFor("your-256-bit-secret-your-256-bit-secret".getBytes());
+    // A secure, private key used to sign and verify all JWTs. 
+    // IMPORTANT: In a real application, load this from your application.properties or environment variables.
+    private final SecretKey jwtSecret = Keys.hmacShaKeyFor("your-256-bit-secret-key-for-jwt-signing-must-be-32-chars".getBytes());
 
     // The validity duration for a token, set to 24 hours in milliseconds.
     private final long jwtExpirationInMs = 24 * 60 * 60 * 1000;
-
-    // A pre-built, reusable, and thread-safe parser instance for efficiency.
-    private final JwtParser jwtParser = Jwts.parser().verifyWith(jwtSecret).build();
 
     /**
      * Generates a new JWT for a given user.
@@ -51,10 +48,10 @@ public class JwtUtil {
         Instant expiry = now.plusMillis(jwtExpirationInMs);
 
         return Jwts.builder()
-                .subject(username)
+                .setSubject(username)
                 .claim("role", role) // Add the user's role as a custom claim
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(expiry))
+                .setIssuedAt(Date.from(now))
+                .setExpiration(Date.from(expiry))
                 .signWith(jwtSecret)
                 .compact();
     }
@@ -66,8 +63,12 @@ public class JwtUtil {
      * @return The username contained within the token.
      */
     public String getUsernameFromJWT(String token) {
-        Jws<Claims> claims = jwtParser.parseSignedClaims(token);
-        return claims.getPayload().getSubject();
+        Claims claims = Jwts.parserBuilder()
+                            .setSigningKey(jwtSecret)
+                            .build()
+                            .parseClaimsJws(token)
+                            .getBody();
+        return claims.getSubject();
     }
 
     /**
@@ -78,9 +79,10 @@ public class JwtUtil {
      */
     public boolean validateToken(String token) {
         try {
-            jwtParser.parse(token);
+            Jwts.parserBuilder().setSigningKey(jwtSecret).build().parseClaimsJws(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
+            // You can log the specific error here for debugging if you want
             return false;
         }
     }
@@ -93,6 +95,9 @@ public class JwtUtil {
      * @return A Jws object containing all the token's claims.
      */
     public Jws<Claims> getClaimsFromJWT(String token) {
-        return jwtParser.parseSignedClaims(token);
+        return Jwts.parserBuilder()
+                   .setSigningKey(jwtSecret)
+                   .build()
+                   .parseClaimsJws(token);
     }
 }

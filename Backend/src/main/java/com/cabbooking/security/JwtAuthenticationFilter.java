@@ -89,8 +89,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
             // Parse the token to extract the user's role from the claims
-            Jws<Claims> claims = jwtUtil.getClaimsFromJWT(token);
-            String role = claims.getPayload().get("role", String.class);
+            Jws<Claims> claimsJws = jwtUtil.getClaimsFromJWT(token);
+            Claims claims = claimsJws.getBody();
+            String role = claims.get("role", String.class);
 
             // Create a Spring Security authority with the required "ROLE_" prefix
             List<SimpleGrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role));
