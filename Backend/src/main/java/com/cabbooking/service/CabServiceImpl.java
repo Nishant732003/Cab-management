@@ -182,4 +182,21 @@ public class CabServiceImpl implements ICabService {
     public Optional<Cab> viewCab(int cabId) {
         return cabRepository.findById(cabId);
     }
+
+    /**
+     * Retrieves a list of all cabs in the system.
+     *
+     * @return A list of all Cab entities.
+     */
+    @Override
+    public List<Cab> viewAllCabs() {
+        return cabRepository.findAll();
+    }
+    
+    @Override
+    public List<Cab> viewAllAvailableCabs() {
+        return cabRepository.findAll().stream()
+                .filter(Cab::getIsAvailable)
+                .collect(Collectors.toList());
+    }
 }

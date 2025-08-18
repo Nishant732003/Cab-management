@@ -2,6 +2,7 @@ package com.cabbooking.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 
 /**
  * Data Transfer Object (DTO) for handling incoming trip booking requests from a customer.
@@ -37,6 +38,9 @@ public class TripBookingRequest {
     @NotNull(message = "Distance is required")
     private float distanceInKm;
 
+    private LocalDateTime scheduledTime;
+
+
     // Getters and Setters
 
     public Integer getCustomerId() {
@@ -69,5 +73,18 @@ public class TripBookingRequest {
 
     public void setDistanceInKm(float distanceInKm) {
         this.distanceInKm = distanceInKm;
+    }
+
+    /**
+     * Gets the scheduled time for the trip.
+     * This is optional and can be used for pre-scheduled trips.
+     *  * @return The scheduled time as a LocalDateTime object, or null if not set.
+     */
+     public LocalDateTime getScheduledTime() {
+        return scheduledTime;
+    }
+
+    public void setScheduledTime(LocalDateTime scheduledTime) {
+        this.scheduledTime = scheduledTime;
     }
 }

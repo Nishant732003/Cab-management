@@ -120,4 +120,29 @@ public class CabController {
                 .map(cab -> ResponseEntity.ok(cab)) // If cab is found, wrap it in a 200 OK response
                 .orElse(ResponseEntity.notFound().build()); // If not found, return a 404 Not Found
     }
+    /**
+     * Endpoint to retrieve all cabs in the system.
+     *
+     * GET /api/cabs/all
+     *
+     * @return A ResponseEntity containing a list of all Cab objects.
+     */
+    @GetMapping("/all")
+    public ResponseEntity<List<Cab>> getAllCabs() {
+        List<Cab> cabs = cabService.viewAllCabs();
+        return ResponseEntity.ok(cabs);
+    }
+    /**
+     * Endpoint to retrieve all available cabs in the system.
+     *
+     * GET /api/cabs/available
+     *
+     * @return A ResponseEntity containing a list of all available Cab objects.
+     */
+
+    @GetMapping("/available")
+    public ResponseEntity<List<Cab>> getAllAvailableCabs() {
+        List<Cab> cabs = cabService.viewAllAvailableCabs();
+        return ResponseEntity.ok(cabs);
+    }
 }
