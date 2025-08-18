@@ -7,6 +7,10 @@ package com.cabbooking.model;
  */
 public enum TripStatus {
     /**
+     * The trip has been created but not yet confirmed.
+     */
+    SCHEDULED,
+    /**
      * The trip has been successfully booked by a customer and is waiting for a driver to start.
      */
     CONFIRMED,

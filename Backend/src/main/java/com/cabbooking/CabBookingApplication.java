@@ -2,6 +2,7 @@ package com.cabbooking;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Main entry point for the Cab Booking Platform Spring Boot application.
@@ -19,6 +20,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * will be automatically discovered and wired due to component scanning starting from this package.
  */
 @SpringBootApplication
+@EnableScheduling
 public class CabBookingApplication {
 
     /**

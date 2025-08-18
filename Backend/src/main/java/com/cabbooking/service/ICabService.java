@@ -74,4 +74,6 @@ public interface ICabService {
      * @return An Optional containing the Cab if found, otherwise empty.
      */
     Optional<Cab> viewCab(int cabId);
+    List<Cab> viewAllCabs();
+    List<Cab> viewAllAvailableCabs();
 }
