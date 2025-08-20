@@ -20,41 +20,80 @@ import java.util.Optional;
 
 /**
  * Service to manage the email verification process.
+ * This service handles sending verification links to users, verifying the tokens, and updating user email verification status.
+ * 
+ * Main Responsibilities:
+ * - Sends a verification link to the user's email.
+ * - Verifies the email using the provided token.
+ * - Updates the user's email verification status.
+ * 
+ * Security:
+ * - The service is transactional to ensure data consistency.
+ * - The service is secure using method-level security.
+ * - Only users with the 'Admin' role can access these endpoints.
  */
 @Service
 public class VerificationServiceImpl implements IVerificationService {
 
+    /*
+     * Repository for Token entity.
+     * Provides methods for saving, finding, and deleting tokens.
+     */
     @Autowired
     private VerificationTokenRepository tokenRepository;
+
+    /*
+     * Service for sending emails.
+     */
     @Autowired
     private IEmailService emailService;
+
+    /*
+     * Repository for Admin entity.
+     * Provides methods for saving, finding, and deleting admins.
+     */
     @Autowired
     private AdminRepository adminRepository;
+
+    /*
+     * Repository for Customer entity.
+     * Provides methods for saving, finding, and deleting customers.
+     */
     @Autowired
     private CustomerRepository customerRepository;
+    
+    /*
+     * Repository for Driver entity.
+     * Provides methods for saving, finding, and deleting drivers.
+     */
     @Autowired
     private DriverRepository driverRepository;
 
     /**
      * Creates a verification token, saves it, and sends it to the user's email.
+     * 
+     * Workflow:
+     * - Find the user by email.
+     * - Create a token.
+     * - Craft the email and send it.
      *
      * @param email The email of the user to send the verification link to.
      */
     @Override
     @Transactional
     public void sendVerificationLink(String email) {
-        // 1. Find the user by email
+        // Find the user by email
         AbstractUser user = findUserByEmail(email).orElseThrow(() -> new IllegalArgumentException("User with email " + email + " not found."));
         if (Boolean.TRUE.equals(user.getEmailVerified())) {
             throw new IllegalStateException("Email is already verified.");
         }
 
-        // 2. Create a token
+        // Create a token
         String token = UUID.randomUUID().toString();
         VerificationToken verificationToken = new VerificationToken(token, LocalDateTime.now().plusHours(24), user.getEmail());
         tokenRepository.save(verificationToken);
 
-        // 3. Craft the email and send it
+        // Craft the email and send it
         String subject = "Verify Your Email for Cab Booking";
         String verificationUrl = "http://localhost:8080/verify-email?token=" + token;
         String message = "Please click the following link to verify your email address:\n" + verificationUrl;
@@ -64,6 +103,11 @@ public class VerificationServiceImpl implements IVerificationService {
 
     /**
      * Verifies a user's email using the provided token.
+     * 
+     * Workflow:
+     * - Find the token in the database.
+     * - Get the user and update their status.
+     * - Delete the used token.
      *
      * @param token The verification token from the email link.
      * @return True if verification is successful, false otherwise.
@@ -71,23 +115,35 @@ public class VerificationServiceImpl implements IVerificationService {
     @Override
     @Transactional
     public boolean verifyToken(String token) {
-        // 1. Find the token in the database
+        // Find the token in the database
         VerificationToken verificationToken = tokenRepository.findByToken(token);
         if (verificationToken == null || verificationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
             return false; // Token is invalid or expired
         }
 
-        // 2. Get the user and update their status
+        // Get the user and update their status
         String userEmail = verificationToken.getUserEmail();
         AbstractUser user = findUserByEmail(userEmail).orElseThrow(() -> new IllegalArgumentException("User associated with token not found."));
         user.setEmailVerified(true);
         saveUser(user); // Save the updated user status
 
-        // 3. Delete the used token
+        // Delete the used token
         tokenRepository.delete(verificationToken);
         return true;
     }
 
+    /*
+     * Helper method to find a user by email.
+     * 
+     * Workflow:
+     * - Find the user in the admin repository.
+     * - Find the user in the customer repository.
+     * - Find the user in the driver repository.
+     * - Return the found user, or an empty Optional if not found.
+     * 
+     * @param email The email of the user to find.
+     * @return An Optional containing the found user, or an empty Optional if not found.
+     */
     private Optional<AbstractUser> findUserByEmail(String email) {
         return adminRepository.findByEmail(email)
                 .<AbstractUser>map(admin -> admin)
@@ -95,7 +151,15 @@ public class VerificationServiceImpl implements IVerificationService {
                 .or(() -> driverRepository.findByEmail(email).map(driver -> driver));
     }
 
-    // Helper method to save a user regardless of their type
+    /*
+     * Helper method to save a user regardless of their type.
+     * 
+     * Workflow:
+     * - Checks the type of the user.
+     * - Calls the appropriate repository to save the user.
+     * 
+     * @param user The user to save.
+     */
     private void saveUser(AbstractUser user) {
         if (user instanceof Admin) {
             adminRepository.save((Admin) user);

@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,16 +32,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 /**
- * REST controller for handling authentication and registration for all user
- * types.
- *
- * Main Responsibilities: - Provides public endpoints for user login, logout,
- * and registration. - Consolidates all authentication-related actions into a
- * single controller. - Delegates business logic to the appropriate service
- * layers.
- *
- * Security: - These endpoints are publicly accessible to allow users to join
- * and access the platform.
+ * REST controller for handling authentication related operations for all user
+ * types. 
+ * Main Responsibilities: 
+ * - Provides public endpoints for registration, login, logout, email verification and account deletion. 
+ * - Consolidates all authentication-related actions into a single controller. 
+ * - Delegates business logic to the appropriate service layers. 
+ * Security: 
+ * - These endpoints are publicly accessible to allow users to join and access the platform.
  */
 @RestController
 @RequestMapping("/api/auth")
@@ -49,31 +48,42 @@ public class AuthController {
     // Logger for tracking authentication and registration events.
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
+    // Service layer injected to handle login operations.
     @Autowired
     private ILoginService loginService;
 
+    // Service layer injected to handle logout operations.
     @Autowired
     private ILogoutService logoutService;
 
+    // Service layer injected to handle admin registration operations.
     @Autowired
     private IAdminRegistrationService adminRegistrationService;
 
+    // Service layer injected to handle customer registration operations.
     @Autowired
     private ICustomerRegistrationService customerRegistrationService;
 
+    // Service layer injected to handle driver registration operations.
     @Autowired
     private IDriverRegistrationService driverRegistrationService;
 
+    // Service layer injected to handle user deletion operations.
     @Autowired
     private IUserDeletionService userDeletionService;
 
+    // Service layer injected to handle email verification operations.
     @Autowired
     private IVerificationService verificationService;
 
     /**
-     * Handles POST requests to register a new admin.
-     *
-     * Endpoint: POST /api/auth/register/admin
+     * Endpoint handles requests to register a new admin. 
+     * POST /api/auth/register/admin 
+     * Workflow: 
+     * - Person sends a AdminRegistrationRequest DTO with admin details. 
+     * - Validates the request data. 
+     * - Calls the service layer to handle registration logic. 
+     * - Returns a success or error response.
      *
      * @param request AdminRegistrationRequest DTO containing registration data.
      * @return ResponseEntity<String> HTTP response with a success or error
@@ -99,9 +109,13 @@ public class AuthController {
     }
 
     /**
-     * Handles POST requests to register a new customer.
-     *
-     * Endpoint: POST /api/auth/register/customer
+     * Endpoints handles requests to register a new customer. 
+     * POST /api/auth/register/customer 
+     * Workflow: 
+     * - Person sends a CustomerRegistrationRequest DTO with customer details. 
+     * - Validates the request data. 
+     * - Calls the service layer to handle registration logic. 
+     * - Returns a success or error response.
      *
      * @param request CustomerRegistrationRequest DTO containing registration
      * data.
@@ -128,9 +142,13 @@ public class AuthController {
     }
 
     /**
-     * Handles POST requests to register a new driver.
-     *
-     * Endpoint: POST /api/auth/register/driver
+     * Endpoint handles requests to register a new driver. 
+     * POST /api/auth/register/driver 
+     * Workflow: 
+     * - Person sends a DriverRegistrationRequest DTO with driver details. 
+     * - Validates the request data. 
+     * - Calls the service layer to handle registration logic. 
+     * - Returns a success or error response.
      *
      * @param request DriverRegistrationRequest DTO containing registration
      * data.
@@ -157,9 +175,14 @@ public class AuthController {
     }
 
     /**
-     * Handles HTTP POST requests for user login.
-     *
-     * Endpoint: POST /api/auth/login
+     * Endpoint handles requests for user login. 
+     * POST /api/auth/login 
+     * Workflow:
+     * - Person sends a LoginRequest DTO with username and password. 
+     * - Validates the request data. 
+     * - Calls the service layer to authenticate the user. 
+     * - Returns a LoginResponse with user info and JWT if successful. 
+     * - Returns an error response if authentication fails.
      *
      * @param request LoginRequest DTO with username and password from the
      * client.
@@ -177,15 +200,21 @@ public class AuthController {
     }
 
     /**
-     * Handles HTTP POST requests for user logout.
-     *
-     * Endpoint: POST /api/auth/logout
+     * Endpoint handles requests for user logout. 
+     * POST /api/auth/logout
+     * Workflow: 
+     * - User sends a request with an Authorization header containing the Bearer token. 
+     * - Extracts the token from the header. 
+     * - Calls the service layer to blacklist the token. 
+     * - Returns a success message if the token was blacklisted. 
+     * - Returns an error response if the token is missing or invalid.
      *
      * @param request The incoming HttpServletRequest containing the
      * authorization header.
      * @return ResponseEntity<String> with a success message.
      */
     @PostMapping("/logout")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> logout(HttpServletRequest request) {
         final String authHeader = request.getHeader("Authorization");
         // Check for Bearer token and blacklist it
@@ -198,12 +227,20 @@ public class AuthController {
     }
 
     /**
-     * Endpoint to delete any user account (Admin, Customer, or Driver).
+     * Endpoint to delete any user account (Admin, Customer, or Driver). 
+     * DELETE /api/auth/delete/{username} 
+     * Workflow: 
+     * - Admin or the user themselves can send a DELETE request with the username. 
+     * - Validates the request to ensure the user exists. 
+     * - Calls the service layer to handle user deletion. 
+     * - Returns a success message if the user was deleted. 
+     * - Returns an error response if the user does not exist or deletion fails.
      *
      * @param userId The ID of the user to delete.
      * @return A ResponseEntity with a success message.
      */
     @DeleteMapping("/delete/{username}")
+    @PreAuthorize("principal == #username or hasRole('Admin') and isAuthenticated()")
     public ResponseEntity<String> deleteUser(@PathVariable String username) {
         try {
             userDeletionService.deleteUser(username);
@@ -216,12 +253,20 @@ public class AuthController {
     }
 
     /**
-     * Endpoint to trigger sending a verification email to a user.
+     * Endpoint to trigger sending a verification email to a user. 
+     * POST /api/auth/send-verification-email 
+     * Workflow: 
+     * - User sends a request with their email address. 
+     * - Validates the email format. 
+     * - Calls the service layer to send a verification link. 
+     * - Returns a success message if the email was sent. 
+     * - Returns an error response if the email is invalid or sending fails.
      *
      * @param request DTO containing the user's email.
      * @return A success or error message.
      */
     @PostMapping("/send-verification-email")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> sendVerificationEmail(@Valid @RequestBody EmailVerificationRequest request) {
         try {
             verificationService.sendVerificationLink(request.getEmail());
@@ -233,7 +278,15 @@ public class AuthController {
 
     /**
      * Endpoint that the user is directed to from the verification email. It
-     * validates the token and updates the user's verification status.
+     * validates the token and updates the user's verification status. 
+     * GET /api/auth/verify-email 
+     * Workflow: 
+     * - User clicks the verification link in their email. 
+     * - The link contains a token as a query parameter. 
+     * - Validates the token by calling the service layer. 
+     * - If valid, updates the user's status to verified. 
+     * - Returns a success message if verification is successful. 
+     * - Returns an error message if the token is invalid or expired.
      *
      * @param token The verification token from the URL query parameter.
      * @return A ResponseEntity with a success or failure message.

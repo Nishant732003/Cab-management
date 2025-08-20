@@ -29,15 +29,23 @@ import com.cabbooking.repository.DriverRepository;
 public class CustomerRegistrationServiceImpl implements ICustomerRegistrationService {
 
     /**
-     * Repository to handle CRUD operations for Admin, Customer and Driver entities.
+     * Repository to handle CRUD operations for Admin entity.
      * Provides methods to check for existing usernames and emails.
      */
     @Autowired
     private AdminRepository adminRepository;
 
+    /*
+     * Repository to handle CRUD operations for Customer entity.
+     * Provides methods to check for existing usernames and emails.
+     */
     @Autowired
     private CustomerRepository customerRepository;
 
+    /*
+     * Repository to handle CRUD operations for Driver entity.
+     * Provides methods to check for existing usernames and emails.
+     */
     @Autowired
     private DriverRepository driverRepository;
 
@@ -52,16 +60,16 @@ public class CustomerRegistrationServiceImpl implements ICustomerRegistrationSer
      * Registers a new customer using the provided registration data.
      * 
      * Workflow:
-     * 1. Check if the username already exists in the system to prevent duplicates.
+     * - Check if the username already exists in the system to prevent duplicates.
      *    - If username is taken, throws IllegalArgumentException with appropriate message.
-     * 2. Check if the email is already registered (case insensitive).
+     * - Check if the email is already registered (case insensitive).
      *    - Fetches all customers and searches in-memory for email match.
      *    - Throws IllegalArgumentException if email already used.
      *    - (Note: This approach may not scale well; a dedicated query method is recommended.)
-     * 3. Creates a new Customer entity and sets its fields based on the request DTO.
-     * 4. Password is hashed before setting it on the entity to increase security.
-     * 5. Saves the Customer entity in the repository (database).
-     * 6. Returns the persisted Customer object.
+     * - Creates a new Customer entity and sets its fields based on the request DTO.
+     * - Password is hashed before setting it on the entity to increase security.
+     * - Saves the Customer entity in the repository (database).
+     * - Returns the persisted Customer object.
      * 
      * @param request CustomerRegistrationRequest DTO containing user input.
      * @return The saved Customer entity with generated ID.
@@ -69,13 +77,6 @@ public class CustomerRegistrationServiceImpl implements ICustomerRegistrationSer
      */
     @Override
     public Customer registerCustomer(CustomerRegistrationRequest request) {
-        // // Validate username uniqueness
-        // Optional<Customer> existingUserByUsername = Optional.ofNullable(
-        //     customerRepository.findByUsername(request.getUsername())
-        // );
-        // if (existingUserByUsername.isPresent()) {
-        //     throw new IllegalArgumentException("Username is already taken.");
-        // }
 
         if (adminRepository.existsByUsername(request.getUsername()) || customerRepository.existsByUsername(request.getUsername()) || driverRepository.existsByUsername(request.getUsername())) {
             throw new IllegalArgumentException("Username is already taken.");

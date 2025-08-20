@@ -15,25 +15,38 @@ import com.cabbooking.repository.CabRepository;
 /**
  * Implementation of the ICabService interface.
  *
- * Main Responsibilities: - Provides the business logic for all cab management
- * operations (CRUD). - Interacts with the CabRepository to perform database
- * operations. - Handles validation such as checking for the existence of a cab
+ * Main Responsibilities: 
+ * - Provides the business logic for all cab management
+ * operations (CRUD). 
+ * - Interacts with the CabRepository to perform database
+ * operations. 
+ * - Handles validation such as checking for the existence of a cab
  * before an update or delete operation.
  *
- * Workflow: - This service is injected into controllers (like AdminController)
- * that need to manage the cab fleet. - It uses the autowired CabRepository to
+ * Workflow: 
+ * - This service is injected into controllers (like AdminController)
+ * that need to manage the cab fleet. 
+ * - It uses the autowired CabRepository to
  * abstract away the database interaction details.
  */
 @Service
 public class CabServiceImpl implements ICabService {
 
-    // Repository for handling database operations for Cab entities.
+    /*
+     * Repository to interact with the database
+     * Provides methods for CRUD operations
+     */
     @Autowired
     private CabRepository cabRepository;
 
     /**
      * Inserts a new cab into the database and sets its availability to true by
      * default.
+     * 
+     * Workflow: 
+     * - Creates a new Cab object from the provided request. 
+     * - Sets the availability to true by default. 
+     * - Saves the cab object to the database.
      *
      * @param cab The Cab object to be saved.
      * @return The saved Cab entity, including its auto-generated ID and default
@@ -50,11 +63,12 @@ public class CabServiceImpl implements ICabService {
      * Updates an existing cab with only the provided fields, but only if the
      * cab is currently available.
      *
-     * Workflow: - Finds the existing cab by its ID. - Throws an exception if
-     * the cab is not found. - **Checks if the cab is available. If it's on a
-     * trip (isAvailable=false), it throws an exception.** - If available, it
-     * updates only the non-null fields from the incoming request. - Saves the
-     * modified cab object back to the database.
+     * Workflow: 
+     * - Finds the existing cab by its ID. 
+     * - Throws an exception if the cab is not found. 
+     * - Checks if the cab is available. If it's on a trip (isAvailable=false), it throws an exception.
+     * - If available, it updates only the non-null fields from the incoming request.
+     * - Saves the modified cab object back to the database.
      *
      * @param cabRequest The Cab object with the fields to be updated.
      * @return The updated and saved Cab entity.
@@ -95,9 +109,10 @@ public class CabServiceImpl implements ICabService {
     /**
      * Deletes a cab from the database by its ID.
      *
-     * Workflow: - It finds the cab by its ID to ensure it exists. - If the cab
-     * is in use, it throws an exception. - If found and available, the cab is
-     * deleted.
+     * Workflow: 
+     * - It finds the cab by its ID to ensure it exists. 
+     * - If the cab is in use, it throws an exception. 
+     * - If found and available, the cab is deleted.
      *
      * @param cabId The unique ID of the cab to delete.
      * @return The Cab object that was deleted.
@@ -120,6 +135,10 @@ public class CabServiceImpl implements ICabService {
 
     /**
      * Retrieves a list of all cabs that match a specific car type.
+     * 
+     * Workflow: 
+     * - Calls the repository to find cabs by their car type.
+     * - Returns the resulting list of cabs.
      *
      * @param carType The car type to filter by (e.g., "Sedan", "SUV").
      * @return A list of Cab entities matching the specified type.
@@ -132,6 +151,10 @@ public class CabServiceImpl implements ICabService {
     /**
      * Counts the number of cabs that match a specific car type.
      *
+     * Workflow:
+     * - Calls the repository to find cabs by their car type.
+     * - Returns the size of the resulting list, which is the count.
+     * 
      * @param carType The car type to count.
      * @return The total number of cabs of the specified type.
      */
@@ -140,18 +163,30 @@ public class CabServiceImpl implements ICabService {
         return cabRepository.findByCarType(carType).size();
     }
 
+    /*
+     * Calculates the fare estimates for all available cabs based on the distance.
+     * 
+     * Workflow:
+     * - Retrieves all available cabs from the repository.
+     * - Groups the cabs by their car type.
+     * - For each car type, calculates the minimum and maximum fares for the given distance.
+     * - Creates a FareEstimateResponse object for each car type and returns a list of them.
+     * 
+     * @param distance The distance in kilometers.
+     * @return A list of FareEstimateResponse objects, one for each available car type.
+     */
     @Override
     public List<FareEstimateResponse> getAllFareEstimates(float distance) {
-        // 1. Find all available cabs
+        // Find all available cabs
         List<Cab> availableCabs = cabRepository.findAll().stream()
                 .filter(Cab::getIsAvailable)
                 .collect(Collectors.toList());
 
-        // 2. Group the cabs by their car type
+        // Group the cabs by their car type
         Map<String, List<Cab>> cabsByType = availableCabs.stream()
                 .collect(Collectors.groupingBy(Cab::getCarType));
 
-        // 3. For each car type, calculate the min/max fare and create a response object
+        // For each car type, calculate the min/max fare and create a response object
         return cabsByType.entrySet().stream()
                 .map(entry -> {
                     String carType = entry.getKey();
@@ -174,6 +209,10 @@ public class CabServiceImpl implements ICabService {
 
     /**
      * Finds and returns a cab by its unique identifier.
+     * 
+     * Workflow: 
+     * - Calls the repository to find the cab by its ID.
+     * - Returns the Optional containing the cab if found, otherwise empty.
      *
      * @param cabId The ID of the cab to find.
      * @return An Optional<Cab> which contains the cab if it exists.
@@ -185,6 +224,10 @@ public class CabServiceImpl implements ICabService {
 
     /**
      * Retrieves a list of all cabs in the system.
+     * 
+     * Workflow: 
+     * - Calls the repository to find all cabs.
+     * - Returns the list of cabs.
      *
      * @return A list of all Cab entities.
      */
@@ -193,6 +236,16 @@ public class CabServiceImpl implements ICabService {
         return cabRepository.findAll();
     }
     
+    /**
+     * Retrieves a list of all available cabs in the system.
+     * 
+     * Workflow: 
+     * - Calls the repository to find all cabs.
+     * - Filters the list to include only available cabs.
+     * - Returns the list of available cabs.
+     *
+     * @return A list of all available Cab entities.
+     */
     @Override
     public List<Cab> viewAllAvailableCabs() {
         return cabRepository.findAll().stream()

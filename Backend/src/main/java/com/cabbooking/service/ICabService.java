@@ -8,14 +8,6 @@ import com.cabbooking.model.Cab;
 
 /**
  * Service interface for cab management operations.
- *
- * Main Responsibilities:
- * - Defines the contract for all business logic related to the cab fleet.
- * - Abstracts the implementation details for creating, updating, deleting, and viewing cabs.
- *
- * Workflow:
- * - Implementations of this interface will be injected into controllers that handle cab management.
- * - It provides a clear set of operations that can be performed on Cab entities.
  */
 public interface ICabService {
 

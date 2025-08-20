@@ -4,6 +4,9 @@ import java.io.IOException;
 
 import org.springframework.web.multipart.MultipartFile;
 
+/*
+ * Service interface for file upload and deletion operations.
+ */
 public interface IFileUploadService {
 
     /**

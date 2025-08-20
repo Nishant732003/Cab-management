@@ -23,14 +23,14 @@ import com.cabbooking.repository.CustomerRepository;
  * - Creates and stores a Driver entity with an initial unverified status.
  * 
  * Workflow:
- * 1. Check if `username` is already taken; if so, reject registration.
- * 2. Check if `email` is already registered; if so, reject registration.
- * 3. Check if `licenceNo` is already registered; if so, reject registration.
- * 4. Create new Driver entity with data from registration request.
- * 5. Password is hashed before persistence.
- * 6. Set verification flag to false because driver registration needs admin approval.
- * 7. Initialize driver's rating to 0.0 by default.
- * 8. Save the Driver entity in the repository and return it.
+ * - Check if `username` is already taken; if so, reject registration.
+ * - Check if `email` is already registered; if so, reject registration.
+ * - Check if `licenceNo` is already registered; if so, reject registration.
+ * - Create new Driver entity with data from registration request.
+ * - Password is hashed before persistence.
+ * - Set verification flag to false because driver registration needs admin approval.
+ * - Initialize driver's rating to 0.0 by default.
+ * - Save the Driver entity in the repository and return it.
  *
  * Notes:
  * - The email and license existence checks currently retrieve all drivers from the database
@@ -42,15 +42,23 @@ import com.cabbooking.repository.CustomerRepository;
 public class DriverRegistrationServiceImpl implements IDriverRegistrationService {
 
     /**
-     * Repository to handle CRUD operations for Admin, Customer and Driver entities.
+     * Repository to handle CRUD operations for Admin entity.
      * Provides methods to check for existing usernames and emails.
      */
     @Autowired
     private AdminRepository adminRepository;
 
+    /*
+     * Repository to handle CRUD operations for Customer entity.
+     * Provides methods to check for existing usernames and emails.
+     */
     @Autowired
     private CustomerRepository customerRepository;
 
+    /*
+     * Repository to handle CRUD operations for Driver entity.
+     * Provides methods to check for existing usernames and emails.
+     */
     @Autowired
     private DriverRepository driverRepository;
 
@@ -63,19 +71,25 @@ public class DriverRegistrationServiceImpl implements IDriverRegistrationService
     /**
      * Registers a new driver account using the provided registration request.
      * 
+     * This method performs necessary validations to ensure uniqueness of username, email, and license number.
+     * It creates a new Driver entity, hashes the password, sets verification status to false, and persist the entity.
+     * 
+     * Workflow:
+     * - Check if username is already taken.
+     * - Check if email is already registered.
+     * - Check if license number is already registered.
+     * - Create new Driver entity.
+     * - Hash password before persistence.
+     * - Set verification status to false.
+     * - Initialize driver rating to 0.0.
+     * - Persist the driver entity and return it.
+     * 
      * @param request DTO containing driver's registration data
      * @return The saved and persisted Driver entity
      * @throws IllegalArgumentException if username, email, or license number is already taken
      */
     @Override
     public Driver registerDriver(DriverRegistrationRequest request) {
-        // // Check if requested username already exists
-        // Optional<Driver> existingDriverByUsername = Optional.ofNullable(
-        //     driverRepository.findByUsername(request.getUsername())
-        // );
-        // if (existingDriverByUsername.isPresent()) {
-        //     throw new IllegalArgumentException("Username is already taken.");
-        // }
 
         if (adminRepository.existsByUsername(request.getUsername()) || customerRepository.existsByUsername(request.getUsername()) || driverRepository.existsByUsername(request.getUsername())) {
             throw new IllegalArgumentException("Username is already taken.");

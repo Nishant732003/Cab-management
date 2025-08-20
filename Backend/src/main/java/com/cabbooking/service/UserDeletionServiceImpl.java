@@ -16,19 +16,42 @@ import java.io.IOException;
 /**
  * Implementation of the IUserDeletionService.
  * Handles the logic for deleting any type of user from the system.
+ * 
+ * Main Responsibilities:
+ * - Deletes a user from the system, regardless of their type (Admin, Customer, or Driver).
+ * 
+ * Security:
+ * - All endpoints are secured using method-level security.
+ * - Only users with the 'Admin' role can access these endpoints.
  */
 @Service
 public class UserDeletionServiceImpl implements IUserDeletionService {
 
+    /*
+     * Repository for Admin entity.
+     * Provides access to the Admin table in the database.
+     */
     @Autowired
     private AdminRepository adminRepository;
 
+    /*
+     * Repository for Customer entity.
+     * Provides access to the Customer table in the database.
+     */
     @Autowired
     private CustomerRepository customerRepository;
 
+    /*
+     * Repository for Driver entity.
+     * Provides access to the Driver table in the database.
+     */
     @Autowired
     private DriverRepository driverRepository;
 
+    /*
+     * Service for handling file uploads.
+     * Provides methods for uploading and deleting files.
+     */
     @Autowired
     private IFileUploadService fileUploadService;
 

@@ -23,6 +23,13 @@ import java.util.stream.Collectors;
  * A background service responsible for processing scheduled trips.
  * This service uses Spring's @Scheduled annotation to run a task at a fixed interval,
  * ensuring that future bookings are handled automatically without manual intervention.
+ * 
+ * Main Responsibilities:
+ * - Checks for scheduled trips that are due to start within the next 15 minutes.
+ * - Assigns drivers and cabs to these trips if available.
+ * 
+ * Security:
+ * - This service is only accessible to users with the 'Admin' role.
  */
 @Service
 public class TripSchedulerService {
@@ -45,14 +52,21 @@ public class TripSchedulerService {
      * every 60,000 milliseconds (i.e., every 1 minute).
      * * The @Transactional annotation ensures that all database operations within this method
      * are part of a single transaction. If any part fails, all changes are rolled back.
+     * 
+     * Workflow:
+     * - Checks for scheduled trips that are due to start within the next 15 minutes.
+     * - Assigns drivers and cabs to these trips if available.
+     * 
+     * Security:
+     * - This method is only accessible to users with the 'Admin' role.
      */
     @Scheduled(fixedRate = 60000) // Runs every 1 minute
     @Transactional
     public void assignDriversToScheduledTrips() {
         logger.info("Scheduler running: Checking for scheduled trips...");
 
-        // 1. Find all trips that are currently in the 'SCHEDULED' state and are due to start
-        //    within the next 15 minutes. This gives the system a small buffer to find a driver.
+        // Find all trips that are currently in the 'SCHEDULED' state and are due to start
+        // within the next 15 minutes. This gives the system a small buffer to find a driver.
         List<TripBooking> dueTrips = tripBookingRepository.findAll().stream()
                 .filter(trip -> trip.getStatus() == TripStatus.SCHEDULED &&
                                trip.getFromDateTime().isBefore(LocalDateTime.now().plusMinutes(15)))
@@ -64,23 +78,23 @@ public class TripSchedulerService {
             return;
         }
 
-        // 2. Iterate through each due trip and attempt to assign a driver and cab.
+        // Iterate through each due trip and attempt to assign a driver and cab.
         for (TripBooking trip : dueTrips) {
             logger.info("Attempting to assign driver to scheduled trip ID: {}", trip.getTripBookingId());
             try {
-                // 3. Find the best available driver (verified, available, and highest rating).
+                // Find the best available driver (verified, available, and highest rating).
                 Driver bestAvailableDriver = driverRepository.findAll().stream()
                         .filter(d -> d.getVerified() && d.getIsAvailable())
                         .max(Comparator.comparing(Driver::getRating))
                         .orElse(null); // Return null if no driver is found
 
-                // 4. Find any available cab.
+                // Find any available cab.
                 Cab availableCab = cabRepository.findAll().stream()
                         .filter(Cab::getIsAvailable)
                         .findFirst()
                         .orElse(null); // Return null if no cab is found
 
-                // 5. If both a driver and a cab were found, assign them to the trip.
+                // If both a driver and a cab were found, assign them to the trip.
                 if (bestAvailableDriver != null && availableCab != null) {
                     // Mark the driver and cab as unavailable for other trips.
                     bestAvailableDriver.setIsAvailable(false);

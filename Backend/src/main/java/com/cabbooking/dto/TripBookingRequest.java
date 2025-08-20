@@ -41,7 +41,7 @@ public class TripBookingRequest {
     private LocalDateTime scheduledTime;
 
 
-    // Getters and Setters
+    // ======= Getters and Setters =======
 
     public Integer getCustomerId() {
         return customerId;
