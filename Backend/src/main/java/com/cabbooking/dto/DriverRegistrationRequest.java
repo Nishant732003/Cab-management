@@ -37,9 +37,8 @@ public class DriverRegistrationRequest {
 
     /**
      * The email address of the driver.
-     *
-     * Optional, but if provided, must be in a valid email format.
      */
+    @NotBlank(message = "Password is required")
     @Email(message = "Email should be valid")
     private String email;
 

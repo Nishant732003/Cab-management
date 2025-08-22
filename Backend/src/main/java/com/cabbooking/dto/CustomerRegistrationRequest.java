@@ -37,9 +37,8 @@ public class CustomerRegistrationRequest {
 
     /**
      * The customer's email address
-     *
-     * Not mandatory, but if provided, it must be a valid email format.
      */
+    @NotBlank(message = "Password is required")
     @Email(message = "Email should be valid")
     private String email;
 

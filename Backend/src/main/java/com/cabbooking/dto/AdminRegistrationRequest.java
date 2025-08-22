@@ -36,10 +36,8 @@ public class AdminRegistrationRequest {
 
     /**
      * Email address of the admin.
-     *
-     * Optional, but if provided, must be a valid email format. Used for
-     * communication or account recovery potentially.
      */
+    @NotBlank(message = "Password is required")
     @Email(message = "Email should be valid")
     private String email;
 
