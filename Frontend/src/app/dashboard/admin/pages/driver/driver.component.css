@@ -1,0 +1,58 @@
+/* driver.component.css */
+/* Custom scrollbar */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 6px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Hover effects */
+.hover\:bg-gray-50:hover {
+  transition: background-color 0.2s ease;
+}
+
+/* Rating stars */
+.rating-stars {
+  display: inline-flex;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .stats-card {
+    padding: 1rem;
+  }
+  
+  .search-input {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .table-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .table-actions {
+    width: 100%;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .table-actions > * {
+    width: 100%;
+  }
+}

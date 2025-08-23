@@ -1,0 +1,167 @@
+/* Navbar Component Styles */
+
+/* Base navbar styling */
+.navbar {
+  @apply bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50;
+}
+
+/* Search input focus states */
+.search-input {
+  transition: all 0.2s ease-in-out;
+}
+
+.search-input:focus {
+  @apply ring-2 ring-indigo-500 ring-opacity-50;
+}
+
+/* Button hover effects */
+.nav-button {
+  @apply p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100;
+  transition: all 0.2s ease-in-out;
+}
+
+.nav-button:hover {
+  transform: translateY(-1px);
+}
+
+/* User avatar styles */
+.user-avatar {
+  @apply h-8 w-8 bg-indigo-600 rounded-full flex items-center justify-center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.user-avatar:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+}
+
+/* Badge styles */
+.badge {
+  @apply px-2 py-1 text-xs font-medium rounded-full border;
+  transition: all 0.2s ease-in-out;
+}
+
+.badge-admin {
+  @apply bg-red-100 text-red-700 border-red-200;
+}
+
+.badge-staff {
+  @apply bg-blue-100 text-blue-700 border-blue-200;
+}
+
+.badge-default {
+  @apply bg-gray-100 text-gray-700 border-gray-200;
+}
+
+/* Mobile sidebar animations */
+.mobile-sidebar {
+  transform: translateX(100%);
+  transition: transform 0.3s ease-in-out;
+}
+
+.mobile-sidebar.open {
+  transform: translateX(0);
+}
+
+/* Loading spinner */
+.loading-spinner {
+  @apply animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600;
+}
+
+/* Notification badge */
+.notification-badge {
+  @apply absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full;
+  animation: pulse 2s infinite;
+}
+
+/* Custom animations */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .navbar-content {
+    @apply px-4;
+  }
+  
+  .search-desktop {
+    @apply hidden;
+  }
+  
+  .user-info-desktop {
+    @apply hidden;
+  }
+}
+
+@media (min-width: 769px) {
+  .mobile-menu-button {
+    @apply hidden;
+  }
+  
+  .search-mobile {
+    @apply hidden;
+  }
+}
+
+/* Error message styling */
+.error-message {
+  @apply text-red-600 text-sm px-3 py-1 bg-red-50 rounded-md border border-red-200;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Success message styling */
+.success-message {
+  @apply text-green-600 text-sm px-3 py-1 bg-green-50 rounded-md border border-green-200;
+}
+
+/* Focus visible for accessibility */
+.nav-button:focus-visible,
+.search-input:focus-visible {
+  @apply outline-none ring-2 ring-indigo-500 ring-offset-2;
+}
+
+/* Dark mode support (if needed) */
+@media (prefers-color-scheme: dark) {
+  .navbar {
+    @apply bg-gray-800 border-gray-700;
+  }
+  
+  .nav-button {
+    @apply text-gray-300 hover:text-white hover:bg-gray-700;
+  }
+  
+  .search-input {
+    @apply bg-gray-700 border-gray-600 text-white placeholder-gray-400;
+  }
+  
+  .user-info-desktop .text-gray-900 {
+    @apply text-white;
+  }
+  
+  .user-info-desktop .text-gray-500 {
+    @apply text-gray-400;
+  }
+}
+
+/* Print styles */
+@media print {
+  .navbar {
+    @apply hidden;
+  }
+}

@@ -1,0 +1,509 @@
+/* Enhanced Angular Overview Component CSS */
+
+/* Smooth animations */
+.transition-all {
+  transition: all 0.3s ease;
+}
+
+.transition-shadow {
+  transition: box-shadow 0.3s ease;
+}
+
+.transition-colors {
+  transition: color 0.3s ease, background-color 0.3s ease;
+}
+
+/* Enhanced chart animations */
+[style*="height"] {
+  transition: height 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Bar chart enhancements */
+.bar-animation {
+  animation: barGrowth 0.8s ease-out;
+  animation-fill-mode: both;
+}
+
+@keyframes barGrowth {
+  from {
+    height: 0%;
+    opacity: 0;
+  }
+  to {
+    height: var(--target-height);
+    opacity: 1;
+  }
+}
+
+/* Staggered animation for bars */
+.bar-animation:nth-child(1) { animation-delay: 0.1s; }
+.bar-animation:nth-child(2) { animation-delay: 0.2s; }
+.bar-animation:nth-child(3) { animation-delay: 0.3s; }
+.bar-animation:nth-child(4) { animation-delay: 0.4s; }
+.bar-animation:nth-child(5) { animation-delay: 0.5s; }
+.bar-animation:nth-child(6) { animation-delay: 0.6s; }
+.bar-animation:nth-child(7) { animation-delay: 0.7s; }
+.bar-animation:nth-child(8) { animation-delay: 0.8s; }
+
+/* Enhanced hover effects */
+.hover\:from-blue-800:hover {
+  --tw-gradient-from: #1e40af;
+}
+
+.hover\:to-blue-600:hover {
+  --tw-gradient-to: #2563eb;
+}
+
+.hover\:from-blue-700:hover {
+  --tw-gradient-from: #1d4ed8;
+}
+
+.hover\:to-blue-500:hover {
+  --tw-gradient-to: #3b82f6;
+}
+
+/* Custom scrollbar styling */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 6px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Enhanced shadow effects */
+.shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.hover\:shadow-md:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.hover\:shadow-lg:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Chart container enhancements */
+.chart-container {
+  background: linear-gradient(to top, #eff6ff, #ffffff);
+}
+
+/* Grid line styling */
+.grid-line {
+  border-top: 1px solid #e2e8f0;
+  opacity: 0.6;
+}
+
+/* Bar styling with gradients */
+.bar-gradient-primary {
+  background: linear-gradient(to top, #2563eb, #60a5fa);
+}
+
+.bar-gradient-highlight {
+  background: linear-gradient(to top, #1d4ed8, #3b82f6);
+}
+
+/* Performance indicator animations */
+.performance-indicator {
+  animation: slideInUp 0.5s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tooltip enhancements */
+.tooltip-arrow::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -4px;
+  border-width: 4px;
+  border-style: solid;
+  border-color: #1f2937 transparent transparent transparent;
+}
+
+/* Stats card hover effects */
+.stats-card {
+  transition: all 0.3s ease;
+  transform: translateY(0);
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Button hover effects */
+.btn-refresh {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-refresh::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  transition: left 0.5s;
+}
+
+.btn-refresh:hover::before {
+  left: 100%;
+}
+
+/* Enhanced table styling */
+.table-row {
+  transition: background-color 0.2s ease;
+}
+
+.table-row:hover {
+  background-color: #f8fafc;
+  box-shadow: inset 0 0 0 1px #e2e8f0;
+}
+
+/* Status badge animations */
+.status-badge {
+  animation: fadeInScale 0.3s ease-out;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Revenue line chart enhancements */
+.revenue-point {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.revenue-point:hover {
+  transform: scale(1.2);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* SVG line styling */
+.chart-line {
+  filter: drop-shadow(0 2px 4px rgba(16, 185, 129, 0.3));
+}
+
+/* Loading animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.loading-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+/* Chart value labels */
+.chart-value-label {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .chart-container {
+    height: 280px;
+  }
+  
+  .stats-card {
+    padding: 1rem;
+  }
+  
+  .chart-value-label {
+    font-size: 0.7rem;
+  }
+  
+  .tooltip-content {
+    font-size: 0.65rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .chart-container {
+    height: 240px;
+    padding: 0.75rem;
+  }
+  
+  .bar-container {
+    margin: 0 1px;
+  }
+  
+  .grid grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .bg-white {
+    background-color: #1f2937;
+    color: #f9fafb;
+  }
+  
+  .text-gray-700 {
+    color: #d1d5db;
+  }
+  
+  .text-gray-500 {
+    color: #9ca3af;
+  }
+  
+  .border-gray-200 {
+    border-color: #374151;
+  }
+}
+
+/* Print styles */
+@media print {
+  .hover\:shadow-md:hover {
+    box-shadow: none;
+  }
+  
+  .transition-all,
+  .transition-shadow,
+  .transition-colors {
+    transition: none;
+  }
+  
+  .bg-gradient-to-t {
+    background: #3b82f6 !important;
+  }
+}
+
+/* Custom utility classes */
+.max-w-12 {
+  max-width: 3rem;
+}
+
+.w-0\.5 {
+  width: 0.125rem;
+}
+
+.drop-shadow-sm {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.05));
+}
+
+/* Animation utilities */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.6s ease-out;
+}
+
+.animate-bounce-in {
+  animation: bounceIn 0.8s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Chart-specific enhancements */
+.chart-axis-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+}
+
+.chart-summary {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+/* Bar chart specific */
+.bar-fill-animation {
+  animation: fillUp 1s ease-out forwards;
+  transform-origin: bottom;
+}
+
+@keyframes fillUp {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* Revenue line chart specific */
+.line-draw-animation {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: drawLine 2s ease-out forwards;
+}
+
+@keyframes drawLine {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Performance indicators */
+.perf-up {
+  color: #10b981;
+  animation: slideInRight 0.4s ease-out;
+}
+
+.perf-down {
+  color: #ef4444;
+  animation: slideInRight 0.4s ease-out;
+}
+
+.perf-neutral {
+  color: #6b7280;
+  animation: slideInRight 0.4s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Enhanced focus states for accessibility */
+.focus-visible\:ring-2:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.focus-visible\:ring-offset-2:focus-visible {
+  outline-offset: 2px;
+}
+
+/* Loading states */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .border-blue-100 {
+    border-color: #1d4ed8;
+  }
+  
+  .border-green-100 {
+    border-color: #059669;
+  }
+  
+  .text-gray-500 {
+    color: #000000;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
