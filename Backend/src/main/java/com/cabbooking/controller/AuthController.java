@@ -20,12 +20,15 @@ import com.cabbooking.dto.DriverRegistrationRequest;
 import com.cabbooking.dto.EmailVerificationRequest;
 import com.cabbooking.dto.LoginRequest;
 import com.cabbooking.dto.LoginResponse;
+import com.cabbooking.dto.PasswordResetRequest;
+import com.cabbooking.dto.PasswordResetSubmission;
 import com.cabbooking.service.IAdminRegistrationService;
 import com.cabbooking.service.ICustomerRegistrationService;
 import com.cabbooking.service.IDriverRegistrationService;
 import com.cabbooking.service.ILoginService;
-import com.cabbooking.service.IUserDeletionService;
 import com.cabbooking.service.ILogoutService;
+import com.cabbooking.service.IPasswordResetService;
+import com.cabbooking.service.IUserDeletionService;
 import com.cabbooking.service.IVerificationService;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -75,6 +78,10 @@ public class AuthController {
     // Service layer injected to handle email verification operations.
     @Autowired
     private IVerificationService verificationService;
+
+    // Service layer injected to handle password reset operations.
+    @Autowired
+    private IPasswordResetService passwordResetService;
 
     /**
      * Endpoint handles requests to register a new admin. 
@@ -302,6 +309,55 @@ public class AuthController {
         } else {
             // On failure, return a 400 Bad Request
             return ResponseEntity.badRequest().body("The verification link is invalid or has expired.");
+        }
+    }
+
+    /**
+     * Endpoint to request a password reset link.
+     * POST /api/auth/forgot-password
+     * 
+     * Workflow: 
+     * - User sends a request with their email address. 
+     * - Validates the email format. 
+     * - Calls the service layer to create and send a password reset link. 
+     * - Returns a success message if the email was sent. 
+     * - Returns an error response if the email is invalid or sending fails.
+     * 
+     * @param request DTO containing the user's email.
+     * @return A success message.
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@Valid @RequestBody PasswordResetRequest request) {
+        try {
+            passwordResetService.createAndSendPasswordResetToken(request.getEmail());
+            return ResponseEntity.ok("A password reset link has been sent to your email address.");
+        } catch (Exception e) {
+            // Return a generic success message even if the user doesn't exist to prevent email enumeration
+            return ResponseEntity.ok("If an account with that email exists, a password reset link has been sent.");
+        }
+    }
+
+    /**
+     * Endpoint to submit a new password using a reset token.
+     * POST /api/auth/reset-password
+     * 
+     * Workflow:
+     * - User sends a request with the reset token and new password.
+     * - Validates the request data.
+     * - Calls the service layer to reset the password.
+     * - Returns a success message if the password was reset.
+     * - Returns an error response if the token is invalid or expired.
+     * 
+     * @param submission DTO containing the token and new password.
+     * @return A success or failure message.
+     */
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody PasswordResetSubmission submission) {
+        boolean success = passwordResetService.resetPassword(submission.getToken(), submission.getNewPassword());
+        if (success) {
+            return ResponseEntity.ok("Your password has been successfully reset.");
+        } else {
+            return ResponseEntity.badRequest().body("The password reset link is invalid or has expired.");
         }
     }
 }
