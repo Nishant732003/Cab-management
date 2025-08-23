@@ -1,5 +1,6 @@
 package com.cabbooking.controller;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -14,7 +15,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.cabbooking.model.Cab;
 import com.cabbooking.service.ICabService;
@@ -182,5 +185,43 @@ public class CabController {
         logger.info("Received request to get all available cabs.");
         List<Cab> cabs = cabService.viewAllAvailableCabs();
         return ResponseEntity.ok(cabs);
+    }
+
+    /**
+     * Endpoint for an admin to upload or update a cab's image.
+     * If an image already exists, it will be replaced.
+     *
+     * @param cabId The ID of the cab.
+     * @param file The image file.
+     * @return The updated Cab object.
+     */
+    @PutMapping("/{cabId}/image")
+    public ResponseEntity<Cab> uploadOrUpdateCabImage(@PathVariable int cabId, @RequestParam("file") MultipartFile file) {
+        try {
+            Cab updatedCab = cabService.uploadImage(cabId, file);
+            return ResponseEntity.ok(updatedCab);
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * Endpoint for an admin to remove a cab's image.
+     *
+     * @param cabId The ID of the cab.
+     * @return The updated Cab object.
+     */
+    @DeleteMapping("/{cabId}/image")
+    public ResponseEntity<Cab> removeCabImage(@PathVariable int cabId) {
+        try {
+            Cab updatedCab = cabService.removeImage(cabId);
+            return ResponseEntity.ok(updatedCab);
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

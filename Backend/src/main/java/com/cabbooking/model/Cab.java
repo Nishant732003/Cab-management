@@ -51,6 +51,11 @@ public class Cab {
     private String numberPlate;
 
     /**
+     * The URL path to the cab's image.
+     */
+    private String imageUrl;
+
+    /**
      * The current availability status of the cab. 'true' if the cab is
      * available for a new trip, 'false' otherwise.
      */
@@ -95,6 +100,14 @@ public class Cab {
 
     public void setNumberPlate(String numberPlate) {
         this.numberPlate = numberPlate;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public Boolean getIsAvailable() {

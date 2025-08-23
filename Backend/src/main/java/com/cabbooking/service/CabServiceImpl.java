@@ -1,5 +1,6 @@
 package com.cabbooking.service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -7,6 +8,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.cabbooking.dto.FareEstimateResponse;
 import com.cabbooking.model.Cab;
@@ -38,6 +41,13 @@ public class CabServiceImpl implements ICabService {
      */
     @Autowired
     private CabRepository cabRepository;
+
+    /*
+     * Service to handle file uploads
+     * Provides methods for file uploads
+     */
+    @Autowired
+    private IFileUploadService fileUploadService;
 
     /**
      * Inserts a new cab into the database and sets its availability to true by
@@ -261,5 +271,79 @@ public class CabServiceImpl implements ICabService {
         return cabRepository.findAll().stream()
                 .filter(Cab::getIsAvailable)
                 .collect(Collectors.toList());
+    }
+
+    /*
+     * Uploads an image file for a cab and updates its URL in the database.
+     * 
+     * Workflow:
+     * - Finds the cab by its ID.
+     * - If an old image exists, deletes it.
+     * - Uploads the new image file.
+     * - Sets the new image URL on the cab and saves it.
+     * - Returns the updated cab.
+     * 
+     * @param cabId The ID of the cab.
+     * @param file The image file to upload.
+     * @return The updated Cab object with the new image URL.
+     * @throws IOException if the file upload fails.
+     */
+    @Override
+    @Transactional
+    public Cab uploadImage(int cabId, MultipartFile file) throws IOException {
+        // 1. Find the cab
+        Cab cab = cabRepository.findById(cabId)
+                .orElseThrow(() -> new IllegalArgumentException("Cab with id " + cabId + " not found"));
+
+        // If an old image exists, delete it first before uploading the new one
+        if (cab.getImageUrl() != null && !cab.getImageUrl().isEmpty()) {
+            removeImageFile(cab.getImageUrl());
+        }
+
+        // 2. Upload the new file and get its unique filename
+        String fileName = fileUploadService.uploadFile(file);
+        String fileApiUrl = "/api/files/" + fileName;
+
+        // 3. Set the new URL on the cab and save
+        cab.setImageUrl(fileApiUrl);
+        return cabRepository.save(cab);
+    }
+
+    /*
+     * Removes the image file for a cab and clears its URL in the database.
+     * 
+     * Workflow:
+     * - Finds the cab by its ID.
+     * - Deletes the old image file if it exists.
+     * - Clears the image URL on the cab and saves it.
+     * - Returns the updated cab.
+     * 
+     * @param cabId The ID of the cab.
+     * @return The updated Cab object with the image URL removed.
+     * @throws IOException if the file deletion fails.
+     */
+    @Override
+    @Transactional
+    public Cab removeImage(int cabId) throws IOException {
+        // 1. Find the cab
+        Cab cab = cabRepository.findById(cabId)
+                .orElseThrow(() -> new IllegalArgumentException("Cab with id " + cabId + " not found"));
+
+        // 2. Delete the physical file
+        removeImageFile(cab.getImageUrl());
+
+        // 3. Clear the URL from the cab's record and save
+        cab.setImageUrl(null);
+        return cabRepository.save(cab);
+    }
+
+    /**
+     * Helper method to safely delete an image file.
+     */
+    private void removeImageFile(String imageUrl) throws IOException {
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            String fileName = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+            fileUploadService.deleteFile(fileName);
+        }
     }
 }
