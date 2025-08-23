@@ -1,0 +1,29 @@
+// admin.module.ts
+import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+
+import { AdminRoutingModule } from './admin-routing.module';
+import { AdminComponent } from './components/admin-dashbaord/admin.component';
+import { NavbarComponent } from './components/admin-navbar/navbar.component';
+import { SidebarComponent } from './components/admin-sidebar/sidebar.component';
+import { OverviewComponent } from './pages/overview/overview.component';
+import { DriverComponent } from './pages/driver/driver.component';
+
+@NgModule({
+  declarations: [
+    AdminComponent,
+    NavbarComponent,
+    SidebarComponent,
+    OverviewComponent,
+    DriverComponent
+  ],
+  imports: [
+    CommonModule,      // ← Provides *ngIf, *ngFor, etc.
+    FormsModule,       // ← Provides ngModel for forms (navbar needs this)
+    RouterModule,      // ← Provides routerLink for navigation (sidebar needs this)
+    AdminRoutingModule
+  ]
+})
+export class AdminModule { }
