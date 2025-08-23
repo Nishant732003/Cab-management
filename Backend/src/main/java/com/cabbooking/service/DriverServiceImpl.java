@@ -116,6 +116,11 @@ public class DriverServiceImpl implements IDriverService {
         Driver driver = driverRepository.findById(driverId)
                 .orElseThrow(() -> new IllegalArgumentException("Driver not found..."));
 
+        // If an old image exists, delete it first before uploading the new one
+        if (driver.getProfilePhotoUrl() != null && !driver.getProfilePhotoUrl().isEmpty()) {
+            removeImageFile(driver.getProfilePhotoUrl());
+        }
+
         // Upload the file and get its unique filename
         String fileName = fileUploadService.uploadFile(file);
 
@@ -124,6 +129,16 @@ public class DriverServiceImpl implements IDriverService {
         driver.setProfilePhotoUrl(fileApiUrl);
         
         return driverRepository.save(driver);
+    }
+
+    /**
+     * Helper method to safely delete an image file.
+     */
+    private void removeImageFile(String imageUrl) throws IOException {
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            String fileName = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+            fileUploadService.deleteFile(fileName);
+        }
     }
 
     /*
