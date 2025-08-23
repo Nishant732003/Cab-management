@@ -1,7 +1,7 @@
 // auth.service.ts
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from '../../../../node_modules/rxjs/dist/types';
 
 export interface User {
   id: number;

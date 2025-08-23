@@ -1,8 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
-import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { filter } from 'rxjs/operators';
+import { filter } from '../../../../../../node_modules/rxjs/dist/types/operators';
 
 interface Route {
   label: string;
@@ -14,8 +12,7 @@ interface Route {
 
 @Component({
   selector: 'app-sidebar',
-  standalone: true,
-  imports: [CommonModule, RouterModule],
+  standalone: false, 
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css']
 })
@@ -26,34 +23,25 @@ export class SidebarComponent implements OnInit {
     {
       label: "Overview",
       icon: "LayoutDashboard",
-      href: "/admins/overview",
+      href: "/admin/overview", // Fixed: was "/admins/overview"
       color: "text-pink-600",
       bgColor: "bg-pink-50",
     },
     {
       label: "Driver Management",
       icon: "Activity",
-      href: "/admin/driver",
+      href: "/admin/drivers", // Fixed: was "/admin/driver", now matches route
       color: "text-blue-600",
       bgColor: "bg-blue-50",
     },
     {
       label: "Customer Management",
       icon: "Users",
-      href: "/admin/user",
+      href: "/admin/users", // You'll need to add this route to your routing module
       color: "text-green-600",
       bgColor: "bg-green-50",
     },
    
-   
-   
-    {
-      label: "Settings",
-      icon: "Settings",
-      href: "/admin/settings",
-      color: "text-gray-600",
-      bgColor: "bg-gray-50",
-    },
   ];
 
   constructor(private router: Router) {}

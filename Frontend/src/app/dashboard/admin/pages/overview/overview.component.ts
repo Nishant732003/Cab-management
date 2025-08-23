@@ -1,11 +1,11 @@
 // overview.component.ts
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+
 
 @Component({
   selector: 'app-overview',
-  standalone: true,
-  imports: [CommonModule],
+  standalone: false, 
+
   template: `
     <div class="p-6 space-y-6 bg-gray-50 min-h-screen">
       <!-- Stats Cards -->

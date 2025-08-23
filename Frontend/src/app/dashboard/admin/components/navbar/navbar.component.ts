@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Location, TitleCasePipe } from '@angular/common';
-// import { FormsModule } from '@angular/forms';
+import { Location, CommonModule, TitleCasePipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Subject } from '../../../../../../node_modules/rxjs/dist/types';
 import { takeUntil } from '../../../../../../node_modules/rxjs/dist/types/operators';
 import { AdminStaffAuthContext } from '../../../../redux/context/AdminAuthContext';
@@ -8,7 +8,8 @@ import { AdminStaffUser } from '../../../../redux/slice/adminAuthslice';
 
 @Component({
   selector: 'app-navbar',
-  standalone: false, 
+  standalone: true, // Using standalone component
+  imports: [CommonModule, FormsModule, TitleCasePipe],
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
 })
@@ -120,14 +121,14 @@ export class NavbarComponent implements OnInit, OnDestroy {
    * Navigate to notifications
    */
   handleNotifications(): void {
-    this.adminAuthContext.router.navigate(['/admin/notifications']);
+    this.adminAuthContext.router.navigate(['/adminstaff/notifications']);
   }
 
   /**
    * Navigate to settings
    */
   handleSettings(): void {
-    this.adminAuthContext.router.navigate(['/admin/settings']);
+    this.adminAuthContext.router.navigate(['/adminstaff/settings']);
   }
 
   /**

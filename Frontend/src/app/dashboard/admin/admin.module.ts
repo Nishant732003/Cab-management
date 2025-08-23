@@ -10,6 +10,7 @@ import { NavbarComponent } from './components/admin-navbar/navbar.component';
 import { SidebarComponent } from './components/admin-sidebar/sidebar.component';
 import { OverviewComponent } from './pages/overview/overview.component';
 import { DriverComponent } from './pages/driver/driver.component';
+import { UsersComponent } from './pages/user/user.component';
 
 @NgModule({
   declarations: [
@@ -17,7 +18,8 @@ import { DriverComponent } from './pages/driver/driver.component';
     NavbarComponent,
     SidebarComponent,
     OverviewComponent,
-    DriverComponent
+    DriverComponent,
+    UsersComponent
   ],
   imports: [
     CommonModule,      // ← Provides *ngIf, *ngFor, etc.

@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { AdminComponent } from './components/admin-dashbaord/admin.component';
 import { OverviewComponent } from './pages/overview/overview.component';
+import { UsersComponent } from './pages/user/user.component';
 // import { UsersManagementComponent } from './pages/users-management/users-management.component';
 import { DriverComponent } from './pages/driver/driver.component';
 
@@ -13,7 +14,7 @@ const routes: Routes = [
     children: [
       { path: '', redirectTo: 'overview', pathMatch: 'full' },
       { path: 'overview', component: OverviewComponent },
-    //   { path: 'users', component: UsersManagementComponent },
+      { path: 'users', component: UsersComponent },
       { path: 'drivers', component: DriverComponent },
       { path: '**', redirectTo: 'overview' } // ← Catch invalid routes
     ]

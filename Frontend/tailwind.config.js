@@ -1,7 +1,5 @@
-module.exports = {
-  content: [
-    "./src/**/*.{html,ts}",
-  ],
+export default {
+  content: ["./src/**/*.{html,ts}"],
   theme: {
     extend: {
       colors: {
@@ -13,5 +11,4 @@ module.exports = {
       },
     },
   },
-  plugins: [],
-}
+};

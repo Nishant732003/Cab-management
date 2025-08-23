@@ -119,42 +119,25 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Enhanced Animated Road -->
-                <!-- <div class="absolute bottom-0 left-0 right-0 h-10 bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 overflow-hidden">
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <div class="w-full h-1 bg-accent animate-pulse rounded-full"></div>
-                    </div>
-                    <div class="road-lines absolute inset-0 flex items-center justify-start space-x-12 animate-slide-road">
-                        <div class="w-12 h-2 bg-white/90 rounded-full"></div>
-                        <div class="w-12 h-2 bg-white/90 rounded-full"></div>
-                        <div class="w-12 h-2 bg-white/90 rounded-full"></div>
-                        <div class="w-12 h-2 bg-white/90 rounded-full"></div>
-                        <div class="w-12 h-2 bg-white/90 rounded-full"></div>
-                        <div class="w-12 h-2 bg-white/90 rounded-full"></div>
-                        <div class="w-12 h-2 bg-white/90 rounded-full"></div>
-                        <div class="w-12 h-2 bg-white/90 rounded-full"></div>
-                    </div>
-                </div> -->
             </div>
         </div>
 
-        <!-- Right Side - White Login Form -->
+        <!-- Right Side - Angular Reactive Form -->
         <div class="flex-1 flex items-center justify-center p-8 lg:p-12 relative bg-white">
             <!-- Subtle Background Elements for White Section -->
             <div class="absolute top-20 right-20 w-32 h-32 bg-primary/5 rounded-full blur-3xl animate-pulse"></div>
             <div class="absolute bottom-32 left-10 w-40 h-40 bg-secondary/5 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
 
             <div class="relative z-10 w-full max-w-md">
-              
-
-                <!-- White Login Form -->
+                <!-- Angular Reactive Form -->
                 <div class="bg-white rounded-3xl p-8 border-2 border-gray-100 shadow-2xl animate-fade-in-up" style="animation-delay: 0.2s;">
-                    <form class="space-y-6">
-                        <!-- Email Field -->
-                          <h2 class="text-4xl font-bold text-gray-900 mb-3 justify-center text-center">
+                    <h2 class="text-4xl font-bold text-gray-900 mb-6 justify-center text-center">
                         Welcome Back
                     </h2>
+
+                    <!-- Angular Form with Reactive Forms -->
+                    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6" novalidate>
+                        <!-- Email Field -->
                         <div class="group">
                             <label for="email" class="block text-sm font-semibold text-gray-700 mb-3 transition-colors group-focus-within:text-primary">
                                 Email Address
@@ -167,13 +150,22 @@
                                 </div>
                                 <input 
                                     id="email" 
-                                    name="email" 
+                                    formControlName="email"
                                     type="email" 
-                                    autocomplete="email" 
-                                    required
-                                    placeholder="admin@cabflow.com"
+                                    autocomplete="email"
+                                    placeholder="admin@cab.com"
                                     class="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-gray-200 rounded-2xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 hover:bg-gray-100"
+                                    [class.border-red-500]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
                                 >
+                            </div>
+                            <!-- Email Error Messages -->
+                            <div class="mt-2" *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+                                <p class="text-red-500 text-sm" *ngIf="loginForm.get('email')?.errors?.['required']">
+                                    Email is required
+                                </p>
+                                <p class="text-red-500 text-sm" *ngIf="loginForm.get('email')?.errors?.['email']">
+                                    Please enter a valid email
+                                </p>
                             </div>
                         </div>
 
@@ -190,14 +182,27 @@
                                 </div>
                                 <input 
                                     id="password" 
-                                    name="password" 
+                                    formControlName="password"
                                     type="password" 
-                                    autocomplete="current-password" 
-                                    required
+                                    autocomplete="current-password"
                                     placeholder="Enter your password"
                                     class="w-full pl-12 pr-4 py-4 bg-gray-50 border-2 border-gray-200 rounded-2xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all duration-300 hover:bg-gray-100"
+                                    [class.border-red-500]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
                                 >
                             </div>
+                            <!-- Password Error Messages -->
+                            <div class="mt-2" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+                                <p class="text-red-500 text-sm" *ngIf="loginForm.get('password')?.errors?.['required']">
+                                    Password is required
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- General Error Message -->
+                        <div class="text-center" *ngIf="errorMessage">
+                            <p class="text-red-500 text-sm font-medium bg-red-50 p-3 rounded-xl border border-red-200">
+                                {{ errorMessage }}
+                            </p>
                         </div>
 
                         <!-- Remember me and Forgot password -->
@@ -221,15 +226,30 @@
                         <div class="pt-4">
                             <button 
                                 type="submit" 
-                                class="group relative w-full flex justify-center py-4 px-6 border border-transparent text-lg font-bold rounded-2xl text-white gradient-primary hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-primary/25 transform hover:scale-[1.02] transition-all duration-300 "
+                                [disabled]="loginForm.invalid || isLoading"
+                                class="group relative w-full flex justify-center py-4 px-6 border border-transparent text-lg font-bold rounded-2xl text-white gradient-primary hover:shadow-2xl focus:outline-none focus:ring-4 focus:ring-primary/25 transform hover:scale-[1.02] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                             >
-                                <span class="absolute left-0 inset-y-0 flex items-center pl-4">
-                                  
-                                </span>
                                 <span class="relative">
-                                   Sign In
+                                    <span *ngIf="!isLoading">Sign In</span>
+                                    <span *ngIf="isLoading" class="flex items-center">
+                                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Signing In...
+                                    </span>
                                 </span>
                             </button>
+                        </div>
+
+                        <!-- Debug Info (remove in production) -->
+                        <div class="mt-4 p-3 bg-gray-100 rounded-xl text-xs" *ngIf="true">
+                            <p><strong>Debug Info:</strong></p>
+                            <p>Form Valid: {{ loginForm.valid }}</p>
+                            <p>Email: {{ loginForm.get('email')?.value || 'empty' }}</p>
+                            <p>Password: {{ loginForm.get('password')?.value ? '***' : 'empty' }}</p>
+                            <p>Loading: {{ isLoading }}</p>
+                            <p>Error: {{ errorMessage || 'none' }}</p>
                         </div>
                     </form>
                 </div>
@@ -246,6 +266,7 @@
             </div>
         </div>
     </div>
+
 <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         
@@ -394,4 +415,4 @@
                 display: none;
             }
         }
-    </style>
+</style>

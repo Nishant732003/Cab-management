@@ -2,6 +2,7 @@ import { Component, Inject, PLATFORM_ID } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -10,25 +11,19 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
   templateUrl: './login.component.html'
 })
 export class LoginComponent {
-  loginForm; // Declare without initialization
+  loginForm;
   errorMessage = '';
   isLoading = false;
-
-  private users = [
-    { email: 'admin@cab.com', password: 'admin123', role: 'admin' },
-    { email: 'driver@cab.com', password: 'driver123', role: 'driver' },
-    { email: 'user@cab.com', password: 'user123', role: 'customer' }
-  ];
 
   constructor(
     private fb: FormBuilder,
     private router: Router,
+    private authService: AuthService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
-    // Initialize loginForm in constructor after fb is available
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', Validators.required]
+      password: ['', [Validators.required, Validators.minLength(1)]]
     });
   }
 
@@ -40,23 +35,41 @@ export class LoginComponent {
 
     setTimeout(() => {
       const formValue = this.loginForm.value;
-      const user = this.users.find(
-        u => u.email === formValue.email && u.password === formValue.password
-      );
+      
+      // Safely extract email and password with null checks
+      const email = formValue.email?.trim() || '';
+      const password = formValue.password?.trim() || '';
+      
+      // Additional validation
+      if (!email || !password) {
+        this.errorMessage = 'Please enter both email and password';
+        this.isLoading = false;
+        return;
+      }
+      
+      const loginSuccess = this.authService.login(email, password);
 
-      if (user) {
-        if (isPlatformBrowser(this.platformId)) {
-          localStorage.setItem('currentUser', JSON.stringify({
-            email: user.email,
-            role: user.role,
-            token: 'mock-token-' + Math.random().toString(36).substring(2)
-          }));
+      if (loginSuccess) {
+        const currentUser = this.authService.getCurrentUser();
+        
+        // Navigate based on user role
+        switch(currentUser?.role) {
+          case 'admin':
+            this.router.navigate(['/admin']);
+            break;
+          case 'driver':
+            this.router.navigate(['/driver']); // Enable this when driver module is ready
+            break;
+          case 'user':
+            this.router.navigate(['/user']); // Add user dashboard route
+            break;
+          default:
+            this.router.navigate(['/login']);
         }
-        this.router.navigate(['/dashboard']);
       } else {
         this.errorMessage = 'Invalid email or password';
       }
-      
+
       this.isLoading = false;
     }, 800);
   }
