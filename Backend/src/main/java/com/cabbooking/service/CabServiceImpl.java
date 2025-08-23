@@ -54,6 +54,9 @@ public class CabServiceImpl implements ICabService {
      */
     @Override
     public Cab insertCab(Cab cab) {
+        if (cabRepository.existsByNumberPlate(cab.getNumberPlate())) {
+            throw new IllegalArgumentException("A cab with number plate '" + cab.getNumberPlate() + "' already exists.");
+        }
         // Ensure that any new cab is marked as available upon creation.
         cab.setIsAvailable(true);
         return cabRepository.save(cab);
@@ -85,6 +88,13 @@ public class CabServiceImpl implements ICabService {
         // Ensure the cab is not on an active trip
         if (!existingCab.getIsAvailable()) {
             throw new IllegalStateException("Cannot update a cab that is currently on a trip.");
+        }
+
+        if (cabRequest.getNumberPlate() != null && !cabRequest.getNumberPlate().equals(existingCab.getNumberPlate())) {
+            if (cabRepository.existsByNumberPlate(cabRequest.getNumberPlate())) {
+                throw new IllegalArgumentException("A cab with number plate '" + cabRequest.getNumberPlate() + "' already exists.");
+            }
+            existingCab.setNumberPlate(cabRequest.getNumberPlate());
         }
 
         // Update only the fields that are provided in the request

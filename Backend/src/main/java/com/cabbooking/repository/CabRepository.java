@@ -30,4 +30,11 @@ public interface CabRepository extends JpaRepository<Cab, Integer> {
      * @return A list of {@link Cab} entities that match the specified car type.
      */
     List<Cab> findByCarType(String carType);
+
+    /**
+     * Checks if a Cab with the given number plate already exists.
+     * @param numberPlate The number plate to check.
+     * @return True if a cab with that number plate exists, false otherwise.
+     */
+    boolean existsByNumberPlate(String numberPlate);
 }

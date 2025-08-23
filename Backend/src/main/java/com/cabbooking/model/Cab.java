@@ -1,15 +1,17 @@
 package com.cabbooking.model;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
-import java.util.List;
 
 /**
  * Represents a cab vehicle in the fleet.
@@ -40,6 +42,13 @@ public class Cab {
      * The rate charged per kilometer for this cab.
      */
     private Float perKmRate;
+
+    /**
+     * The official registration number plate of the cab.
+     * This is a mandatory and unique identifier.
+     */
+    @Column(nullable = false, unique = true)
+    private String numberPlate;
 
     /**
      * The current availability status of the cab. 'true' if the cab is
@@ -78,6 +87,14 @@ public class Cab {
 
     public void setPerKmRate(Float perKmRate) {
         this.perKmRate = perKmRate;
+    }
+
+    public String getNumberPlate() {
+        return numberPlate;
+    }
+
+    public void setNumberPlate(String numberPlate) {
+        this.numberPlate = numberPlate;
     }
 
     public Boolean getIsAvailable() {

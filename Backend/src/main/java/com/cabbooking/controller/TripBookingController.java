@@ -30,17 +30,14 @@ import jakarta.validation.Valid;
  * controller acts as the entry point for all trip-related actions from the
  * client-side, such as booking a trip, updating its status, and viewing trip
  * history. It delegates the business logic to the {@link ITripBookingService}.
- * 
- * Main Responsibilities: 
- * - Provides endpoints for booking, updating, and completing trips. 
- * - Handles security using method-level security. 
- * 
- * Security: 
- * - All endpoints are secured and require the user to have the 'Customer' role. 
- * - Only users with the 'Customer' role can access these endpoints. 
- * - Users can only update their own trip status. 
- * - Admins can update any user's trip status. 
- * - Drivers can only update their own trip status.
+ *
+ * Main Responsibilities: - Provides endpoints for booking, updating, and
+ * completing trips. - Handles security using method-level security.
+ *
+ * Security: - All endpoints are secured and require the user to have the
+ * 'Customer' role. - Only users with the 'Customer' role can access these
+ * endpoints. - Users can only update their own trip status. - Admins can update
+ * any user's trip status. - Drivers can only update their own trip status.
  */
 @RestController
 @RequestMapping("/api/trips")
@@ -59,12 +56,10 @@ public class TripBookingController {
     /**
      * Endpoint to get a list of fare estimates for all available car types.
      * Customers can use this to see the price range for their trip across all
-     * options. 
-     * GET /api/trips/estimate 
-     * Workflow: 
-     * - Used by the customer to get a list of fare estimates for all available car types. 
-     * - Calls the service layer to fetch all available fare estimates. 
-     * - Returns a ResponseEntity containing a list of fare estimates.
+     * options. GET /api/trips/estimate Workflow: - Used by the customer to get
+     * a list of fare estimates for all available car types. - Calls the service
+     * layer to fetch all available fare estimates. - Returns a ResponseEntity
+     * containing a list of fare estimates.
      *
      * @param distance The estimated distance of the trip in kilometers.
      * @return A ResponseEntity containing a list of fare estimates.
@@ -78,12 +73,10 @@ public class TripBookingController {
     }
 
     /**
-     * Endpoint for a customer to book a new trip. 
-     * POST /api/trips/book
-     * Workflow: 
-     * - Used by the customer to book a new trip. 
-     * - Calls the service layer to book the trip. 
-     * - Returns a ResponseEntity containing the created TripBooking object.
+     * Endpoint for a customer to book a new trip. POST /api/trips/book
+     * Workflow: - Used by the customer to book a new trip. - Calls the service
+     * layer to book the trip. - Returns a ResponseEntity containing the created
+     * TripBooking object.
      *
      * @param tripBookingRequest DTO containing the necessary details for the
      * booking.
@@ -99,12 +92,10 @@ public class TripBookingController {
     }
 
     /**
-     * Endpoint to update the status of a trip. Can be used by a driver. 
-     * PUT /api/trips/{tripId}/status 
-     * Workflow: 
-     * - Used by a driver to update the status of a trip. 
-     * - Calls the service layer to update the trip status. 
-     * - Returns a ResponseEntity containing the updated trip object.
+     * Endpoint to update the status of a trip. Can be used by a driver. PUT
+     * /api/trips/{tripId}/status Workflow: - Used by a driver to update the
+     * status of a trip. - Calls the service layer to update the trip status. -
+     * Returns a ResponseEntity containing the updated trip object.
      *
      * @param tripId The ID of the trip to update.
      * @param status The new status (e.g., "IN_PROGRESS").
@@ -120,12 +111,10 @@ public class TripBookingController {
 
     /**
      * Endpoint for a driver to mark a trip as complete. This will also trigger
-     * the bill calculation. 
-     * PUT /api/trips/{tripId}/complete 
-     * Workflow: 
-     * - Used by a driver to mark a trip as complete. 
-     * - Calls the service layer to complete the trip. 
-     * - Returns a ResponseEntity containing the completed trip object with the final bill.
+     * the bill calculation. PUT /api/trips/{tripId}/complete Workflow: - Used
+     * by a driver to mark a trip as complete. - Calls the service layer to
+     * complete the trip. - Returns a ResponseEntity containing the completed
+     * trip object with the final bill.
      *
      * @param tripId The ID of the trip being completed.
      * @return The completed trip object with the final bill.
@@ -139,18 +128,17 @@ public class TripBookingController {
     }
 
     /**
-     * Endpoint for a customer to view their entire trip history. 
-     * GET /api/trips/customer/{customerId} 
-     * Workflow: 
-     * - Used by a customer to view their entire trip history. 
-     * - Calls the service layer to fetch the customer's trip history. 
-     * - Returns a ResponseEntity containing a list of the customer's past and present trips.
+     * Endpoint for a customer to view their entire trip history. GET
+     * /api/trips/customer/{customerId} Workflow: - Used by a customer to view
+     * their entire trip history. - Calls the service layer to fetch the
+     * customer's trip history. - Returns a ResponseEntity containing a list of
+     * the customer's past and present trips.
      *
      * @param customerId The ID of the customer.
      * @return A list of the customer's past and present trips.
      */
     @GetMapping("/customer/{customerId}")
-    @PreAuthorize("principal == #username or hasRole('Admin')")
+    @PreAuthorize("hasRole('Customer') or hasRole('Admin')")
     public ResponseEntity<List<TripBooking>> getCustomerTrips(@PathVariable Integer customerId) {
         logger.info("Received request to view customer's trip history.");
         List<TripBooking> trips = tripBookingService.viewAllTripsCustomer(customerId);
@@ -158,12 +146,10 @@ public class TripBookingController {
     }
 
     /**
-     * Endpoint for a customer to rate a trip. 
-     * POST /api/trips/{tripId}/rate
-     * Workflow: 
-     * - Used by a customer to rate a trip. 
-     * - Calls the service layer to rate the trip. 
-     * - Returns a ResponseEntity containing the rated trip object.
+     * Endpoint for a customer to rate a trip. POST /api/trips/{tripId}/rate
+     * Workflow: - Used by a customer to rate a trip. - Calls the service layer
+     * to rate the trip. - Returns a ResponseEntity containing the rated trip
+     * object.
      *
      * @param tripId The ID of the trip being rated.
      * @param ratingRequest The rating details.
