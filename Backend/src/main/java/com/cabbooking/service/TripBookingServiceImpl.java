@@ -25,20 +25,16 @@ import com.cabbooking.repository.TripBookingRepository;
  * Implementation of the {@link ITripBookingService} interface. This class
  * contains the core business logic for managing trip bookings. It coordinates
  * between different repositories to create and manage trip data.
- * 
- * Main Responsibilities:
- * - Handles the logic for booking a new trip.
- * - Updates the status of a trip.
- * - Marks a trip as completed and calculates the final bill.
- * - Retrieves all trips for a specific customer.
- * - Handles security using method-level security.
- * 
- * Security:
- * - All endpoints are secured using method-level security.
- * - Only users with the 'Customer' role can access these endpoints.
- * - Users can only update their own trip status.
- * - Admins can update any user's trip status.
- * - Drivers can only update their own trip status.
+ *
+ * Main Responsibilities: - Handles the logic for booking a new trip. - Updates
+ * the status of a trip. - Marks a trip as completed and calculates the final
+ * bill. - Retrieves all trips for a specific customer. - Handles security using
+ * method-level security.
+ *
+ * Security: - All endpoints are secured using method-level security. - Only
+ * users with the 'Customer' role can access these endpoints. - Users can only
+ * update their own trip status. - Admins can update any user's trip status. -
+ * Drivers can only update their own trip status.
  */
 @Service
 public class TripBookingServiceImpl implements ITripBookingService {
@@ -72,24 +68,23 @@ public class TripBookingServiceImpl implements ITripBookingService {
     private CabRepository cabRepository;
 
     /**
-     * Handles the logic for booking a new trip. This method now supports both
-     * immediate and scheduled bookings.
+     * Handles the logic for booking a new trip. This method now supports both immediate and scheduled bookings.
      *
-     * Workflow:
-     * - Validate that the customer exists.
-     * - Check if a future scheduledTime is provided in the request.
-     * - Find the best available driver (highest rating).
-     * - Find the best available cab (lowest price).
-     * - Create a new TripBooking entity.
-     * - Set the status to SCHEDULED if a future scheduledTime is provided in the request.
-     * - Assign the driver and cab to the trip.
-     * - Save the trip to the database.
+     * Workflow: 
+     * - Validate that the customer exists. 
+     * - Check if a future scheduledTime is provided in the request. 
+     * - Find the best available driver (highest rating). 
+     * - Create a new TripBooking entity. 
+     * - Set the status to SCHEDULED if a future scheduledTime is provided in the request. 
+     * - Assign the driver to the trip. 
+     * - Save the trip to the database. 
      * - Return the saved trip.
-     * 
-     * @param tripBookingRequest The request from the customer containing trip details.
+     *
+     * @param tripBookingRequest The request from the customer containing trip
+     * details.
      * @return The saved {@link TripBooking} object.
      * @throws AuthenticationException if the customer ID is invalid.
-     * @throws RuntimeException if no drivers or cabs are available for an immediate booking.
+     * @throws RuntimeException if no drivers are available for an immediate booking.
      */
     @Override
     @Transactional
@@ -99,50 +94,54 @@ public class TripBookingServiceImpl implements ITripBookingService {
                 .orElseThrow(() -> new AuthenticationException("Customer not found..."));
 
         // Check if a future scheduledTime is provided in the request.
-        if (tripBookingRequest.getScheduledTime() != null && tripBookingRequest.getScheduledTime().isAfter(LocalDateTime.now())) {            
+        if (tripBookingRequest.getScheduledTime() != null && tripBookingRequest.getScheduledTime().isAfter(LocalDateTime.now())) {
             // Create a new TripBooking entity.
             TripBooking scheduledTrip = new TripBooking();
             scheduledTrip.setCustomer(customer);
             scheduledTrip.setFromLocation(tripBookingRequest.getFromLocation());
             scheduledTrip.setToLocation(tripBookingRequest.getToLocation());
             scheduledTrip.setDistanceInKm(tripBookingRequest.getDistanceInKm());
-            
+
+            // Set the car type to fetch a driver associated with that car type
+            scheduledTrip.setCarType(tripBookingRequest.getCarType());
+
             // Set the status to SCHEDULED. No driver or cab is assigned at this point.
             scheduledTrip.setStatus(TripStatus.SCHEDULED);
-            
+
             // The start time of the trip is the future time provided by the user.
             scheduledTrip.setFromDateTime(tripBookingRequest.getScheduledTime());
-            
+
             // Save the scheduled trip to the database. The background scheduler will handle the rest.
             return tripBookingRepository.save(scheduledTrip);
-            
-        } else {            
-            // Find the best available driver (highest rating).
+
+        } else {
+            // Find the best available driver WITH the requested car type
             Driver bestAvailableDriver = driverRepository.findAll().stream()
-                    .filter(d -> d.getVerified() && d.getIsAvailable()) // Find verified AND available drivers
-                    .max(Comparator.comparing(Driver::getRating)) // Find the one with the highest rating
-                    .orElseThrow(() -> new RuntimeException("No drivers are available at the moment."));
+                    .filter(driver -> 
+                        driver.getVerified() &&
+                        driver.getIsAvailable() &&
+                        driver.getCab() != null && // Ensure driver has a cab
+                        driver.getCab().getCarType().equalsIgnoreCase(tripBookingRequest.getCarType()) // Match the car type
+                    )
+                    .max(Comparator.comparing(Driver::getRating))
+                    .orElseThrow(() -> new RuntimeException("No '" + tripBookingRequest.getCarType() + "' drivers are available at the moment."));
 
-            // Find any available cab.
-            Cab availableCab = cabRepository.findAll().stream()
-                    .filter(Cab::getIsAvailable)
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("No cabs are available..."));
+            Cab assignedCab = bestAvailableDriver.getCab();
 
-            // Set the assigned driver and cab to unavailable for other bookings.
+            // Mark the driver and their cab as unavailable
             bestAvailableDriver.setIsAvailable(false);
-            availableCab.setIsAvailable(false);
+            assignedCab.setIsAvailable(false);
             driverRepository.save(bestAvailableDriver);
-            cabRepository.save(availableCab);
 
-            // Create and save the trip with a CONFIRMED status.
+            // Create and save the trip
             TripBooking newTrip = new TripBooking();
             newTrip.setCustomer(customer);
             newTrip.setDriver(bestAvailableDriver);
-            newTrip.setCab(availableCab);
+            newTrip.setCab(assignedCab);
             newTrip.setFromLocation(tripBookingRequest.getFromLocation());
             newTrip.setToLocation(tripBookingRequest.getToLocation());
             newTrip.setDistanceInKm(tripBookingRequest.getDistanceInKm());
+            newTrip.setCarType(tripBookingRequest.getCarType());
             newTrip.setStatus(TripStatus.CONFIRMED);
             newTrip.setFromDateTime(LocalDateTime.now());
 
@@ -152,14 +151,14 @@ public class TripBookingServiceImpl implements ITripBookingService {
 
     /**
      * Updates the status of a trip according to predefined business rules.
-     * 
-     * Main Responsibilities:
-     * - Handles the logic for updating the status of a trip.
-     * - Applies business rules for status transitions.
-     * - Throws an exception if the status transition is not allowed.
+     *
+     * Main Responsibilities: - Handles the logic for updating the status of a
+     * trip. - Applies business rules for status transitions. - Throws an
+     * exception if the status transition is not allowed.
      *
      * @param tripId The ID of the trip.
-     * @param newStatusStr The new status as a string (e.g., "IN_PROGRESS", "CANCELLED").
+     * @param newStatusStr The new status as a string (e.g., "IN_PROGRESS",
+     * "CANCELLED").
      * @return The updated trip.
      * @throws IllegalStateException if the status transition is not allowed.
      */
@@ -175,36 +174,34 @@ public class TripBookingServiceImpl implements ITripBookingService {
 
         // Apply the business rules for status transitions.
         switch (currentStatus) {
-            // A trip that is scheduled but not yet confirmed can only be cancelled.
-            case SCHEDULED:
+            case SCHEDULED -> {
                 if (newStatus == TripStatus.CANCELLED) {
                     trip.setStatus(newStatus);
                 } else {
                     throw new IllegalStateException("A scheduled trip can only be CANCELLED.");
                 }
-                break;
-                
-            case CONFIRMED:
+            }
+
+            case CONFIRMED -> {
                 if (newStatus == TripStatus.IN_PROGRESS || newStatus == TripStatus.CANCELLED) {
                     trip.setStatus(newStatus);
                 } else {
                     throw new IllegalStateException("A confirmed trip can only be moved to IN_PROGRESS or CANCELLED.");
                 }
-                break;
+            }
 
-            case IN_PROGRESS:
+            case IN_PROGRESS -> {
                 if (newStatus == TripStatus.CANCELLED) {
                     trip.setStatus(newStatus);
                 } else {
                     throw new IllegalStateException("An in-progress trip can only be CANCELLED.");
                 }
-                break;
+            }
 
-            case COMPLETED:
-            case CANCELLED:
-                // If the trip is already completed or cancelled, no further status changes are allowed.
+            case COMPLETED, CANCELLED -> // If the trip is already completed or cancelled, no further status changes are allowed.
                 throw new IllegalStateException("A " + currentStatus.toString().toLowerCase() + " trip cannot be changed.");
         }
+        // A trip that is scheduled but not yet confirmed can only be cancelled.
 
         // If the trip is cancelled, make the assigned driver and cab available again.
         // This check is safe for scheduled trips because their driver and cab will be null.
@@ -227,13 +224,10 @@ public class TripBookingServiceImpl implements ITripBookingService {
 
     /**
      * Completes a trip, calculates the bill, and sets the end time.
-     * 
-     * Workflow:
-     * - Completes the trip.
-     * - Calculates the final bill.
-     * - Sets the end time.
-     * - Sets the driver and cab to available.
-     * - Returns the completed trip.
+     *
+     * Workflow: - Completes the trip. - Calculates the final bill. - Sets the
+     * end time. - Sets the driver and cab to available. - Returns the completed
+     * trip.
      *
      * @param tripId The ID of the trip to complete.
      * @return The completed trip with the final bill.
@@ -267,10 +261,9 @@ public class TripBookingServiceImpl implements ITripBookingService {
 
     /**
      * Retrieves the trip history for a given customer.
-     * 
-     * Workflow:
-     * - Retrieves all trips for the customer.
-     * - Returns the list of trips.
+     *
+     * Workflow: - Retrieves all trips for the customer. - Returns the list of
+     * trips.
      *
      * @param customerId The customer's ID.
      * @return A list of trips.
@@ -281,15 +274,12 @@ public class TripBookingServiceImpl implements ITripBookingService {
     }
 
     /**
-     * Applies a customer's rating to a completed trip and updates the driver's average rating.
-     * 
-     * Workflow:
-     * - Finds the trip.
-     * - Validates the request.
-     * - Gets the driver and the new rating.
-     * - Calculates the new average rating.
-     * - Updates the trip with the customer's rating.
-     * - Returns the updated trip.
+     * Applies a customer's rating to a completed trip and updates the driver's
+     * average rating.
+     *
+     * Workflow: - Finds the trip. - Validates the request. - Gets the driver
+     * and the new rating. - Calculates the new average rating. - Updates the
+     * trip with the customer's rating. - Returns the updated trip.
      *
      * @param tripId The ID of the trip to rate.
      * @param ratingRequest The DTO containing the rating value.

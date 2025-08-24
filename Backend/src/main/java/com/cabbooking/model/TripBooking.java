@@ -90,6 +90,12 @@ public class TripBooking {
      */
     private Integer customerRating;
 
+    /**
+     * The type of car requested by the customer for the trip (e.g., "Sedan", "SUV").
+     * This is crucial for the scheduler to assign the correct type of cab.
+     */
+    private String carType;
+
     // ======= Getters and Setters =======
     public Integer getTripBookingId() {
         return tripBookingId;
@@ -185,5 +191,13 @@ public class TripBooking {
 
     public void setCustomerRating(Integer customerRating) {
         this.customerRating = customerRating;
+    }
+
+    public String getCarType() {
+        return carType;
+    }
+
+    public void setCarType(String carType) {
+        this.carType = carType;
     }
 }

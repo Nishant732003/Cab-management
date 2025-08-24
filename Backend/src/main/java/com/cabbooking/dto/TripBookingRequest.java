@@ -1,8 +1,9 @@
 package com.cabbooking.dto;
 
+import java.time.LocalDateTime;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
 
 /**
  * Data Transfer Object (DTO) for handling incoming trip booking requests from a customer.
@@ -38,8 +39,17 @@ public class TripBookingRequest {
     @NotNull(message = "Distance is required")
     private float distanceInKm;
 
+    /*
+     * Optional field for pre-scheduled trips
+     */
     private LocalDateTime scheduledTime;
 
+    /*
+     * The car type of the cab for the trip
+     * This will be used for fetching driver associated with the cab of the given car type
+     */
+    @NotBlank(message = "Car type is required")
+    private String carType;
 
     // ======= Getters and Setters =======
 
@@ -75,16 +85,19 @@ public class TripBookingRequest {
         this.distanceInKm = distanceInKm;
     }
 
-    /**
-     * Gets the scheduled time for the trip.
-     * This is optional and can be used for pre-scheduled trips.
-     *  * @return The scheduled time as a LocalDateTime object, or null if not set.
-     */
      public LocalDateTime getScheduledTime() {
         return scheduledTime;
     }
 
     public void setScheduledTime(LocalDateTime scheduledTime) {
         this.scheduledTime = scheduledTime;
+    }
+
+    public String getCarType() {
+        return carType;
+    }
+
+    public void setCarType(String carType) {
+        this.carType = carType;
     }
 }

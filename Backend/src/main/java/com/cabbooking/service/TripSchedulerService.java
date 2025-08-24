@@ -1,12 +1,10 @@
 package com.cabbooking.service;
 
-import com.cabbooking.model.Cab;
-import com.cabbooking.model.Driver;
-import com.cabbooking.model.TripBooking;
-import com.cabbooking.model.TripStatus;
-import com.cabbooking.repository.CabRepository;
-import com.cabbooking.repository.DriverRepository;
-import com.cabbooking.repository.TripBookingRepository;
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,21 +12,24 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.cabbooking.model.Cab;
+import com.cabbooking.model.Driver;
+import com.cabbooking.model.TripBooking;
+import com.cabbooking.model.TripStatus;
+import com.cabbooking.repository.DriverRepository;
+import com.cabbooking.repository.TripBookingRepository;
 
 /**
- * A background service responsible for processing scheduled trips.
- * This service uses Spring's @Scheduled annotation to run a task at a fixed interval,
- * ensuring that future bookings are handled automatically without manual intervention.
- * 
- * Main Responsibilities:
- * - Checks for scheduled trips that are due to start within the next 15 minutes.
+ * A background service responsible for processing scheduled trips. This service
+ * uses Spring's @Scheduled annotation to run a task at a fixed interval,
+ * ensuring that future bookings are handled automatically without manual
+ * intervention.
+ *
+ * Main Responsibilities: 
+ * - Checks for scheduled trips that are due to start within the next 15 minutes. 
  * - Assigns drivers and cabs to these trips if available.
- * 
- * Security:
+ *
+ * Security: 
  * - This service is only accessible to users with the 'Admin' role.
  */
 @Service
@@ -42,22 +43,23 @@ public class TripSchedulerService {
     @Autowired
     private DriverRepository driverRepository;
 
-    @Autowired
-    private CabRepository cabRepository;
-
     /**
-     * This method is the core of the scheduler. It runs automatically at a fixed interval
-     * to find and process scheduled trips that are due soon.
-     * * The @Scheduled(fixedRate = 60000) annotation tells Spring to execute this method
-     * every 60,000 milliseconds (i.e., every 1 minute).
-     * * The @Transactional annotation ensures that all database operations within this method
-     * are part of a single transaction. If any part fails, all changes are rolled back.
-     * 
+     * This method is the core of the scheduler. It runs automatically at a
+     * fixed interval to find and process scheduled trips that are due soon. *
+     * The @Scheduled(fixedRate = 60000) annotation tells Spring to execute this
+     * method every 60,000 milliseconds (i.e., every 1 minute). * The
+     *
+     * @Transactional annotation ensures that all database operations within
+     * this method are part of a single transaction. If any part fails, all
+     * changes are rolled back.
+     *
      * Workflow:
-     * - Checks for scheduled trips that are due to start within the next 15 minutes.
-     * - Assigns drivers and cabs to these trips if available.
-     * 
-     * Security:
+     * - This method is scheduled to run every 1 minute.
+     * - It checks for scheduled trips that are due to start within the next 15 minutes.
+     * - If a trip is due, it attempts to find an available driver and assign them to the trip.
+     * - If driver is found, the trip status is updated to 'IN_PROGRESS'.
+     *
+     * Security: 
      * - This method is only accessible to users with the 'Admin' role.
      */
     @Scheduled(fixedRate = 60000) // Runs every 1 minute
@@ -68,8 +70,8 @@ public class TripSchedulerService {
         // Find all trips that are currently in the 'SCHEDULED' state and are due to start
         // within the next 15 minutes. This gives the system a small buffer to find a driver.
         List<TripBooking> dueTrips = tripBookingRepository.findAll().stream()
-                .filter(trip -> trip.getStatus() == TripStatus.SCHEDULED &&
-                               trip.getFromDateTime().isBefore(LocalDateTime.now().plusMinutes(15)))
+                .filter(trip -> trip.getStatus() == TripStatus.SCHEDULED
+                && trip.getFromDateTime().isBefore(LocalDateTime.now().plusMinutes(15)))
                 .collect(Collectors.toList());
 
         // If no trips are due, log it and exit the method to save resources.
@@ -82,37 +84,35 @@ public class TripSchedulerService {
         for (TripBooking trip : dueTrips) {
             logger.info("Attempting to assign driver to scheduled trip ID: {}", trip.getTripBookingId());
             try {
-                // Find the best available driver (verified, available, and highest rating).
+                // Find the best driver whose cab's carType matches the trip's required carType
                 Driver bestAvailableDriver = driverRepository.findAll().stream()
-                        .filter(d -> d.getVerified() && d.getIsAvailable())
+                        .filter(d -> 
+                            d.getVerified() && 
+                            d.getIsAvailable() &&
+                            d.getCab() != null &&
+                            d.getCab().getCarType().equalsIgnoreCase(trip.getCarType()) // Use the carType from the trip
+                        )
                         .max(Comparator.comparing(Driver::getRating))
-                        .orElse(null); // Return null if no driver is found
+                        .orElse(null);
 
-                // Find any available cab.
-                Cab availableCab = cabRepository.findAll().stream()
-                        .filter(Cab::getIsAvailable)
-                        .findFirst()
-                        .orElse(null); // Return null if no cab is found
+                // If a driver was found, assign them and their cab to the trip.
+                if (bestAvailableDriver != null) {
+                    Cab assignedCab = bestAvailableDriver.getCab();
 
-                // If both a driver and a cab were found, assign them to the trip.
-                if (bestAvailableDriver != null && availableCab != null) {
-                    // Mark the driver and cab as unavailable for other trips.
+                    // Mark the driver and their cab as unavailable
                     bestAvailableDriver.setIsAvailable(false);
-                    availableCab.setIsAvailable(false);
+                    assignedCab.setIsAvailable(false);
                     driverRepository.save(bestAvailableDriver);
-                    cabRepository.save(availableCab);
 
-                    // Update the trip with the assigned driver and cab.
+                    // Update the trip details
                     trip.setDriver(bestAvailableDriver);
-                    trip.setCab(availableCab);
-                    // Change the trip status from SCHEDULED to CONFIRMED.
+                    trip.setCab(assignedCab);
                     trip.setStatus(TripStatus.CONFIRMED);
                     tripBookingRepository.save(trip);
                     
-                    logger.info("Successfully assigned Driver {} and Cab {} to Trip {}", bestAvailableDriver.getId(), availableCab.getCabId(), trip.getTripBookingId());
+                    logger.info("Successfully assigned Driver {} and Cab {} to Trip {}", bestAvailableDriver.getId(), assignedCab.getCabId(), trip.getTripBookingId());
                 } else {
-                    // Log a warning if no resources are available. The trip will be re-checked on the next run.
-                    logger.warn("Could not find available driver or cab for scheduled trip ID: {}", trip.getTripBookingId());
+                    logger.warn("Could not find an available driver for scheduled trip ID: {}", trip.getTripBookingId());
                 }
             } catch (Exception e) {
                 // Log any unexpected errors to prevent the scheduler from crashing.
