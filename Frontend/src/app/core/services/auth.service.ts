@@ -1,8 +1,7 @@
-// auth.service.ts
+// auth.service.ts - Fixed version
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-// import { BehaviorSubject, Observable } from '../../../../node_modules/rxjs/dist/types';
-import { BehaviorSubject,Observable } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 export interface User {
   id: number;
@@ -18,6 +17,7 @@ export class AuthService {
   // Track current user state
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$: Observable<User | null> = this.currentUserSubject.asObservable();
+  private initialized = false;
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     this.initializeAuthState();
@@ -25,6 +25,8 @@ export class AuthService {
 
   // Mock login - replace with real API call later
   login(email: string, password: string): boolean {
+    console.log('Login attempt:', email);
+    
     // Simple mock authentication
     if (email === 'admin@cab.com' && password === 'admin123') {
       const user: User = {
@@ -63,41 +65,65 @@ export class AuthService {
   }
 
   logout(): void {
+    console.log('Logging out user');
     this.currentUserSubject.next(null);
     this.removeItem('currentUser');
   }
 
   isLoggedIn(): boolean {
-    return this.currentUserSubject.value !== null;
+    // Ensure we've initialized the state first
+    if (!this.initialized) {
+      this.initializeAuthState();
+    }
+    
+    const isLoggedIn = this.currentUserSubject.value !== null;
+    console.log('isLoggedIn check:', isLoggedIn, 'Current user:', this.currentUserSubject.value);
+    return isLoggedIn;
   }
 
   getCurrentUser(): User | null {
+    if (!this.initialized) {
+      this.initializeAuthState();
+    }
     return this.currentUserSubject.value;
   }
 
   hasRole(role: string): boolean {
-    return this.currentUserSubject.value?.role === role;
+    const currentUser = this.getCurrentUser();
+    const hasRole = currentUser?.role === role;
+    console.log(`hasRole(${role}) check:`, hasRole, 'Current user role:', currentUser?.role);
+    return hasRole;
   }
 
   private setUser(user: User): void {
+    console.log('Setting user:', user);
     this.currentUserSubject.next(user);
     this.setItem('currentUser', JSON.stringify(user));
   }
 
   private initializeAuthState(): void {
+    if (this.initialized) return;
+    
+    console.log('Initializing auth state, platform browser:', isPlatformBrowser(this.platformId));
+    
     // Only access localStorage in the browser
     if (isPlatformBrowser(this.platformId)) {
       const userJson = this.getItem('currentUser');
+      console.log('Stored user data:', userJson);
+      
       if (userJson) {
         try {
           const user = JSON.parse(userJson);
           this.currentUserSubject.next(user);
+          console.log('Restored user from storage:', user);
         } catch (e) {
           console.error('Error parsing user data', e);
           this.removeItem('currentUser');
         }
       }
     }
+    
+    this.initialized = true;
   }
 
   // Helper methods to safely handle localStorage

@@ -9,14 +9,14 @@ import { DriverComponent } from './pages/driver/driver.component';
 
 const routes: Routes = [
   {
-    path: '', // ← Matches '/admin'
+    path: '', 
     component: AdminComponent,
     children: [
       { path: '', redirectTo: 'overview', pathMatch: 'full' },
       { path: 'overview', component: OverviewComponent },
       { path: 'users', component: UsersComponent },
       { path: 'drivers', component: DriverComponent },
-      { path: '**', redirectTo: 'overview' } // ← Catch invalid routes
+      { path: '**', redirectTo: 'overview' } 
     ]
   }
 ];

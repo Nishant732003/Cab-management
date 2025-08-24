@@ -1,13 +1,14 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Location, TitleCasePipe } from '@angular/common';
 // import { FormsModule } from '@angular/forms';
-import { Subject } from '../../../../../../node_modules/rxjs/dist/types';
-import { takeUntil } from '../../../../../../node_modules/rxjs/dist/types/operators';
-import { AdminStaffAuthContext } from '../../../../redux/context/AdminAuthContext';
-import { AdminStaffUser } from '../../../../redux/slice/adminAuthslice';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+
+import { DriverAuthContext } from '../../../../redux/context/DriverAuthContext';
+import { DriverUser } from '../../../../redux/slice/driverAuthslice';
 
 @Component({
-  selector: 'app-navbar',
+  selector: 'driver-navbar',
   standalone: false, 
   templateUrl: './navbar.component.html',
   styleUrls: ['./navbar.component.css']
@@ -16,7 +17,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   
   // Component state properties
-  user: AdminStaffUser | null = null;
+  user: DriverUser | null = null;
   isAuthenticated = false;
   isLoading = false;
   error: string | null = null;
@@ -25,7 +26,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
   isMobileSidebarOpen = false;
   
   constructor(
-    private adminAuthContext: AdminStaffAuthContext,
+    private driverAuthContext: DriverAuthContext,
     private location: Location
   ) {}
 
@@ -44,28 +45,28 @@ export class NavbarComponent implements OnInit, OnDestroy {
    */
   private subscribeToAuthState(): void {
     // Subscribe to user changes
-    this.adminAuthContext.user$.pipe(
+    this.driverAuthContext.user$.pipe(
       takeUntil(this.destroy$)
     ).subscribe(user => {
       this.user = user;
     });
 
     // Subscribe to authentication status
-    this.adminAuthContext.isAuthenticated$.pipe(
+    this.driverAuthContext.isAuthenticated$.pipe(
       takeUntil(this.destroy$)
     ).subscribe(isAuthenticated => {
       this.isAuthenticated = isAuthenticated;
     });
 
     // Subscribe to loading state
-    this.adminAuthContext.isLoading$.pipe(
+    this.driverAuthContext.isLoading$.pipe(
       takeUntil(this.destroy$)
     ).subscribe(isLoading => {
       this.isLoading = isLoading;
     });
 
     // Subscribe to error state
-    this.adminAuthContext.error$.pipe(
+    this.driverAuthContext.error$.pipe(
       takeUntil(this.destroy$)
     ).subscribe(error => {
       this.error = error;
@@ -76,19 +77,30 @@ export class NavbarComponent implements OnInit, OnDestroy {
    * Initialize authentication from localStorage
    */
   private initializeAuth(): void {
-    this.adminAuthContext.initializeAuth();
+    this.driverAuthContext.initializeAuth();
     
     // If no user found after initialization, set mock user for demo
     setTimeout(() => {
-      if (!this.adminAuthContext.user) {
-        const mockUser: AdminStaffUser = {
-          id: '1',
-          userName: 'John Doe',
-          email: 'john.doe@example.com',
-          userType: 'admin'
+      if (!this.driverAuthContext.user) {
+        const mockUser: DriverUser = {
+          id: 'driver-1',
+          userName: 'John Driver',
+          email: 'john.driver@example.com',
+          phone: '+1-555-0123',
+          licenseNumber: 'DL123456789',
+          vehicle: {
+            make: 'Toyota',
+            model: 'Camry',
+            year: 2020,
+            plateNumber: 'ABC123'
+          },
+          isOnline: false,
+          rating: 4.8,
+          totalTrips: 1247,
+          totalEarnings: 45650.75
         };
         
-        this.adminAuthContext.setUser(mockUser);
+        this.driverAuthContext.setUser(mockUser);
       }
     }, 100);
   }
@@ -98,15 +110,49 @@ export class NavbarComponent implements OnInit, OnDestroy {
    */
   handleLogout(event: Event): void {
     event.preventDefault();
-    this.adminAuthContext.handleLogout();
+    this.driverAuthContext.handleLogout();
     this.showToast('Logged Out Successfully', 'You have been successfully logged out.');
+  }
+
+  /**
+   * Handle driver online/offline status toggle
+   */
+  async toggleDriverStatus(): Promise<void> {
+    try {
+      await this.driverAuthContext.toggleOnlineStatus();
+      const statusText = this.user?.isOnline ? 'online' : 'offline';
+      this.showToast('Status Updated', `You are now ${statusText}.`);
+    } catch (error) {
+      this.showToast('Status Update Failed', 'Unable to update your status.', 'error');
+    }
   }
 
   /**
    * Navigate to user profile
    */
   handleUserProfile(): void {
-    this.adminAuthContext.router.navigate(['/adminstaff/profile']);
+    this.driverAuthContext.router.navigate(['/driver/profile']);
+  }
+
+  /**
+   * Navigate to driver earnings
+   */
+  handleEarnings(): void {
+    this.driverAuthContext.router.navigate(['/driver/earnings']);
+  }
+
+  /**
+   * Navigate to trip history
+   */
+  handleTripHistory(): void {
+    this.driverAuthContext.router.navigate(['/driver/trips']);
+  }
+
+  /**
+   * Navigate to vehicle management
+   */
+  handleVehicleInfo(): void {
+    this.driverAuthContext.router.navigate(['/driver/vehicle']);
   }
 
   /**
@@ -120,14 +166,14 @@ export class NavbarComponent implements OnInit, OnDestroy {
    * Navigate to notifications
    */
   handleNotifications(): void {
-    this.adminAuthContext.router.navigate(['/admin/notifications']);
+    this.driverAuthContext.router.navigate(['/driver/notifications']);
   }
 
   /**
    * Navigate to settings
    */
   handleSettings(): void {
-    this.adminAuthContext.router.navigate(['/admin/settings']);
+    this.driverAuthContext.router.navigate(['/driver/settings']);
   }
 
   /**
@@ -168,24 +214,45 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Get user type badge styling based on user type
+   * Get driver status badge styling
    */
-  getUserTypeBadgeColor(userType?: string): string {
-    switch (userType?.toLowerCase()) {
-      case 'admin':
-        return 'badge-admin';
-      case 'staff':
-        return 'badge-staff';
-      default:
-        return 'badge-default';
-    }
+  getDriverStatusBadgeColor(): string {
+    if (!this.user) return 'badge-offline';
+    return this.user.isOnline ? 'badge-online' : 'badge-offline';
+  }
+
+  /**
+   * Get driver status text
+   */
+  getDriverStatusText(): string {
+    if (!this.user) return 'Offline';
+    return this.user.isOnline ? 'Online' : 'Offline';
+  }
+
+  /**
+   * Get driver rating display
+   */
+  getDriverRating(): string {
+    if (!this.user) return '0.0';
+    return this.user.rating.toFixed(1);
+  }
+
+  /**
+   * Get formatted total earnings
+   */
+  getFormattedEarnings(): string {
+    if (!this.user) return '$0.00';
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(this.user.totalEarnings);
   }
 
   /**
    * Get user initials for avatar
    */
   getUserInitials(userName?: string): string {
-    if (!userName) return 'U';
+    if (!userName) return 'D';
     
     return userName
       .split(' ')
@@ -196,24 +263,47 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Check if user has admin privileges
+   * Get vehicle display info
    */
-  isAdmin(): boolean {
-    return this.user?.userType === 'admin';
+  getVehicleInfo(): string {
+    if (!this.user?.vehicle) return 'No vehicle';
+    const { year, make, model } = this.user.vehicle;
+    return `${year} ${make} ${model}`;
   }
 
   /**
-   * Check if user has staff privileges
+   * Get vehicle plate number
    */
-  isStaff(): boolean {
-    return this.user?.userType === 'staff';
+  getVehiclePlate(): string {
+    return this.user?.vehicle?.plateNumber || 'N/A';
+  }
+
+  /**
+   * Get license number
+   */
+  getLicenseNumber(): string {
+    return this.user?.licenseNumber || 'N/A';
+  }
+
+  /**
+   * Get total trips count
+   */
+  getTotalTrips(): number {
+    return this.user?.totalTrips || 0;
+  }
+
+  /**
+   * Check if driver is currently online
+   */
+  isDriverOnline(): boolean {
+    return this.user?.isOnline || false;
   }
 
   /**
    * Clear any authentication errors
    */
   clearError(): void {
-    this.adminAuthContext.clearError();
+    this.driverAuthContext.clearError();
   }
 
   /**
@@ -235,8 +325,8 @@ export class NavbarComponent implements OnInit, OnDestroy {
     }
     
     console.log('Searching for:', query);
-    // TODO: Implement actual search logic
-    // Example: this.adminAuthContext.router.navigate(['/adminstaff/search'], { queryParams: { q: query.trim() } });
+    // TODO: Implement actual search logic for driver-specific content
+    // Example: this.driverAuthContext.router.navigate(['/driver/search'], { queryParams: { q: query.trim() } });
   }
 
   /**
@@ -284,5 +374,29 @@ export class NavbarComponent implements OnInit, OnDestroy {
     if (window.innerWidth >= 768 && this.isMobileSidebarOpen) {
       this.closeMobileSidebar();
     }
+  }
+
+  /**
+   * Emergency contact handler
+   */
+  handleEmergencyContact(): void {
+    // TODO: Implement emergency contact functionality
+    console.log('Emergency contact initiated');
+    this.showToast('Emergency Contact', 'Emergency services have been notified.', 'info');
+  }
+
+  /**
+   * Quick actions for driver
+   */
+  quickStartTrip(): void {
+    this.driverAuthContext.router.navigate(['/driver/trip/start']);
+  }
+
+  quickViewTrips(): void {
+    this.driverAuthContext.router.navigate(['/driver/trips/active']);
+  }
+
+  quickViewEarnings(): void {
+    this.driverAuthContext.router.navigate(['/driver/earnings/today']);
   }
 }

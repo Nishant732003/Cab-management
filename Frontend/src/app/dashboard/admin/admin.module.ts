@@ -1,4 +1,4 @@
-// admin.module.ts
+
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -22,9 +22,9 @@ import { UsersComponent } from './pages/user/user.component';
     UsersComponent
   ],
   imports: [
-    CommonModule,      // ← Provides *ngIf, *ngFor, etc.
-    FormsModule,       // ← Provides ngModel for forms (navbar needs this)
-    RouterModule,      // ← Provides routerLink for navigation (sidebar needs this)
+    CommonModule,      
+    FormsModule,      
+    RouterModule,      
     AdminRoutingModule
   ]
 })

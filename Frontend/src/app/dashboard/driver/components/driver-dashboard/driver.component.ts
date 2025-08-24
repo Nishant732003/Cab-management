@@ -1,12 +1,12 @@
+// driver.component.ts
 import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-driver',
-   standalone: false,
-
+  standalone: false,
   templateUrl: './driver.component.html',
+  styleUrls: ['./driver.component.css']
 })
-export class AdminComponent {
-  showAdminAlert = true;
-  systemVersion = '2.4.1';
+export class DriverComponent {
+  // Component logic here if needed
 }

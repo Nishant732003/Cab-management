@@ -6,7 +6,7 @@ import { CommonModule } from '@angular/common';
 // Guards
 import { AuthGuard } from './guards/auth.guard';
 import { AdminGuard } from './guards/admin.guard';
-// import { DriverGuard } from './guards/driver.guard';
+import { DriverGuard } from './guards/driver.guard';
 
 // Interceptors
 // import { AuthInterceptor } from './interceptors/auth.interceptor';
@@ -25,7 +25,7 @@ import { AuthService } from './services/auth.service';
     // Guards
     AuthGuard,
     AdminGuard,
-    // DriverGuard,
+   DriverGuard,
     
     // Services
     AuthService,

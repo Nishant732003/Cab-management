@@ -1,0 +1,659 @@
+/* overview.component.css */
+.overview-container {
+  padding: 24px;
+  background-color: #f8fafc;
+  min-height: 100vh;
+  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3b82f6, #06b6d4);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.stat-card:hover::before {
+  opacity: 1;
+}
+
+.stat-card.earnings::before { background: linear-gradient(90deg, #10b981, #059669); }
+.stat-card.trips::before { background: linear-gradient(90deg, #3b82f6, #1d4ed8); }
+.stat-card.distance::before { background: linear-gradient(90deg, #f59e0b, #d97706); }
+.stat-card.rating::before { background: linear-gradient(90deg, #ef4444, #dc2626); }
+
+.stat-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+  font-size: 20px;
+  color: white;
+}
+
+.earnings .stat-icon { background: linear-gradient(135deg, #10b981, #059669); }
+.trips .stat-icon { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+.distance .stat-icon { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.rating .stat-icon { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+.stat-info h3 {
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  margin: 0 0 4px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.stat-footer {
+  margin-top: 12px;
+}
+
+.change-indicator {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 6px;
+  gap: 4px;
+}
+
+.change-indicator.positive {
+  color: #059669;
+  background-color: #ecfdf5;
+}
+
+.change-indicator.negative {
+  color: #dc2626;
+  background-color: #fef2f2;
+}
+
+.info-text {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Main Content Layout */
+.main-content {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 1200px) {
+  .main-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Card Styles */
+.status-card,
+.recent-trips-card,
+.earnings-summary-card,
+.vehicle-status-card,
+.quick-actions-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border: 1px solid #e2e8f0;
+  margin-bottom: 24px;
+  overflow: hidden;
+}
+
+.card-header {
+  display: flex;
+  justify-content: between;
+  align-items: center;
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.card-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.view-all,
+.view-details {
+  color: #3b82f6;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.view-all:hover,
+.view-details:hover {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+}
+
+/* Status Card */
+.status-toggle {
+  display: flex;
+  align-items: center;
+}
+
+.toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.toggle-btn.online {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.toggle-btn.offline {
+  background: linear-gradient(135deg, #64748b, #475569);
+  color: white;
+  box-shadow: 0 4px 12px rgba(100, 116, 139, 0.4);
+}
+
+.toggle-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.status-details {
+  padding: 16px 24px 24px;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.status-item:last-child {
+  margin-bottom: 0;
+}
+
+.status-item .label {
+  font-weight: 500;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.status-item .value {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.value.online {
+  color: #059669;
+}
+
+.value.offline {
+  color: #64748b;
+}
+
+/* Recent Trips */
+.trips-list {
+  padding: 0 24px 24px;
+}
+
+.trip-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+}
+
+.trip-item:hover {
+  background: #f1f5f9;
+  transform: translateX(4px);
+}
+
+.trip-item:last-child {
+  margin-bottom: 0;
+}
+
+.trip-info {
+  flex: 1;
+}
+
+.trip-route {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #374151;
+}
+
+.trip-route .pickup {
+  color: #059669;
+}
+
+.trip-route .drop {
+  color: #dc2626;
+}
+
+.trip-route i.fa-circle {
+  font-size: 8px;
+}
+
+.trip-route i.fa-arrow-right {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.trip-details {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.trip-details span {
+  font-weight: 500;
+}
+
+.trip-status {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.trip-status.completed {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.trip-status.cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.trip-status.in-progress {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* Earnings Summary */
+.period-selector {
+  padding: 8px 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: white;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+}
+
+.period-selector:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.earnings-chart {
+  padding: 0 24px;
+  margin-bottom: 24px;
+}
+
+.chart-container {
+  height: 200px;
+  position: relative;
+}
+
+.chart-bars {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  height: 100%;
+  padding: 16px 0;
+  gap: 8px;
+}
+
+.bar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+.bar {
+  background: linear-gradient(180deg, #3b82f6, #1d4ed8);
+  border-radius: 4px 4px 0 0;
+  width: 100%;
+  min-height: 4px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.bar:hover {
+  background: linear-gradient(180deg, #2563eb, #1e40af);
+  transform: scaleY(1.05);
+}
+
+.bar-label {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.earnings-breakdown {
+  padding: 0 24px 24px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 16px;
+}
+
+.breakdown-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 14px;
+}
+
+.breakdown-item.total {
+  border-top: 1px solid #e2e8f0;
+  margin-top: 8px;
+  padding-top: 16px;
+  font-weight: 600;
+}
+
+.breakdown-item .label {
+  color: #64748b;
+}
+
+.breakdown-item .value {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.breakdown-item .value.positive {
+  color: #059669;
+}
+
+.breakdown-item .value.negative {
+  color: #dc2626;
+}
+
+/* Vehicle Status */
+.vehicle-info {
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  margin-bottom: 20px;
+}
+
+.vehicle-image {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16px;
+}
+
+.vehicle-image i {
+  font-size: 24px;
+  color: white;
+}
+
+.vehicle-details h4 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.vehicle-details p {
+  margin: 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.vehicle-metrics {
+  padding: 0 24px;
+  margin-bottom: 20px;
+}
+
+.metric-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.metric-item:last-child {
+  margin-bottom: 0;
+}
+
+.metric-item .label {
+  font-size: 14px;
+  color: #64748b;
+  font-weight: 500;
+  min-width: 100px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 8px;
+  background: #f1f5f9;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981, #059669);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.metric-item .value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  min-width: 60px;
+  text-align: right;
+}
+
+.metric-item .value.warning {
+  color: #d97706;
+}
+
+.vehicle-alerts {
+  padding: 16px 24px 24px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.alert-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #fef3c7;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #92400e;
+}
+
+.alert-item:last-child {
+  margin-bottom: 0;
+}
+
+.alert-item i {
+  color: #f59e0b;
+}
+
+/* Quick Actions */
+.actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  padding: 0 24px 24px;
+}
+
+.action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 20px 16px;
+  border: 2px solid #e2e8f0;
+  background: white;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  color: #64748b;
+}
+
+.action-btn:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+}
+
+.action-btn i {
+  font-size: 24px;
+}
+
+.action-btn span {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* No Data State */
+.no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  color: #9ca3af;
+}
+
+.no-data i {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.no-data p {
+  margin: 0;
+  font-size: 16px;
+  color: #6b7280;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .overview-container {
+    padding: 16px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .main-content {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  
+  .card-header {
+    padding: 20px 20px 12px;
+  }
+  
+  .trips-list {
+    padding: 0 20px 20px;
+  }
+  
+  .earnings-chart,
+  .earnings-breakdown,
+  .vehicle-info,
+  .vehicle-metrics {
+    padding: 0 20px;
+  }
+  
+  .vehicle-alerts {
+    padding: 16px 20px 20px;
+  }
+  
+  .actions-grid {
+    grid-template-columns: 1fr;
+    padding: 0 20px 20px;
+  }
+}

@@ -1,4 +1,4 @@
-<!-- Navbar Component Template -->
+<!-- Driver Navbar Component Template -->
 <nav class="bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex justify-between h-16">
@@ -17,12 +17,21 @@
 
         <!-- Logo/Brand -->
         <div class="flex items-center">
-          <h1 class="text-xl font-semibold text-gray-900">Admin Dashboard</h1>
+          <h1 class="text-xl font-semibold text-gray-900">Driver Dashboard</h1>
         </div>
 
         <!-- Date display -->
         <div class="hidden md:block text-sm text-gray-500">
           {{ getCurrentDate() }}
+        </div>
+
+        <!-- Driver Status Toggle -->
+        <div *ngIf="user" class="hidden md:flex items-center space-x-2">
+          <button 
+            (click)="toggleDriverStatus()"
+            [class]="'px-3 py-1 text-xs font-medium rounded-full transition-colors ' + getDriverStatusBadgeColor()">
+            {{ getDriverStatusText() }}
+          </button>
         </div>
       </div>
 
@@ -39,8 +48,8 @@
             <input
               id="search"
               name="search"
-              class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder="Search..."
+              class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              placeholder="Search trips, locations..."
               type="search"
               [(ngModel)]="searchQuery"
               (keydown)="onSearchKeyPress($event)">
@@ -53,7 +62,7 @@
         
         <!-- Loading indicator -->
         <div *ngIf="isLoading" class="flex items-center">
-          <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600"></div>
+          <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
         </div>
 
         <!-- Error indicator -->
@@ -66,6 +75,14 @@
           </button>
         </div>
 
+        <!-- Driver Rating (hidden on mobile) -->
+        <div *ngIf="user" class="hidden md:flex items-center space-x-1 text-sm text-gray-600">
+          <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+          </svg>
+          <span>{{ getDriverRating() }}</span>
+        </div>
+
         <!-- Notifications -->
         <button 
           (click)="handleNotifications()"
@@ -76,6 +93,16 @@
           </svg>
           <!-- Notification badge -->
           <span class="absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full"></span>
+        </button>
+
+        <!-- Emergency button -->
+        <button 
+          (click)="handleEmergencyContact()"
+          class="p-2 rounded-md text-white bg-red-600 hover:bg-red-700 transition-colors"
+          title="Emergency Contact">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.96-.833-2.73 0L3.084 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+          </svg>
         </button>
 
         <!-- Settings -->
@@ -96,7 +123,7 @@
             class="flex items-center space-x-3 p-2 rounded-md hover:bg-gray-100 transition-colors">
             
             <!-- User avatar -->
-            <div class="h-8 w-8 bg-indigo-600 rounded-full flex items-center justify-center">
+            <div class="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center">
               <span class="text-sm font-medium text-white">{{ getUserInitials(user.userName) }}</span>
             </div>
 
@@ -104,11 +131,12 @@
             <div class="hidden md:block text-left">
               <div class="text-sm font-medium text-gray-900">{{ user.userName }}</div>
               <div class="text-xs text-gray-500">{{ user.email }}</div>
+              <div class="text-xs text-gray-400">{{ getVehicleInfo() }}</div>
             </div>
 
-            <!-- User type badge -->
-            <span [class]="'px-2 py-1 text-xs font-medium rounded-full border ' + getUserTypeBadgeColor(user.userType)">
-              {{ user.userType | titlecase }}
+            <!-- Driver status badge -->
+            <span [class]="'px-2 py-1 text-xs font-medium rounded-full ' + getDriverStatusBadgeColor()">
+              Driver
             </span>
           </button>
         </div>
@@ -150,7 +178,7 @@
     
     <!-- Mobile sidebar header -->
     <div class="flex items-center justify-between p-4 border-b">
-      <h2 class="text-lg font-medium text-gray-900">Menu</h2>
+      <h2 class="text-lg font-medium text-gray-900">Driver Menu</h2>
       <button 
         (click)="closeMobileSidebar()"
         class="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100">
@@ -160,11 +188,35 @@
       </button>
     </div>
 
+    <!-- Driver status in mobile -->
+    <div *ngIf="user" class="p-4 border-b">
+      <div class="flex items-center justify-between">
+        <span class="text-sm font-medium text-gray-700">Status:</span>
+        <button 
+          (click)="toggleDriverStatus()"
+          [class]="'px-3 py-1 text-xs font-medium rounded-full transition-colors ' + getDriverStatusBadgeColor()">
+          {{ getDriverStatusText() }}
+        </button>
+      </div>
+      
+      <!-- Driver stats in mobile -->
+      <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
+        <div class="text-center">
+          <div class="font-medium text-gray-900">{{ getDriverRating() }}</div>
+          <div class="text-gray-500">Rating</div>
+        </div>
+        <div class="text-center">
+          <div class="font-medium text-gray-900">{{ getTotalTrips() }}</div>
+          <div class="text-gray-500">Trips</div>
+        </div>
+      </div>
+    </div>
+
     <!-- Mobile search -->
     <div class="p-4">
       <input
-        class="block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
-        placeholder="Search..."
+        class="block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+        placeholder="Search trips, locations..."
         type="search"
         [(ngModel)]="mobileSearchQuery"
         (keydown)="onMobileSearchKeyPress($event)">
@@ -172,22 +224,75 @@
 
     <!-- Mobile menu items -->
     <div class="px-4 pb-4 space-y-2">
+      <!-- Quick actions -->
+      <div class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Quick Actions</div>
+      
+      <button 
+        (click)="quickStartTrip(); closeMobileSidebar()"
+        class="w-full text-left px-3 py-2 rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100">
+        Start Trip
+      </button>
+      
+      <button 
+        (click)="quickViewTrips(); closeMobileSidebar()"
+        class="w-full text-left px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100">
+        Active Trips
+      </button>
+      
+      <button 
+        (click)="quickViewEarnings(); closeMobileSidebar()"
+        class="w-full text-left px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100">
+        Today's Earnings
+      </button>
+
+      <hr class="my-3">
+
+      <!-- Regular menu items -->
       <button 
         (click)="handleUserProfile(); closeMobileSidebar()"
         class="w-full text-left px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100">
         Profile
       </button>
+      
+      <button 
+        (click)="handleEarnings(); closeMobileSidebar()"
+        class="w-full text-left px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100">
+        Earnings
+      </button>
+      
+      <button 
+        (click)="handleTripHistory(); closeMobileSidebar()"
+        class="w-full text-left px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100">
+        Trip History
+      </button>
+      
+      <button 
+        (click)="handleVehicleInfo(); closeMobileSidebar()"
+        class="w-full text-left px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100">
+        Vehicle Info
+      </button>
+      
       <button 
         (click)="handleNotifications(); closeMobileSidebar()"
         class="w-full text-left px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100">
         Notifications
       </button>
+      
       <button 
         (click)="handleSettings(); closeMobileSidebar()"
         class="w-full text-left px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100">
         Settings
       </button>
-      <hr class="my-2">
+
+      <hr class="my-3">
+
+      <!-- Emergency contact -->
+      <button 
+        (click)="handleEmergencyContact(); closeMobileSidebar()"
+        class="w-full text-left px-3 py-2 rounded-md text-red-700 bg-red-50 hover:bg-red-100">
+        Emergency Contact
+      </button>
+      
       <button 
         (click)="handleLogout($event); closeMobileSidebar()"
         class="w-full text-left px-3 py-2 rounded-md text-red-700 hover:bg-red-50">

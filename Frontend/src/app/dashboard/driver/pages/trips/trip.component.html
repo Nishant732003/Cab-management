@@ -1,0 +1,354 @@
+<div class="trips-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <button class="back-button" (click)="goBack()">
+        <i class="icon-arrow-left"></i>
+      </button>
+      <h1>My Trips</h1>
+    </div>
+    <div class="header-actions">
+      <button class="export-btn" (click)="exportTrips()">
+        <i class="icon-download"></i>
+        Export
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon earnings">₹</div>
+      <div class="stat-content">
+        <div class="stat-value">₹{{ tripStats.totalEarnings.toFixed(2) }}</div>
+        <div class="stat-label">Total Earnings</div>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon trips">🚗</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ tripStats.totalTrips }}</div>
+        <div class="stat-label">Total Trips</div>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon distance">📍</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ tripStats.totalDistance.toFixed(1) }} km</div>
+        <div class="stat-label">Distance</div>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon rating">⭐</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ tripStats.avgRating.toFixed(1) }}</div>
+        <div class="stat-label">Avg Rating</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filters -->
+  <div class="search-filter-section">
+    <div class="search-bar">
+      <i class="icon-search"></i>
+      <input 
+        type="text" 
+        placeholder="Search trips by passenger, location, or trip ID..." 
+        [(ngModel)]="searchTerm"
+        (input)="onSearch()"
+      >
+    </div>
+    
+    <div class="filter-controls">
+      <button class="filter-toggle" (click)="toggleFilters()" [class.active]="showFilters">
+        <i class="icon-filter"></i>
+        Filters
+      </button>
+      
+      <div class="sort-controls">
+        <label>Sort by:</label>
+        <select [(ngModel)]="sortBy" (change)="onFilterChange()">
+          <option value="date">Date</option>
+          <option value="fare">Fare</option>
+          <option value="distance">Distance</option>
+          <option value="rating">Rating</option>
+        </select>
+        
+        <button class="sort-order" (click)="sortOrder = sortOrder === 'asc' ? 'desc' : 'asc'; onFilterChange()">
+          <i [class]="sortOrder === 'asc' ? 'icon-arrow-up' : 'icon-arrow-down'"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Advanced Filters -->
+  <div class="filters-panel" [class.show]="showFilters">
+    <div class="filter-row">
+      <div class="filter-group">
+        <label>Date Range:</label>
+        <select [(ngModel)]="filters.dateRange" (change)="onFilterChange()">
+          <option value="today">Today</option>
+          <option value="week">This Week</option>
+          <option value="month">This Month</option>
+          <option value="custom">Custom Range</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label>Status:</label>
+        <select [(ngModel)]="filters.status" (change)="onFilterChange()">
+          <option value="all">All Status</option>
+          <option [value]="TripStatus.COMPLETED">Completed</option>
+          <option [value]="TripStatus.CANCELLED">Cancelled</option>
+          <option [value]="TripStatus.IN_PROGRESS">In Progress</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label>Payment:</label>
+        <select [(ngModel)]="filters.paymentMethod" (change)="onFilterChange()">
+          <option value="all">All Methods</option>
+          <option [value]="PaymentMethod.CASH">Cash</option>
+          <option [value]="PaymentMethod.CARD">Card</option>
+          <option [value]="PaymentMethod.UPI">UPI</option>
+          <option [value]="PaymentMethod.WALLET">Wallet</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <button class="clear-filters" (click)="clearFilters()">
+          Clear All
+        </button>
+      </div>
+    </div>
+
+    <!-- Custom Date Range -->
+    <div class="custom-date-range" *ngIf="filters.dateRange === 'custom'">
+      <div class="date-group">
+        <label>From:</label>
+        <input 
+          type="date" 
+          [(ngModel)]="filters.customStartDate" 
+          (change)="onFilterChange()"
+        >
+      </div>
+      <div class="date-group">
+        <label>To:</label>
+        <input 
+          type="date" 
+          [(ngModel)]="filters.customEndDate" 
+          (change)="onFilterChange()"
+        >
+      </div>
+    </div>
+
+    <!-- Fare Range -->
+    <div class="fare-range-filter">
+      <label>Fare Range:</label>
+      <div class="range-inputs">
+        <input 
+          type="number" 
+          placeholder="Min ₹" 
+          [(ngModel)]="filters.minFare"
+          (input)="onFilterChange()"
+        >
+        <span>to</span>
+        <input 
+          type="number" 
+          placeholder="Max ₹" 
+          [(ngModel)]="filters.maxFare"
+          (input)="onFilterChange()"
+        >
+      </div>
+    </div>
+  </div>
+
+  <!-- Trip List -->
+  <div class="trips-list">
+    <div 
+      class="trip-card" 
+      *ngFor="let trip of paginatedTrips"
+      (click)="selectTrip(trip)"
+    >
+      <div class="trip-header">
+        <div class="trip-id">Trip #{{ trip.id }}</div>
+        <div class="trip-status" [ngClass]="getStatusBadgeClass(trip.status)">
+          {{ trip.status | titlecase }}
+        </div>
+      </div>
+      
+      <div class="trip-content">
+        <div class="passenger-info">
+          <div class="passenger-name">{{ trip.passengerName }}</div>
+          <div class="trip-date">{{ formatDate(trip.startTime) }} • {{ formatTime(trip.startTime) }}</div>
+        </div>
+        
+        <div class="trip-route">
+          <div class="location pickup">
+            <i class="icon-circle pickup-dot"></i>
+            <span>{{ trip.pickupLocation.address }}</span>
+          </div>
+          <div class="route-line"></div>
+          <div class="location dropoff">
+            <i class="icon-circle dropoff-dot"></i>
+            <span>{{ trip.dropLocation.address }}</span>
+          </div>
+        </div>
+        
+        <div class="trip-details">
+          <div class="detail-item">
+            <i class="icon-clock"></i>
+            <span>{{ formatDuration(trip.duration) }}</span>
+          </div>
+          <div class="detail-item">
+            <i class="icon-map"></i>
+            <span>{{ trip.distance }} km</span>
+          </div>
+          <div class="detail-item payment">
+            <span>{{ getPaymentMethodIcon(trip.paymentMethod) }}</span>
+            <span>{{ trip.paymentMethod | titlecase }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="trip-footer">
+        <div class="fare-info">
+          <div class="fare">₹{{ trip.fare.toFixed(2) }}</div>
+          <div class="tip" *ngIf="trip.tip > 0">+₹{{ trip.tip.toFixed(2) }} tip</div>
+        </div>
+        <div class="rating" *ngIf="trip.rating > 0">
+          <div class="stars">
+            <span *ngFor="let star of [1,2,3,4,5]" [class.filled]="star <= trip.rating">⭐</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- No trips message -->
+    <div class="no-trips" *ngIf="paginatedTrips.length === 0">
+      <div class="no-trips-icon">🚗</div>
+      <h3>No trips found</h3>
+      <p>Try adjusting your search criteria or date range</p>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button 
+      class="page-btn" 
+      (click)="previousPage()" 
+      [disabled]="currentPage === 1"
+    >
+      Previous
+    </button>
+    
+    <div class="page-numbers">
+      <button 
+        *ngFor="let page of [].constructor(totalPages); let i = index" 
+        class="page-number" 
+        [class.active]="currentPage === i + 1"
+        (click)="goToPage(i + 1)"
+      >
+        {{ i + 1 }}
+      </button>
+    </div>
+    
+    <button 
+      class="page-btn" 
+      (click)="nextPage()" 
+      [disabled]="currentPage === totalPages"
+    >
+      Next
+    </button>
+  </div>
+</div>
+
+<!-- Trip Detail Modal -->
+<div class="modal-overlay" *ngIf="selectedTrip" (click)="closeModal()">
+  <div class="trip-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Trip Details</h2>
+      <button class="close-btn" (click)="closeModal()">×</button>
+    </div>
+    
+    <div class="modal-content" *ngIf="selectedTrip">
+      <div class="trip-overview">
+        <div class="trip-id-large">Trip #{{ selectedTrip.id }}</div>
+        <div class="trip-status-large" [ngClass]="getStatusBadgeClass(selectedTrip.status)">
+          {{ selectedTrip.status | titlecase }}
+        </div>
+      </div>
+      
+      <div class="passenger-details">
+        <h3>Passenger Information</h3>
+        <div class="info-row">
+          <strong>Name:</strong> {{ selectedTrip.passengerName }}
+        </div>
+        <div class="info-row">
+          <strong>Phone:</strong> {{ selectedTrip.passengerPhone }}
+        </div>
+      </div>
+      
+      <div class="trip-timeline">
+        <h3>Trip Details</h3>
+        <div class="timeline-item">
+          <div class="timeline-dot pickup"></div>
+          <div class="timeline-content">
+            <div class="timeline-label">Pickup</div>
+            <div class="timeline-address">{{ selectedTrip.pickupLocation.address }}</div>
+            <div class="timeline-time">{{ formatDate(selectedTrip.startTime) }} at {{ formatTime(selectedTrip.startTime) }}</div>
+          </div>
+        </div>
+        
+        <div class="timeline-line"></div>
+        
+        <div class="timeline-item">
+          <div class="timeline-dot dropoff"></div>
+          <div class="timeline-content">
+            <div class="timeline-label">Drop-off</div>
+            <div class="timeline-address">{{ selectedTrip.dropLocation.address }}</div>
+            <div class="timeline-time">{{ formatDate(selectedTrip.endTime) }} at {{ formatTime(selectedTrip.endTime) }}</div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="trip-metrics">
+        <div class="metric">
+          <div class="metric-value">{{ selectedTrip.distance }} km</div>
+          <div class="metric-label">Distance</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value">{{ formatDuration(selectedTrip.duration) }}</div>
+          <div class="metric-label">Duration</div>
+        </div>
+        <div class="metric" *ngIf="selectedTrip.rating > 0">
+          <div class="metric-value">{{ selectedTrip.rating }}/5</div>
+          <div class="metric-label">Rating</div>
+        </div>
+      </div>
+      
+      <div class="payment-summary">
+        <h3>Payment Summary</h3>
+        <div class="payment-row">
+          <span>Base Fare:</span>
+          <span>₹{{ selectedTrip.fare.toFixed(2) }}</span>
+        </div>
+        <div class="payment-row" *ngIf="selectedTrip.tip > 0">
+          <span>Tip:</span>
+          <span>₹{{ selectedTrip.tip.toFixed(2) }}</span>
+        </div>
+        <div class="payment-row total">
+          <span>Total Earned:</span>
+          <span>₹{{ (selectedTrip.fare + selectedTrip.tip).toFixed(2) }}</span>
+        </div>
+        <div class="payment-method">
+          <span>Payment Method:</span>
+          <span>{{ getPaymentMethodIcon(selectedTrip.paymentMethod) }} {{ selectedTrip.paymentMethod | titlecase }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

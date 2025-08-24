@@ -1,25 +1,27 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { Injectable } from '@angular/core';
 import adminAuthReducer, { AdminStaffAuthState } from './slice/adminAuthslice';
+import driverAuthReducer, { DriverAuthState } from './slice/driverAuthslice'; // Add this import
 
-// Root state interface
+// Root state interface - Updated to include both auth slices
 export interface RootState {
   adminstaffauth: AdminStaffAuthState;
+  driverAuth: DriverAuthState; // Add driver auth state
 }
 
-// Configure Redux store - removed export to avoid redeclaration
+// Configure Redux store with both reducers
 const reduxStore = configureStore({
   reducer: {
     adminstaffauth: adminAuthReducer,
+    driverAuth: driverAuthReducer, // Add driver auth reducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
-        // Fixed: changed from ignoredActionsPaths to ignoredActionPaths
         ignoredActionPaths: ['meta.arg', 'payload.timestamp'],
       },
     }),
-  devTools: true, // Enable Redux DevTools
+  devTools: true,
 });
 
 export type AppDispatch = typeof reduxStore.dispatch;
@@ -29,7 +31,7 @@ export type AppDispatch = typeof reduxStore.dispatch;
   providedIn: 'root'
 })
 export class ReduxStore {
-  private store = reduxStore; // Renamed to avoid confusion
+  private store = reduxStore;
 
   // Get current state
   getState(): RootState {
@@ -46,7 +48,7 @@ export class ReduxStore {
     return this.store.subscribe(listener);
   }
 
-  // Selectors
+  // Admin Auth Selectors
   selectUser() {
     return this.getState().adminstaffauth.user;
   }
@@ -62,10 +64,23 @@ export class ReduxStore {
   selectError() {
     return this.getState().adminstaffauth.error;
   }
+
+  // Driver Auth Selectors - Add these
+  selectDriverUser() {
+    return this.getState().driverAuth.user;
+  }
+
+  selectDriverIsAuthenticated() {
+    return this.getState().driverAuth.isAuthenticated;
+  }
+
+  selectDriverIsLoading() {
+    return this.getState().driverAuth.isLoading;
+  }
+
+  selectDriverError() {
+    return this.getState().driverAuth.error;
+  }
 }
 
-// Export the store instance if needed elsewhere
 export const store = reduxStore;
-
-// Remove duplicate export type declaration for RootState and AppDispatch
-// (they're already exported above)

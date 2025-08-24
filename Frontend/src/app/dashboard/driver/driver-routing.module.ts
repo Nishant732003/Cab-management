@@ -1,0 +1,37 @@
+import { NgModule } from '@angular/core';
+import { RouterModule, Routes } from '@angular/router';
+import { DriverComponent } from './components/driver-dashboard/driver.component';
+import { TripsComponent } from './pages/trips/trip.component';
+import { EarningsComponent } from './pages/earnings/earnings.component';
+import { OverviewComponent } from './pages/overview/overview.component';
+const routes: Routes = [
+  {
+    path: '',
+    component: DriverComponent,
+    children: [
+      {
+        path: '',
+        redirectTo: 'overview',
+        pathMatch: 'full'
+      },
+      {
+        path: 'earnings',
+        component: EarningsComponent
+      },
+      {
+        path: 'overview',
+        component: OverviewComponent
+      },
+      {
+        path: 'trips',
+        component: TripsComponent
+      }
+    ]
+  }
+];
+
+@NgModule({
+  imports: [RouterModule.forChild(routes)],
+  exports: [RouterModule]
+})
+export class DriverRoutingModule { }

@@ -1,17 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
-import { filter } from '../../../../../../node_modules/rxjs/dist/types/operators';
+import { filter } from 'rxjs';
 
 interface Route {
   label: string;
   icon: string;
   href: string;
-  color: string;
-  bgColor: string;
 }
 
 @Component({
-  selector: 'app-sidebar',
+  selector: 'driver-sidebar',
   standalone: false, 
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css']
@@ -19,29 +17,38 @@ interface Route {
 export class SidebarComponent implements OnInit {
   currentPath: string = '';
 
+  // Routes that match the icons available in your template
   routes: Route[] = [
     {
-      label: "Overview",
+      label: "Dashboard",
       icon: "LayoutDashboard",
-      href: "/admin/overview", // Fixed: was "/admins/overview"
-      color: "text-pink-600",
-      bgColor: "bg-pink-50",
+      href: "/driver/overview"
     },
     {
-      label: "Driver Management",
+      label: "My Trips", 
       icon: "Activity",
-      href: "/admin/drivers", // Fixed: was "/admin/driver", now matches route
-      color: "text-blue-600",
-      bgColor: "bg-blue-50",
+      href: "/driver/trips"
     },
     {
-      label: "Customer Management",
-      icon: "Users",
-      href: "/admin/users", // You'll need to add this route to your routing module
-      color: "text-green-600",
-      bgColor: "bg-green-50",
+      label: "Earnings",
+      icon: "BadgeIndianRupee", 
+      href: "/driver/earnings"
     },
-   
+    {
+      label: "My Vehicle",
+      icon: "Ambulance",
+      href: "/driver/vehicle"
+    },
+    {
+      label: "Profile",
+      icon: "BookUser",
+      href: "/driver/profile"
+    },
+    {
+      label: "Settings",
+      icon: "Settings",
+      href: "/driver/settings"
+    }
   ];
 
   constructor(private router: Router) {}

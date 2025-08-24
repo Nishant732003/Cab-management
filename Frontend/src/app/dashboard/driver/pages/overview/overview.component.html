@@ -1,0 +1,356 @@
+
+<div class="overview-container">
+  
+  <!-- Quick Stats Cards -->
+  <div class="stats-grid">
+    
+    <div class="stat-card earnings">
+      <div class="stat-header">
+        <div class="stat-icon">
+          <i class="fas fa-wallet"></i>
+        </div>
+        <div class="stat-info">
+          <h3>Today's Earnings</h3>
+          <p class="stat-value">₹{{ (todayStats?.earnings || 0) | number:'1.0-0' }}</p>
+        </div>
+      </div>
+      <div class="stat-footer">
+        <span class="change-indicator" 
+              [class.positive]="(todayStats?.earningsChange || 0) >= 0" 
+              [class.negative]="(todayStats?.earningsChange || 0) < 0">
+          <i class="fas" 
+             [class.fa-arrow-up]="(todayStats?.earningsChange || 0) >= 0" 
+             [class.fa-arrow-down]="(todayStats?.earningsChange || 0) < 0"></i>
+          {{ Math.abs(todayStats?.earningsChange || 0) | number:'1.1-1' }}% vs yesterday
+        </span>
+      </div>
+    </div>
+
+    <div class="stat-card trips">
+      <div class="stat-header">
+        <div class="stat-icon">
+          <i class="fas fa-route"></i>
+        </div>
+        <div class="stat-info">
+          <h3>Trips Completed</h3>
+          <p class="stat-value">{{ todayStats?.trips || 0 }}</p>
+        </div>
+      </div>
+      <div class="stat-footer">
+        <span class="change-indicator" 
+              [class.positive]="(todayStats?.tripsChange || 0) >= 0" 
+              [class.negative]="(todayStats?.tripsChange || 0) < 0">
+          <i class="fas" 
+             [class.fa-arrow-up]="(todayStats?.tripsChange || 0) >= 0" 
+             [class.fa-arrow-down]="(todayStats?.tripsChange || 0) < 0"></i>
+          {{ Math.abs(todayStats?.tripsChange || 0) | number:'1.1-1' }}% vs yesterday
+        </span>
+      </div>
+    </div>
+
+    <div class="stat-card distance">
+      <div class="stat-header">
+        <div class="stat-icon">
+          <i class="fas fa-road"></i>
+        </div>
+        <div class="stat-info">
+          <h3>Distance Covered</h3>
+          <p class="stat-value">{{ (todayStats?.distance || 0) | number:'1.1-1' }} km</p>
+        </div>
+      </div>
+      <div class="stat-footer">
+        <span class="info-text">Total distance today</span>
+      </div>
+    </div>
+
+    <div class="stat-card rating">
+      <div class="stat-header">
+        <div class="stat-icon">
+          <i class="fas fa-star"></i>
+        </div>
+        <div class="stat-info">
+          <h3>Rating</h3>
+          <p class="stat-value">{{ (driverProfile?.rating || 0) | number:'1.1-1' }}</p>
+        </div>
+      </div>
+      <div class="stat-footer">
+        <span class="info-text">{{ (driverProfile?.totalTrips || 0) | number:'1.0-0' }} total trips</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Main Content Layout -->
+  <div class="main-content">
+    
+    <!-- Left Column -->
+    <div class="left-column">
+      
+      <!-- Driver Status Card -->
+      <div class="status-card">
+        <div class="card-header">
+          <h3>
+            <i class="fas fa-circle" [class.text-green-500]="isOnline" [class.text-gray-400]="!isOnline"></i>
+            Driver Status
+          </h3>
+          <div class="status-toggle ml-5">
+            <button 
+              class="toggle-btn"
+              [class.online]="isOnline"
+              [class.offline]="!isOnline"
+              (click)="toggleOnlineStatus()"
+              [attr.aria-label]="'Toggle driver status ' + (isOnline ? 'offline' : 'online')">
+              <i class="fas" [class.fa-toggle-on]="isOnline" [class.fa-toggle-off]="!isOnline"></i>
+              {{ isOnline ? 'Online' : 'Offline' }}
+            </button>
+          </div>
+        </div>
+        
+        <div class="status-details">
+          <div class="status-item">
+            <span class="label">Current Status:</span>
+            <span class="value" [class.online]="isOnline" [class.offline]="!isOnline">
+              {{ isOnline ? 'Available for trips' : 'Not accepting trips' }}
+            </span>
+          </div>
+          <div class="status-item" *ngIf="currentTrip">
+            <span class="label">Current Trip:</span>
+            <span class="value trip-info">
+              {{ currentTrip.pickupLocation?.address || 'Unknown' }} → {{ currentTrip.dropLocation?.address || 'Unknown' }}
+            </span>
+          </div>
+          <div class="status-item" *ngIf="!currentTrip && isOnline">
+            <span class="label">Waiting for:</span>
+            <span class="value">New trip requests</span>
+          </div>
+          <div class="status-item" *ngIf="!currentTrip && !isOnline">
+            <span class="label">Location:</span>
+            <span class="value">{{ driverProfile?.location?.city || 'Unknown' }}, {{ driverProfile?.location?.state || 'Unknown' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Trips -->
+      <div class="recent-trips-card">
+        <div class="card-header">
+          <h3>
+            <i class="fas fa-history mr-2"></i>
+            Recent Trips
+          </h3>
+          <a routerLink="/driver/trips" class="view-all">
+            View All <i class="fas fa-arrow-right ml-1"></i>
+          </a>
+        </div>
+        
+        <div class="trips-list" *ngIf="recentTrips && recentTrips.length > 0; else noTrips">
+          <div class="trip-item" *ngFor="let trip of recentTrips.slice(0, 5); trackBy: trackByTripId">
+            <div class="trip-info">
+              <div class="trip-route">
+                <i class="fas fa-circle pickup"></i>
+                <span class="pickup">{{ trip?.pickupLocation?.address || 'Unknown' }}</span>
+                <i class="fas fa-arrow-right"></i>
+                <i class="fas fa-map-marker-alt drop"></i>
+                <span class="drop">{{ trip?.dropLocation?.address || 'Unknown' }}</span>
+              </div>
+              <div class="trip-details">
+                <span class="time">
+                  <i class="fas fa-clock mr-1"></i>
+                  {{ formatTripTime(trip.startTime) }}
+                </span>
+                <span class="distance">
+                  <i class="fas fa-road mr-1"></i>
+                  {{ (trip.distance || 0) | number:'1.1-1' }} km
+                </span>
+                <span class="fare">
+                  <i class="fas fa-rupee-sign mr-1"></i>
+                  {{ (trip.fare || 0) | number:'1.0-0' }}
+                </span>
+                <span class="rating" *ngIf="trip.rating">
+                  <i class="fas fa-star mr-1"></i>
+                  {{ trip.rating }}
+                </span>
+              </div>
+            </div>
+            <div class="trip-status" [ngClass]="trip.status?.toLowerCase()">
+              {{ (trip.status || '') | titlecase }}
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noTrips>
+          <div class="no-data">
+            <i class="fas fa-route"></i>
+            <p>No recent trips found</p>
+            <small>Start accepting trips to see them here</small>
+          </div>
+        </ng-template>
+      </div>
+
+    </div>
+
+    <!-- Right Column -->
+    <div class="right-column">
+      
+      <!-- Earnings Summary -->
+      <div class="earnings-summary-card">
+        <div class="card-header">
+          <h3>
+            <i class="fas fa-chart-line mr-2"></i>
+            Earnings Summary
+          </h3>
+          <select class="period-selector" 
+                  [(ngModel)]="selectedPeriod" 
+                  (change)="loadEarningsData()"
+                  aria-label="Select time period for earnings">
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+          </select>
+        </div>
+        
+        <div class="earnings-chart">
+          <div class="chart-container">
+            <div class="chart-bars">
+              <div class="bar-item" *ngFor="let item of earningsChartData; trackBy: trackByChartLabel">
+                <div class="bar" 
+                     [style.height.%]="(item.value / maxEarnings) * 100"
+                     [attr.data-value]="'₹' + item.value"
+                     [title]="item.label + ': ₹' + item.value"></div>
+                <span class="bar-label">{{ item.label }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="earnings-breakdown">
+          <div class="breakdown-item">
+            <span class="label">Gross Earnings:</span>
+            <span class="value">₹{{ (earningsSummary?.gross || 0) | number:'1.0-0' }}</span>
+          </div>
+          <div class="breakdown-item">
+            <span class="label">Platform Commission:</span>
+            <span class="value negative">-₹{{ (earningsSummary?.commission || 0) | number:'1.0-0' }}</span>
+          </div>
+          <div class="breakdown-item">
+            <span class="label">Customer Tips:</span>
+            <span class="value positive">+₹{{ (earningsSummary?.tips || 0) | number:'1.0-0' }}</span>
+          </div>
+          <div class="breakdown-item total">
+            <span class="label">Net Earnings:</span>
+            <span class="value">₹{{ (earningsSummary?.net || 0) | number:'1.0-0' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vehicle Status -->
+      <div class="vehicle-status-card">
+        <div class="card-header">
+          <h3>
+            <i class="fas fa-car mr-2"></i>
+            Vehicle Status
+          </h3>
+          <a routerLink="/driver/vehicle" class="view-details">
+            Details <i class="fas fa-arrow-right ml-1"></i>
+          </a>
+        </div>
+        
+        <div class="vehicle-info">
+          <div class="vehicle-image">
+            <i class="fas fa-car"></i>
+          </div>
+          <div class="vehicle-details">
+            <h4>{{ vehicle?.make || 'Unknown' }} {{ vehicle?.model || 'Vehicle' }}</h4>
+            <p>{{ vehicle?.plateNumber || 'N/A' }} • {{ vehicle?.year || 'Unknown' }}</p>
+          </div>
+        </div>
+        
+        <div class="vehicle-metrics">
+          <div class="metric-item">
+            <span class="label">
+              <i class="fas fa-gas-pump mr-1"></i>
+              Fuel Level:
+            </span>
+            <div class="progress-bar">
+              <div class="progress" [style.width.%]="fuelLevel"></div>
+            </div>
+            <span class="value" [class.warning]="fuelLevel < 25">{{ fuelLevel }}%</span>
+          </div>
+          
+          <div class="metric-item">
+            <span class="label">
+              <i class="fas fa-wrench mr-1"></i>
+              Next Service:
+            </span>
+            <span class="value" [class.warning]="isServiceDue">
+              {{ getNextServiceDate() | date:'shortDate' }}
+            </span>
+          </div>
+          
+          <div class="metric-item">
+            <span class="label">
+              <i class="fas fa-tachometer-alt mr-1"></i>
+              Mileage:
+            </span>
+            <span class="value">{{ (vehicle?.currentMileage || 0) | number:'1.0-0' }} km</span>
+          </div>
+        </div>
+        
+        <div class="vehicle-alerts" *ngIf="vehicleAlerts && vehicleAlerts.length > 0">
+          <div class="alert-item" 
+               *ngFor="let alert of vehicleAlerts; trackBy: trackByAlertMessage"
+               [ngClass]="alert.type">
+            <i class="fas" [ngClass]="{
+              'fa-exclamation-triangle': alert.type === 'warning',
+              'fa-exclamation-circle': alert.type === 'error',
+              'fa-info-circle': alert.type === 'info'
+            }"></i>
+            <span>{{ alert.message }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions-card">
+        <div class="card-header">
+          <h3>
+            <i class="fas fa-bolt mr-2"></i>
+            Quick Actions
+          </h3>
+        </div>
+        
+        <div class="actions-grid">
+          <button class="action-btn" 
+                  (click)="viewTripHistory()"
+                  aria-label="View trip history">
+            <i class="fas fa-history"></i>
+            <span>Trip History</span>
+          </button>
+          
+          <button class="action-btn" 
+                  (click)="viewEarnings()"
+                  aria-label="View detailed earnings">
+            <i class="fas fa-chart-line"></i>
+            <span>View Earnings</span>
+          </button>
+          
+          <button class="action-btn" 
+                  (click)="reportIssue()"
+                  aria-label="Report an issue">
+            <i class="fas fa-bug"></i>
+            <span>Report Issue</span>
+          </button>
+          
+          <button class="action-btn" 
+                  (click)="contactSupport()"
+                  aria-label="Contact support">
+            <i class="fas fa-headset"></i>
+            <span>Support</span>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

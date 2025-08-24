@@ -1,167 +1,93 @@
-/* Navbar Component Styles */
-
-/* Base navbar styling */
-.navbar {
-  @apply bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50;
+/* Driver Status Badge Styles */
+.badge-online {
+  @apply bg-green-100 text-green-800 border-green-200;
 }
 
-/* Search input focus states */
-.search-input {
-  transition: all 0.2s ease-in-out;
+.badge-offline {
+  @apply bg-gray-100 text-gray-600 border-gray-200;
 }
 
-.search-input:focus {
-  @apply ring-2 ring-indigo-500 ring-opacity-50;
+/* Loading animation */
+.animate-spin {
+  animation: spin 1s linear infinite;
 }
 
-/* Button hover effects */
-.nav-button {
-  @apply p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100;
-  transition: all 0.2s ease-in-out;
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-.nav-button:hover {
-  transform: translateY(-1px);
-}
-
-/* User avatar styles */
-.user-avatar {
-  @apply h-8 w-8 bg-indigo-600 rounded-full flex items-center justify-center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.user-avatar:hover {
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
-}
-
-/* Badge styles */
-.badge {
-  @apply px-2 py-1 text-xs font-medium rounded-full border;
-  transition: all 0.2s ease-in-out;
-}
-
-.badge-admin {
-  @apply bg-red-100 text-red-700 border-red-200;
-}
-
-.badge-staff {
-  @apply bg-blue-100 text-blue-700 border-blue-200;
-}
-
-.badge-default {
-  @apply bg-gray-100 text-gray-700 border-gray-200;
-}
-
-/* Mobile sidebar animations */
-.mobile-sidebar {
-  transform: translateX(100%);
+/* Mobile sidebar animation */
+.transform {
   transition: transform 0.3s ease-in-out;
 }
 
-.mobile-sidebar.open {
-  transform: translateX(0);
+/* Custom scrollbar for mobile sidebar */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 4px;
 }
 
-/* Loading spinner */
-.loading-spinner {
-  @apply animate-spin rounded-full h-5 w-5 border-b-2 border-indigo-600;
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f1f1f1;
 }
 
-/* Notification badge */
-.notification-badge {
-  @apply absolute -top-1 -right-1 h-3 w-3 bg-red-500 rounded-full;
-  animation: pulse 2s infinite;
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 2px;
 }
 
-/* Custom animations */
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+/* Emergency button pulse effect */
+.bg-red-600:hover {
+  animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
   }
-  50% {
-    opacity: 0.5;
+  70% {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
   }
 }
 
-/* Responsive design */
+/* Notification badge animation */
+.bg-red-500 {
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% {
+    animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+    transform: translate3d(0,0,0);
+  }
+  40%, 43% {
+    animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+    transform: translate3d(0, -8px, 0);
+  }
+  70% {
+    animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+    transform: translate3d(0, -4px, 0);
+  }
+  90% {
+    transform: translate3d(0,-1px,0);
+  }
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
-  .navbar-content {
-    @apply px-4;
-  }
-  
-  .search-desktop {
-    @apply hidden;
-  }
-  
-  .user-info-desktop {
-    @apply hidden;
-  }
-}
-
-@media (min-width: 769px) {
-  .mobile-menu-button {
-    @apply hidden;
-  }
-  
-  .search-mobile {
-    @apply hidden;
-  }
-}
-
-/* Error message styling */
-.error-message {
-  @apply text-red-600 text-sm px-3 py-1 bg-red-50 rounded-md border border-red-200;
-  animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Success message styling */
-.success-message {
-  @apply text-green-600 text-sm px-3 py-1 bg-green-50 rounded-md border border-green-200;
-}
-
-/* Focus visible for accessibility */
-.nav-button:focus-visible,
-.search-input:focus-visible {
-  @apply outline-none ring-2 ring-indigo-500 ring-offset-2;
-}
-
-/* Dark mode support (if needed) */
-@media (prefers-color-scheme: dark) {
-  .navbar {
-    @apply bg-gray-800 border-gray-700;
-  }
-  
-  .nav-button {
-    @apply text-gray-300 hover:text-white hover:bg-gray-700;
-  }
-  
-  .search-input {
-    @apply bg-gray-700 border-gray-600 text-white placeholder-gray-400;
-  }
-  
-  .user-info-desktop .text-gray-900 {
-    @apply text-white;
-  }
-  
-  .user-info-desktop .text-gray-500 {
-    @apply text-gray-400;
-  }
-}
-
-/* Print styles */
-@media print {
-  .navbar {
-    @apply hidden;
+  .mobile-sidebar {
+    max-height: 100vh;
+    overflow-y: auto;
   }
 }
