@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable } from '../../../../node_modules/rxjs/dist/types';
+import { BehaviorSubject } from 'rxjs';
 import { ReduxStore } from '../store';
 import { loginUser, logoutUser, setUser, clearError, AdminStaffUser } from '../slice/adminAuthslice'
 

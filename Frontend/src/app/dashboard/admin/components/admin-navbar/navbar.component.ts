@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Location, TitleCasePipe } from '@angular/common';
 // import { FormsModule } from '@angular/forms';
-import { Subject } from '../../../../../../node_modules/rxjs/dist/types';
-import { takeUntil } from '../../../../../../node_modules/rxjs/dist/types/operators';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { AdminStaffAuthContext } from '../../../../redux/context/AdminAuthContext';
 import { AdminStaffUser } from '../../../../redux/slice/adminAuthslice';
 
