@@ -1,6 +1,9 @@
 package com.cabbooking.model;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToOne;
 
 /**
  * Represents a driver user in the cab booking platform.
@@ -54,6 +57,13 @@ public class Driver extends AbstractUser {
      */
     private String profilePhotoUrl;
 
+    /*
+     * Relationship to the Cab entity representing the driver's vehicle.
+     * A driver can only drive one cab at a time.
+     */
+    @OneToOne(mappedBy = "driver", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Cab cab;
+
     // ======= Getters and Setters =======
     public void setIsAvailable(Boolean isAvailable) {
         this.isAvailable = isAvailable;
@@ -101,5 +111,13 @@ public class Driver extends AbstractUser {
 
     public void setProfilePhotoUrl(String profilePhotoUrl) {
         this.profilePhotoUrl = profilePhotoUrl;
+    }
+
+    public Cab getCab() {
+        return cab;
+    }
+
+    public void setCab(Cab cab) {
+        this.cab = cab;
     }
 }

@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cabbooking.dto.CabUpdateRequest;
 import com.cabbooking.dto.FareEstimateResponse;
 import com.cabbooking.model.Cab;
 
@@ -15,20 +16,12 @@ import com.cabbooking.model.Cab;
 public interface ICabService {
 
     /**
-     * Creates and persists a new cab in the system.
-     *
-     * @param cab The new Cab object to be saved.
-     * @return The persisted Cab entity, including its unique generated ID.
+     * Updates the details of the cab associated with a specific driver.
+     * @param driverId The ID of the driver whose cab is to be updated.
+     * @param request The DTO containing the new cab details.
+     * @return The updated Cab entity.
      */
-    Cab insertCab(Cab cab);
-
-    /**
-     * Updates the details of an existing cab.
-     *
-     * @param cab The Cab object containing the updated information.
-     * @return The updated Cab entity after it has been saved to the database.
-     */
-    Cab updateCab(Cab cab);
+    Cab updateCabDetails(int driverId, CabUpdateRequest request);
 
     /**
      * Deletes a cab from the system using its unique ID.

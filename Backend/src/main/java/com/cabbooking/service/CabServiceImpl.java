@@ -11,9 +11,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cabbooking.dto.CabUpdateRequest;
 import com.cabbooking.dto.FareEstimateResponse;
 import com.cabbooking.model.Cab;
+import com.cabbooking.model.Driver;
 import com.cabbooking.repository.CabRepository;
+import com.cabbooking.repository.DriverRepository;
 
 /**
  * Implementation of the ICabService interface.
@@ -43,87 +46,52 @@ public class CabServiceImpl implements ICabService {
     private CabRepository cabRepository;
 
     /*
+     * Repository to interact with the database
+     * Provides methods for CRUD operations
+     */
+    @Autowired private DriverRepository driverRepository;
+
+    /*
      * Service to handle file uploads
      * Provides methods for file uploads
      */
     @Autowired
     private IFileUploadService fileUploadService;
 
-    /**
-     * Inserts a new cab into the database and sets its availability to true by
-     * default.
+    /*
+     * Updates the details of a cab associated with a driver.
      * 
      * Workflow: 
-     * - Creates a new Cab object from the provided request. 
-     * - Sets the availability to true by default. 
-     * - Saves the cab object to the database.
-     *
-     * @param cab The Cab object to be saved.
-     * @return The saved Cab entity, including its auto-generated ID and default
-     * availability.
+     * - It finds the driver by their ID to ensure they exist. 
+     * - It finds the cab associated with this driver. 
+     * - It updates the cab's details from the request. 
+     * - It saves the updated cab to the database.
+     * 
+     * @param driverId The ID of the driver whose cab is to be updated.
+     * @param request The request object containing the new cab details.
+     * @return The updated Cab object
      */
     @Override
-    public Cab insertCab(Cab cab) {
-        if (cabRepository.existsByNumberPlate(cab.getNumberPlate())) {
-            throw new IllegalArgumentException("A cab with number plate '" + cab.getNumberPlate() + "' already exists.");
-        }
-        // Ensure that any new cab is marked as available upon creation.
-        cab.setIsAvailable(true);
-        return cabRepository.save(cab);
-    }
+    @Transactional
+    public Cab updateCabDetails(int driverId, CabUpdateRequest request) {
+        // Find the driver to ensure they exist
+        Driver driver = driverRepository.findById(driverId)
+                .orElseThrow(() -> new IllegalArgumentException("Driver with id " + driverId + " not found"));
 
-    /**
-     * Updates an existing cab with only the provided fields, but only if the
-     * cab is currently available.
-     *
-     * Workflow: 
-     * - Finds the existing cab by its ID. 
-     * - Throws an exception if the cab is not found. 
-     * - Checks if the cab is available. If it's on a trip (isAvailable=false), it throws an exception.
-     * - If available, it updates only the non-null fields from the incoming request.
-     * - Saves the modified cab object back to the database.
-     *
-     * @param cabRequest The Cab object with the fields to be updated.
-     * @return The updated and saved Cab entity.
-     * @throws IllegalArgumentException if no cab with the given ID exists.
-     * @throws IllegalStateException if the cab is currently in use and cannot
-     * be updated.
-     */
-    @Override
-    public Cab updateCab(Cab cabRequest) {
-        // Find the existing cab from the database
-        Cab existingCab = cabRepository.findById(cabRequest.getCabId())
-                .orElseThrow(() -> new IllegalArgumentException("Cab with id " + cabRequest.getCabId() + " not found"));
-
-        // Ensure the cab is not on an active trip
-        if (!existingCab.getIsAvailable()) {
-            throw new IllegalStateException("Cannot update a cab that is currently on a trip.");
+        // Get the cab associated with this driver
+        Cab cabToUpdate = driver.getCab();
+        if (cabToUpdate == null) {
+            throw new IllegalStateException("No cab is associated with this driver.");
         }
 
-        if (cabRequest.getNumberPlate() != null && !cabRequest.getNumberPlate().equals(existingCab.getNumberPlate())) {
-            if (cabRepository.existsByNumberPlate(cabRequest.getNumberPlate())) {
-                throw new IllegalArgumentException("A cab with number plate '" + cabRequest.getNumberPlate() + "' already exists.");
-            }
-            existingCab.setNumberPlate(cabRequest.getNumberPlate());
-        }
+        // Update the cab's details from the request
+        cabToUpdate.setNumberPlate(request.getNumberPlate());
+        cabToUpdate.setCarType(request.getCarType());
+        cabToUpdate.setPerKmRate(request.getPerKmRate());
+        cabToUpdate.setIsAvailable(true); // When details are added, make the cab available
 
-        // Update only the fields that are provided in the request
-        if (cabRequest.getCarType() != null) {
-            existingCab.setCarType(cabRequest.getCarType());
-        }
-        if (cabRequest.getPerKmRate() != null) {
-            existingCab.setPerKmRate(cabRequest.getPerKmRate());
-        }
-
-        // Note: It's generally good practice not to allow changing availability directly via this endpoint.
-        // Availability should be managed by the trip booking and completion logic.
-        // However, if an admin needs a manual override, you can keep this line.
-        if (cabRequest.getIsAvailable() != null) {
-            existingCab.setIsAvailable(cabRequest.getIsAvailable());
-        }
-
-        // Save the updated entity
-        return cabRepository.save(existingCab);
+        // Save the updated cab
+        return cabRepository.save(cabToUpdate);
     }
 
     /**

@@ -7,10 +7,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.cabbooking.dto.DriverRegistrationRequest;
+import com.cabbooking.model.Cab;
 import com.cabbooking.model.Driver;
-import com.cabbooking.repository.DriverRepository;
 import com.cabbooking.repository.AdminRepository;
 import com.cabbooking.repository.CustomerRepository;
+import com.cabbooking.repository.DriverRepository;
 
 /**
  * Implementation of the IDriverRegistrationService interface.
@@ -125,7 +126,14 @@ public class DriverRegistrationServiceImpl implements IDriverRegistrationService
         // Initialize driver rating to 0.0 by default
         driver.setRating(0.0f);
 
-        // Persist the driver entity and return the saved instance
+        // Create a new, empty Cab instance
+        Cab cab = new Cab();
+        
+        // Establish the bidirectional link
+        cab.setDriver(driver); // Link cab to the driver
+        driver.setCab(cab);    // Link driver to the cab
+
+        // 3. Save the driver. Because of CascadeType.ALL, the associated cab will be saved automatically.
         return driverRepository.save(driver);
     }
 }

@@ -11,7 +11,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,8 +18,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cabbooking.dto.CabUpdateRequest;
 import com.cabbooking.model.Cab;
 import com.cabbooking.service.ICabService;
+
+import jakarta.validation.Valid;
 
 /**
  * REST controller for admin operations related to cab management. 
@@ -33,7 +35,7 @@ import com.cabbooking.service.ICabService;
  */
 @RestController
 @RequestMapping("/api/cabs")
-@PreAuthorize("hasRole('Admin')")
+@PreAuthorize("hasRole('Admin') or hasRole('Driver')")
 public class CabController {
 
     // SLF4J Logger for tracking requests and actions in this controller
@@ -44,38 +46,24 @@ public class CabController {
     private ICabService cabService;
 
     /**
-     * Endpoint to add a new cab to the system. 
-     * POST /api/cabs/add 
-     * Workflow: 
-     * - Receives a Cab object in the request body. 
-     * - Calls the service layer to insert the cab into the database. 
-     * - Returns the newly created Cab object wrapped in a ResponseEntity.
-     *
-     * @param cab The Cab object to be created, sent in the request body.
-     * @return A ResponseEntity containing the newly created Cab object.
-     */
-    @PostMapping("/add")
-    public ResponseEntity<Cab> addCab(@RequestBody Cab cab) {
-        logger.info("Received request to add a new cab.");
-        Cab newCab = cabService.insertCab(cab);
-        return ResponseEntity.ok(newCab);
-    }
-
-    /**
-     * Endpoint to update an existing cab's details. 
-     * PUT /api/cabs/update
-     * Workflow: 
-     * - Receives a Cab object with updated information in the request body. 
-     * - Calls the service layer to update the cab in the database. 
+     * Endpoint for an admin to add or update the details of a cab for a specific driver.
+     * PUT /api/cabs/drivers/{driverId}/cab
+     * 
+     * Workflow:
+     * - Accepts a driver ID as a path variable.
+     * - Calls the service layer to update the cab details for the driver.
      * - Returns the updated Cab object wrapped in a ResponseEntity.
-     *
-     * @param cab The Cab object with updated information.
-     * @return A ResponseEntity containing the updated Cab object.
+     * 
+     * @param driverId The ID of the driver whose cab details are being set.
+     * @param request The DTO with the new cab details.
+     * @return The updated Cab object.
      */
-    @PutMapping("/update")
-    public ResponseEntity<Cab> updateCab(@RequestBody Cab cab) {
-        logger.info("Received request to update a cab.");
-        Cab updatedCab = cabService.updateCab(cab);
+    @PutMapping("/{driverId}/update")
+    public ResponseEntity<Cab> updateCabForDriver(
+            @PathVariable int driverId,
+            @Valid @RequestBody CabUpdateRequest request) {
+        
+        Cab updatedCab = cabService.updateCabDetails(driverId, request);
         return ResponseEntity.ok(updatedCab);
     }
 

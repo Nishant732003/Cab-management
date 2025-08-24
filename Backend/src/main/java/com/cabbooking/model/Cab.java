@@ -11,7 +11,9 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 
 /**
  * Represents a cab vehicle in the fleet.
@@ -47,7 +49,7 @@ public class Cab {
      * The official registration number plate of the cab.
      * This is a mandatory and unique identifier.
      */
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private String numberPlate;
 
     /**
@@ -68,6 +70,15 @@ public class Cab {
     @OneToMany(mappedBy = "cab", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonIgnore // Important to prevent infinite loops in API responses
     private List<TripBooking> tripBookings;
+
+    /*
+     * The driver associated with this cab. This is a one-to-one relationship where
+     * one cab is assigned to one driver.
+     */
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "driver_id", referencedColumnName = "id")
+    @JsonIgnore // Prevents infinite loops when sending JSON responses
+    private Driver driver;
 
     // ======= Getters and Setters =======
     public Integer getCabId() {
@@ -124,5 +135,13 @@ public class Cab {
 
     public void setTripBookings(List<TripBooking> tripBookings) {
         this.tripBookings = tripBookings;
+    }
+
+    public Driver getDriver() {
+        return driver;
+    }
+
+    public void setDriver(Driver driver) {
+        this.driver = driver;
     }
 }
