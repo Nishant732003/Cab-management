@@ -24,11 +24,11 @@ public interface IAdminService {
     List<UserSummaryDTO> getAllDrivers();
 
     /**
-     * Retrieves all trips taken by a specific cab.
-     * @param cabId The ID of the cab.
+     * Retrieves all trips taken by a specific driver.
+     * @param driverId The ID of the driver.
      * @return A list of trips.
      */
-    List<TripBooking> getTripsByCab(Integer cabId);
+    List<TripBooking> getTripsByDriver(Integer driverId);
 
     /**
      * Retrieves all trips that occurred on a specific date.

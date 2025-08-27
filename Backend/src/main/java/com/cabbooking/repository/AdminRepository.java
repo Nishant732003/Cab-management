@@ -1,10 +1,11 @@
 package com.cabbooking.repository;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.cabbooking.model.Admin;
-
-import java.util.Optional;
 
 /**
  * Repository interface for Admin entities.
@@ -61,4 +62,11 @@ public interface AdminRepository extends JpaRepository<Admin, Integer> {
      * @param username the unique username of the admin to delete
      */
     void deleteByUsername(String username);
+
+    /**
+     * Finds all Admin entities where the 'verified' status is false.
+     * This is an efficient, database-level query.
+     * @return A list of unverified admins.
+     */
+    List<Admin> findByVerifiedFalse();
 }

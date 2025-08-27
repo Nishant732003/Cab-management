@@ -1,24 +1,27 @@
 package com.cabbooking.service;
 
-import com.cabbooking.dto.UserSummaryDTO;
-import com.cabbooking.model.TripBooking;
-import com.cabbooking.repository.CustomerRepository;
-import com.cabbooking.repository.DriverRepository;
-import com.cabbooking.repository.TripBookingRepository;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.cabbooking.dto.UserSummaryDTO;
+import com.cabbooking.model.TripBooking;
+import com.cabbooking.repository.CustomerRepository;
+import com.cabbooking.repository.DriverRepository;
+import com.cabbooking.repository.TripBookingRepository;
+
 /**
  * Implementation of the IAdminService for admin data operations.
  * 
  * This service provides methods to retrieve customer, driver, and trip data for the admin dashboard.
+ * 
+ * Main Responsibilities:
+ * - Retrieves customer, driver, and trip data for the admin dashboard.
  * 
  * Dependencies:
  * - CustomerRepository for accessing customer data.
@@ -95,8 +98,8 @@ public class AdminServiceImpl implements IAdminService {
      * @return A list of trip bookings for the admin dashboard.
      */
     @Override
-    public List<TripBooking> getTripsByCab(Integer cabId) {
-        return tripBookingRepository.findByCab_CabId(cabId);
+    public List<TripBooking> getTripsByDriver(Integer driverId) {
+        return tripBookingRepository.findByDriver_Id(driverId);
     }
 
     /*
