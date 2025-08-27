@@ -2,6 +2,7 @@ package com.cabbooking.controller;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,13 +26,13 @@ import com.cabbooking.service.ICabService;
 import jakarta.validation.Valid;
 
 /**
- * REST controller for admin operations related to cab management. 
+ * REST controller for admin/driver operations related to cab management. 
+ * 
  * Main Responsibilities: 
- * - Provides CRUD (Create, Read, Update, Delete) endpoints for managing cabs. 
- * - Allows admins to view and count cabs based on their type. 
+ *  
  * 
  * Security: 
- * - All endpoints are secured and require the user to have the 'Admin' role.
+ * - All endpoints are secured and require the user to have the 'Admin' or 'Driver' role.
  */
 @RestController
 @RequestMapping("/api/cabs")
@@ -47,10 +48,11 @@ public class CabController {
 
     /**
      * Endpoint for an admin to add or update the details of a cab for a specific driver.
-     * PUT /api/cabs/drivers/{driverId}/cab
+     * 
+     * PUT /api/cabs/{driverId}/update
      * 
      * Workflow:
-     * - Accepts a driver ID as a path variable.
+     * - User sends request with driver ID and CabUpdateRequest DTO.
      * - Calls the service layer to update the cab details for the driver.
      * - Returns the updated Cab object wrapped in a ResponseEntity.
      * 
@@ -62,32 +64,17 @@ public class CabController {
     public ResponseEntity<Cab> updateCabForDriver(
             @PathVariable int driverId,
             @Valid @RequestBody CabUpdateRequest request) {
-        
+        logger.info("Received request to update cab details for a driver.");
         Cab updatedCab = cabService.updateCabDetails(driverId, request);
+        logger.info("Updated cab details for driver with ID: {}", driverId);
         return ResponseEntity.ok(updatedCab);
     }
 
     /**
-     * Endpoint to delete a cab from the system by its ID. 
-     * DELETE /api/cabs/delete/{cabId} 
-     * Workflow: 
-     * - Accepts a cab ID as a path variable.
-     * - Calls the service layer to delete the cab from the database. 
-     * - Returns the deleted Cab object wrapped in a ResponseEntity.
-     *
-     * @param cabId The unique ID of the cab to be deleted.
-     * @return A ResponseEntity containing the cab that was deleted.
-     */
-    @DeleteMapping("/delete/{cabId}")
-    public ResponseEntity<Cab> deleteCab(@PathVariable int cabId) {
-        logger.info("Received request to delete a cab.");
-        Cab deletedCab = cabService.deleteCab(cabId);
-        return ResponseEntity.ok(deletedCab);
-    }
-
-    /**
-     * Endpoint to view all cabs of a specific type. 
-     * GET /api/cabs/view/{carType} 
+     * Endpoint to view all cabs of a specific type.
+     * 
+     * GET /api/cabs/type/{carType}
+     * 
      * Workflow: 
      * - Accepts a car type as a path variable. 
      * - Calls the service layer to retrieve a list of cabs matching the type. 
@@ -96,34 +83,19 @@ public class CabController {
      * @param carType The type of car to filter by (e.g., "Sedan", "SUV").
      * @return A ResponseEntity containing a list of cabs matching the type.
      */
-    @GetMapping("/view/{carType}")
-    public ResponseEntity<List<Cab>> viewCabsOfType(@PathVariable String carType) {
+    @GetMapping("/type/{carType}")
+    public ResponseEntity<List<Cab>> getCabsOfType(@PathVariable String carType) {
         logger.info("Received request to view cabs of a specific type.");
-        List<Cab> cabs = cabService.viewCabsOfType(carType);
+        List<Cab> cabs = cabService.getCabsOfType(carType);
+        logger.info("Retrieved cabs of type: {}", carType);
         return ResponseEntity.ok(cabs);
     }
 
     /**
-     * Endpoint to count the number of available cabs of a specific type. 
-     * GET /api/cabs/count/{carType} 
-     * Workflow: 
-     * - Accepts a car type as a path variable. 
-     * - Calls the service layer to count the cabs of that type. 
-     * - Returns a ResponseEntity containing the count as an integer.
-     *
-     * @param carType The type of car to count.
-     * @return A ResponseEntity containing the total count as an integer.
-     */
-    @GetMapping("/count/{carType}")
-    public ResponseEntity<Integer> countCabsOfType(@PathVariable String carType) {
-        logger.info("Received request to count cabs of a specific type.");
-        int count = cabService.countCabsOfType(carType);
-        return ResponseEntity.ok(count);
-    }
-
-    /**
-     * Endpoint to get the details of a specific cab by its ID. 
+     * Endpoint to get the details of a specific cab by its ID.
+     * 
      * GET /api/cabs/{cabId} 
+     * 
      * Workflow: 
      * - Accepts a cab ID as a path variable. 
      * - Calls the service layer to retrieve the cab details. 
@@ -136,14 +108,21 @@ public class CabController {
     @GetMapping("/{cabId}")
     public ResponseEntity<Cab> getCabById(@PathVariable int cabId) {
         logger.info("Received request to get details of a specific cab.");
-        return cabService.viewCab(cabId)
-                .map(cab -> ResponseEntity.ok(cab)) // If cab is found, wrap it in a 200 OK response
-                .orElse(ResponseEntity.notFound().build()); // If not found, return a 404 Not Found
+        Optional<Cab> cab = cabService.getCabById(cabId);
+        if (cab.isPresent()) {
+            logger.info("Retrieved details of cab with ID: {}", cabId);
+            return ResponseEntity.ok(cab.get());
+        } else {
+            logger.info("Cab with ID: {} not found.", cabId);
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /**
-     * Endpoint to retrieve all cabs in the system. 
-     * GET /api/cabs/all 
+     * Endpoint to retrieve all cabs in the system.
+     * 
+     * GET /api/cabs/all
+     * 
      * Workflow:
      * - An admin calls this endpoint to get a list of all cabs in the system. 
      * - Calls the service layer to fetch all cabs from the database. 
@@ -154,13 +133,16 @@ public class CabController {
     @GetMapping("/all")
     public ResponseEntity<List<Cab>> getAllCabs() {
         logger.info("Received request to get all cabs.");
-        List<Cab> cabs = cabService.viewAllCabs();
+        List<Cab> cabs = cabService.getAllCabs();
+        logger.info("Retrieved all cabs.");
         return ResponseEntity.ok(cabs);
     }
 
     /**
-     * Endpoint to retrieve all available cabs in the system. 
-     * GET /api/cabs/available 
+     * Endpoint to retrieve all available cabs in the system.
+     * 
+     * GET /api/cabs/available
+     * 
      * Workflow: 
      * - An admin calls this endpoint to get a list of all available cabs in the system. 
      * - Calls the service layer to fetch all available cabs from the database. 
@@ -171,13 +153,22 @@ public class CabController {
     @GetMapping("/available")
     public ResponseEntity<List<Cab>> getAllAvailableCabs() {
         logger.info("Received request to get all available cabs.");
-        List<Cab> cabs = cabService.viewAllAvailableCabs();
+        List<Cab> cabs = cabService.getAllAvailableCabs();
+        logger.info("Retrieved all available cabs.");
         return ResponseEntity.ok(cabs);
     }
 
     /**
-     * Endpoint for an admin to upload or update a cab's image.
+     * Endpoint for an driver to upload or update a cab's image.
      * If an image already exists, it will be replaced.
+     * 
+     * PUT /api/cabs/{cabId}/image
+     * 
+     * Workflow: 
+     * - Accepts a cab ID as a path variable. 
+     * - Accepts an image file as a request parameter. 
+     * - Calls the service layer to upload or update the cab's image. 
+     * - Returns a ResponseEntity containing the updated Cab object.
      *
      * @param cabId The ID of the cab.
      * @param file The image file.
@@ -185,30 +176,45 @@ public class CabController {
      */
     @PutMapping("/{cabId}/image")
     public ResponseEntity<Cab> uploadOrUpdateCabImage(@PathVariable int cabId, @RequestParam("file") MultipartFile file) {
+        logger.info("Received request to upload or update a cab's image.");
         try {
             Cab updatedCab = cabService.uploadImage(cabId, file);
+            logger.info("Updated cab's image.");
             return ResponseEntity.ok(updatedCab);
         } catch (IOException e) {
+            logger.error("Failed to upload or update cab's image.");
             return ResponseEntity.internalServerError().build();
         } catch (IllegalArgumentException e) {
+            logger.error("Cab with ID: {} not found.", cabId);
             return ResponseEntity.notFound().build();
         }
     }
 
     /**
      * Endpoint for an admin to remove a cab's image.
+     * 
+     * DELETE /api/cabs/{cabId}/image
+     * 
+     * Workflow: 
+     * - Accepts a cab ID as a path variable. 
+     * - Calls the service layer to remove the cab's image. 
+     * - Returns a ResponseEntity containing the updated Cab object.
      *
      * @param cabId The ID of the cab.
      * @return The updated Cab object.
      */
     @DeleteMapping("/{cabId}/image")
     public ResponseEntity<Cab> removeCabImage(@PathVariable int cabId) {
+        logger.info("Received request to remove a cab's image.");
         try {
             Cab updatedCab = cabService.removeImage(cabId);
+            logger.info("Removed cab's image.");
             return ResponseEntity.ok(updatedCab);
         } catch (IOException e) {
+            logger.error("Failed to remove cab's image.");
             return ResponseEntity.internalServerError().build();
         } catch (IllegalArgumentException e) {
+            logger.error("Cab with ID: {} not found.", cabId);
             return ResponseEntity.notFound().build();
         }
     }

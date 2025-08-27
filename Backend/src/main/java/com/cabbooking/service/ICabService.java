@@ -24,28 +24,12 @@ public interface ICabService {
     Cab updateCabDetails(int driverId, CabUpdateRequest request);
 
     /**
-     * Deletes a cab from the system using its unique ID.
-     *
-     * @param cabId The ID of the cab to be deleted.
-     * @return The Cab object that was successfully deleted.
-     */
-    Cab deleteCab(int cabId);
-
-    /**
      * Retrieves a list of all cabs that match a given car type.
      *
      * @param carType The category of the car to search for (e.g., "Sedan", "SUV").
      * @return A list of Cab entities that match the specified type.
      */
-    List<Cab> viewCabsOfType(String carType);
-
-    /**
-     * Counts the total number of cabs of a specific type.
-     *
-     * @param carType The category of the car to count.
-     * @return The total number of cabs found for the given type.
-     */
-    int countCabsOfType(String carType);
+    List<Cab> getCabsOfType(String carType);
 
     /**
      * Calculates fare estimates for all available car types for a given distance.
@@ -61,9 +45,21 @@ public interface ICabService {
      * @param cabId The ID of the cab to retrieve.
      * @return An Optional containing the Cab if found, otherwise empty.
      */
-    Optional<Cab> viewCab(int cabId);
-    List<Cab> viewAllCabs();
-    List<Cab> viewAllAvailableCabs();
+    Optional<Cab> getCabById(int cabId);
+
+    /*
+     * Retrieves a list of all cabs.
+     *
+     * @return A list of all cabs.
+     */
+    List<Cab> getAllCabs();
+
+    /*
+     * Retrieves a list of all available cabs.
+     *
+     * @return A list of all available cabs.
+     */
+    List<Cab> getAllAvailableCabs();
 
     /**
      * Uploads an image for a specific cab.

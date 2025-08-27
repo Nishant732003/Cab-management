@@ -29,11 +29,10 @@ import com.cabbooking.repository.DriverRepository;
  * - Handles validation such as checking for the existence of a cab
  * before an update or delete operation.
  *
- * Workflow: 
- * - This service is injected into controllers (like AdminController)
- * that need to manage the cab fleet. 
- * - It uses the autowired CabRepository to
- * abstract away the database interaction details.
+ * Dependencies:
+ * - CabRepository for accessing cab data in the database.
+ * - DriverRepository for accessing driver data in the database.
+ * - IFileUploadService for handling file uploads.
  */
 @Service
 public class CabServiceImpl implements ICabService {
@@ -49,7 +48,8 @@ public class CabServiceImpl implements ICabService {
      * Repository to interact with the database
      * Provides methods for CRUD operations
      */
-    @Autowired private DriverRepository driverRepository;
+    @Autowired
+    private DriverRepository driverRepository;
 
     /*
      * Service to handle file uploads
@@ -62,10 +62,10 @@ public class CabServiceImpl implements ICabService {
      * Updates the details of a cab associated with a driver.
      * 
      * Workflow: 
-     * - It finds the driver by their ID to ensure they exist. 
-     * - It finds the cab associated with this driver. 
-     * - It updates the cab's details from the request. 
-     * - It saves the updated cab to the database.
+     * - Finds the driver by their ID to ensure they exist. 
+     * - Gets the cab associated with this driver. 
+     * - Updates the cab's details from the request. 
+     * - Saves the updated cab to the database.
      * 
      * @param driverId The ID of the driver whose cab is to be updated.
      * @param request The request object containing the new cab details.
@@ -95,33 +95,6 @@ public class CabServiceImpl implements ICabService {
     }
 
     /**
-     * Deletes a cab from the database by its ID.
-     *
-     * Workflow: 
-     * - It finds the cab by its ID to ensure it exists. 
-     * - If the cab is in use, it throws an exception. 
-     * - If found and available, the cab is deleted.
-     *
-     * @param cabId The unique ID of the cab to delete.
-     * @return The Cab object that was deleted.
-     * @throws IllegalArgumentException if no cab with the given ID exists.
-     * @throws IllegalStateException if the cab is currently in use and cannot
-     * be deleted.
-     */
-    @Override
-    public Cab deleteCab(int cabId) {
-        Cab cab = cabRepository.findById(cabId)
-                .orElseThrow(() -> new IllegalArgumentException("Cab with id " + cabId + " not found"));
-
-        if (!cab.getIsAvailable()) {
-            throw new IllegalStateException("Cannot delete a cab that is currently on a trip.");
-        }
-
-        cabRepository.delete(cab);
-        return cab;
-    }
-
-    /**
      * Retrieves a list of all cabs that match a specific car type.
      * 
      * Workflow: 
@@ -132,23 +105,8 @@ public class CabServiceImpl implements ICabService {
      * @return A list of Cab entities matching the specified type.
      */
     @Override
-    public List<Cab> viewCabsOfType(String carType) {
+    public List<Cab> getCabsOfType(String carType) {
         return cabRepository.findByCarType(carType);
-    }
-
-    /**
-     * Counts the number of cabs that match a specific car type.
-     *
-     * Workflow:
-     * - Calls the repository to find cabs by their car type.
-     * - Returns the size of the resulting list, which is the count.
-     * 
-     * @param carType The car type to count.
-     * @return The total number of cabs of the specified type.
-     */
-    @Override
-    public int countCabsOfType(String carType) {
-        return cabRepository.findByCarType(carType).size();
     }
 
     /*
@@ -206,7 +164,7 @@ public class CabServiceImpl implements ICabService {
      * @return An Optional<Cab> which contains the cab if it exists.
      */
     @Override
-    public Optional<Cab> viewCab(int cabId) {
+    public Optional<Cab> getCabById(int cabId) {
         return cabRepository.findById(cabId);
     }
 
@@ -220,7 +178,7 @@ public class CabServiceImpl implements ICabService {
      * @return A list of all Cab entities.
      */
     @Override
-    public List<Cab> viewAllCabs() {
+    public List<Cab> getAllCabs() {
         return cabRepository.findAll();
     }
     
@@ -235,7 +193,7 @@ public class CabServiceImpl implements ICabService {
      * @return A list of all available Cab entities.
      */
     @Override
-    public List<Cab> viewAllAvailableCabs() {
+    public List<Cab> getAllAvailableCabs() {
         return cabRepository.findAll().stream()
                 .filter(Cab::getIsAvailable)
                 .collect(Collectors.toList());
@@ -259,7 +217,7 @@ public class CabServiceImpl implements ICabService {
     @Override
     @Transactional
     public Cab uploadImage(int cabId, MultipartFile file) throws IOException {
-        // 1. Find the cab
+        // Find the cab
         Cab cab = cabRepository.findById(cabId)
                 .orElseThrow(() -> new IllegalArgumentException("Cab with id " + cabId + " not found"));
 
@@ -268,11 +226,11 @@ public class CabServiceImpl implements ICabService {
             removeImageFile(cab.getImageUrl());
         }
 
-        // 2. Upload the new file and get its unique filename
+        // Upload the new file and get its unique filename
         String fileName = fileUploadService.uploadFile(file);
         String fileApiUrl = "/api/files/" + fileName;
 
-        // 3. Set the new URL on the cab and save
+        // Set the new URL on the cab and save
         cab.setImageUrl(fileApiUrl);
         return cabRepository.save(cab);
     }
@@ -293,20 +251,23 @@ public class CabServiceImpl implements ICabService {
     @Override
     @Transactional
     public Cab removeImage(int cabId) throws IOException {
-        // 1. Find the cab
+        // Find the cab
         Cab cab = cabRepository.findById(cabId)
                 .orElseThrow(() -> new IllegalArgumentException("Cab with id " + cabId + " not found"));
 
-        // 2. Delete the physical file
+        // Delete the physical file
         removeImageFile(cab.getImageUrl());
 
-        // 3. Clear the URL from the cab's record and save
+        // Clear the URL from the cab's record and save
         cab.setImageUrl(null);
         return cabRepository.save(cab);
     }
 
     /**
      * Helper method to safely delete an image file.
+     * 
+     * @param imageUrl The URL of the image file to delete.
+     * @throws IOException if the file deletion fails.
      */
     private void removeImageFile(String imageUrl) throws IOException {
         if (imageUrl != null && !imageUrl.isEmpty()) {
