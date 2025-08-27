@@ -1,5 +1,7 @@
 package com.cabbooking.controller;
 
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,12 +37,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 /**
- * REST controller for handling authentication related operations for all user
- * types. 
+ * REST controller for handling authentication related operations for all user types. 
+ * 
  * Main Responsibilities: 
- * - Provides public endpoints for registration, login, logout, email verification and account deletion. 
+ * - Provides public endpoints for registration, login, logout, email verification, password change and account deletion. 
  * - Consolidates all authentication-related actions into a single controller. 
- * - Delegates business logic to the appropriate service layers. 
+ * - Delegates business logic to the appropriate service layers.
+ * 
  * Security: 
  * - These endpoints are publicly accessible to allow users to join and access the platform.
  */
@@ -84,10 +87,12 @@ public class AuthController {
     private IPasswordResetService passwordResetService;
 
     /**
-     * Endpoint handles requests to register a new admin. 
+     * Endpoint handles requests to register a new admin.
+     *  
      * POST /api/auth/register/admin 
+     * 
      * Workflow: 
-     * - Person sends a AdminRegistrationRequest DTO with admin details. 
+     * - Person sends a AdminRegistrationRequest DTO with admin details.
      * - Validates the request data. 
      * - Calls the service layer to handle registration logic. 
      * - Returns a success or error response.
@@ -103,7 +108,7 @@ public class AuthController {
             // Delegate to service layer for registration business logic
             adminRegistrationService.registerAdmin(request);
             logger.info("Admin registered successfully (unverified) for username: {}", request.getUsername());
-            return ResponseEntity.ok("Admin registered successfully, pending superadmin verification.");
+            return ResponseEntity.ok("Admin registered successfully, pending SuperAdmin verification.");
         } catch (IllegalArgumentException e) {
             // Handle known validation or duplicate data errors
             logger.error("Admin registration failed: {}", e.getMessage());
@@ -150,7 +155,9 @@ public class AuthController {
 
     /**
      * Endpoint handles requests to register a new driver. 
+     * 
      * POST /api/auth/register/driver 
+     * 
      * Workflow: 
      * - Person sends a DriverRegistrationRequest DTO with driver details. 
      * - Validates the request data. 
@@ -182,10 +189,12 @@ public class AuthController {
     }
 
     /**
-     * Endpoint handles requests for user login. 
-     * POST /api/auth/login 
+     * Endpoint handles requests for user login.
+     * 
+     * POST /api/auth/login
+     *  
      * Workflow:
-     * - Person sends a LoginRequest DTO with username and password. 
+     * - Person sends a LoginRequest DTO with username and password.
      * - Validates the request data. 
      * - Calls the service layer to authenticate the user. 
      * - Returns a LoginResponse with user info and JWT if successful. 
@@ -207,8 +216,10 @@ public class AuthController {
     }
 
     /**
-     * Endpoint handles requests for user logout. 
+     * Endpoint handles requests for user logout.
+     * 
      * POST /api/auth/logout
+     * 
      * Workflow: 
      * - User sends a request with an Authorization header containing the Bearer token. 
      * - Extracts the token from the header. 
@@ -223,6 +234,7 @@ public class AuthController {
     @PostMapping("/logout")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> logout(HttpServletRequest request) {
+        logger.info("Received logout request");
         final String authHeader = request.getHeader("Authorization");
         // Check for Bearer token and blacklist it
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -234,8 +246,10 @@ public class AuthController {
     }
 
     /**
-     * Endpoint to delete any user account (Admin, Customer, or Driver). 
-     * DELETE /api/auth/delete/{username} 
+     * Endpoint to delete any user account (Admin, Customer, or Driver).
+     *  
+     * DELETE /api/auth/delete/{username}
+     *  
      * Workflow: 
      * - Admin or the user themselves can send a DELETE request with the username. 
      * - Validates the request to ensure the user exists. 
@@ -248,20 +262,28 @@ public class AuthController {
      */
     @DeleteMapping("/delete/{username}")
     @PreAuthorize("principal == #username or hasRole('Admin') and isAuthenticated()")
-    public ResponseEntity<String> deleteUser(@PathVariable String username) {
+    public ResponseEntity<String> deleteUser(@PathVariable String username) throws IOException {
+        logger.info("Received request to delete user with username: {}", username);
         try {
             userDeletionService.deleteUser(username);
             logger.info("Successfully deleted user with username: {}", username);
             return ResponseEntity.ok("User with username " + username + " has been deleted.");
         } catch (IllegalArgumentException e) {
+            // This handles the case where the user is not found
             logger.warn("Failed to delete user with username {}: {}", username, e.getMessage());
             return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (IOException e) {
+            // This handles the error thrown when deleting the profile photo fails.
+            logger.error("A file system error occurred while deleting user '{}': {}", username, e.getMessage());
+            return ResponseEntity.internalServerError().body("Could not delete user profile data. Please contact support.");
         }
     }
 
     /**
-     * Endpoint to trigger sending a verification email to a user. 
-     * POST /api/auth/send-verification-email 
+     * Endpoint to trigger sending a verification email to a user.
+     * 
+     * POST /api/auth/send-verification-email
+     * 
      * Workflow: 
      * - User sends a request with their email address. 
      * - Validates the email format. 
@@ -275,18 +297,23 @@ public class AuthController {
     @PostMapping("/send-verification-email")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> sendVerificationEmail(@Valid @RequestBody EmailVerificationRequest request) {
+        logger.info("Received request to send verification email for email: {}", request.getEmail());
         try {
             verificationService.sendVerificationLink(request.getEmail());
+            logger.info("Verification email sent to email: {}", request.getEmail());
             return ResponseEntity.ok("A verification link has been sent to your email address.");
         } catch (Exception e) {
+            logger.warn("Failed to send verification email for email {}: {}", request.getEmail(), e.getMessage());
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     /**
      * Endpoint that the user is directed to from the verification email. It
-     * validates the token and updates the user's verification status. 
-     * GET /api/auth/verify-email 
+     * validates the token and updates the user's verification status.
+     * 
+     * GET /api/auth/verify-email
+     * 
      * Workflow: 
      * - User clicks the verification link in their email. 
      * - The link contains a token as a query parameter. 
@@ -300,13 +327,16 @@ public class AuthController {
      */
     @GetMapping("/verify-email")
     public ResponseEntity<String> verifyEmail(@RequestParam("token") String token) {
+        logger.info("Received request to verify email with token: {}", token);
         // Delegate the verification logic to the service
         boolean isVerified = verificationService.verifyToken(token);
 
         if (isVerified) {
+            logger.info("Email successfully verified for token: {}", token);
             // On success, return a 200 OK
             return ResponseEntity.ok("Your email has been successfully verified!");
         } else {
+            logger.warn("Failed to verify email for token: {}", token);
             // On failure, return a 400 Bad Request
             return ResponseEntity.badRequest().body("The verification link is invalid or has expired.");
         }
@@ -314,6 +344,7 @@ public class AuthController {
 
     /**
      * Endpoint to request a password reset link.
+     * 
      * POST /api/auth/forgot-password
      * 
      * Workflow: 
@@ -328,10 +359,13 @@ public class AuthController {
      */
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@Valid @RequestBody PasswordResetRequest request) {
+        logger.info("Received request to send password reset link for email: {}", request.getEmail());
         try {
             passwordResetService.createAndSendPasswordResetToken(request.getEmail());
+            logger.info("Password reset link sent to email: {}", request.getEmail());
             return ResponseEntity.ok("A password reset link has been sent to your email address.");
         } catch (Exception e) {
+            logger.warn("Failed to send password reset link for email {}: {}", request.getEmail(), e.getMessage());
             // Return a generic success message even if the user doesn't exist to prevent email enumeration
             return ResponseEntity.ok("If an account with that email exists, a password reset link has been sent.");
         }
@@ -339,6 +373,7 @@ public class AuthController {
 
     /**
      * Endpoint to submit a new password using a reset token.
+     * 
      * POST /api/auth/reset-password
      * 
      * Workflow:
@@ -353,10 +388,13 @@ public class AuthController {
      */
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@Valid @RequestBody PasswordResetSubmission submission) {
+        logger.info("Received request to reset password with token: {}", submission.getToken());
         boolean success = passwordResetService.resetPassword(submission.getToken(), submission.getNewPassword());
         if (success) {
+            logger.info("Password successfully reset for token: {}", submission.getToken());
             return ResponseEntity.ok("Your password has been successfully reset.");
         } else {
+            logger.warn("Failed to reset password for token: {}", submission.getToken());
             return ResponseEntity.badRequest().body("The password reset link is invalid or has expired.");
         }
     }
