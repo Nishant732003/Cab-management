@@ -8,6 +8,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.MalformedURLException;
@@ -15,18 +16,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 /**
- * REST controller for serving static files, such as profile photos. This
- * controller provides a public endpoint to access files stored locally on the
- * server. 
+ * REST controller for serving static files, such as profile photos.
+ * This controller provides a public endpoint to access files stored locally on the server.
+ * 
  * Main Responsibilities: 
  * - Provides a public endpoint to serve files stored locally on the server. 
  * 
- * Security: 
- * - All endpoints are public and do not require authentication. 
- * - The files served are not sensitive and can be accessed by anyone.
+ * Security:
+ * - This controller is accessible to authenticated users.
  */
 @RestController
 @RequestMapping("/api/files")
+@PreAuthorize("isAuthenticated()")
 public class FileController {
 
     // SLF4J Logger for tracking requests and actions in this controller
@@ -37,10 +38,12 @@ public class FileController {
     private String uploadPath;
 
     /**
-     * Endpoint to retrieve and serve a specific file by its filename. 
-     * GET /api/files/{filename} 
+     * Endpoint to retrieve and serve a specific file by its filename.
+     * 
+     * GET /api/files/{filename}
+     * 
      * Workflow: 
-     * - The client requests a file using the URL stored in the driver's profilePhotoUrl field. 
+     * - The client requests a file using the filename field. 
      * - This method constructs the full path to the file on the server's disk. 
      * - It reads the file and streams it back in the HTTP response.
      *
@@ -48,7 +51,7 @@ public class FileController {
      * @return A ResponseEntity containing the file as a resource, or a 404 Not
      * Found if the file doesn't exist.
      */
-    @GetMapping("/view/{filename:.+}")
+    @GetMapping("/{filename:.+}")
     public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
         logger.info("Received view-file request for filename: {}", filename);
         try {
