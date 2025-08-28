@@ -1,5 +1,6 @@
 package com.cabbooking.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -39,7 +40,7 @@ public interface DriverRepository extends JpaRepository<Driver, Integer> {
      * Checks if an Driver with the given username already exists.
      *
      * @param username The username to check.
-     * @return True if an driver with that username exists, false otherwise.
+     * @return True if an driver     with that username exists, false otherwise.
      */
     boolean existsByUsername(String username);
 
@@ -58,4 +59,11 @@ public interface DriverRepository extends JpaRepository<Driver, Integer> {
      * @param username The unique username of the driver to delete.
      */
     void deleteByUsername(String username);
+
+    /**
+     * Finds all Driver entities where the 'verified' status is false.
+     * This is an efficient, database-level query.
+     * @return A list of unverified drivers.
+     */
+    List<Driver> findByVerifiedFalse();
 }

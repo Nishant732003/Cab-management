@@ -1,13 +1,13 @@
 package com.cabbooking.service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.cabbooking.model.Driver;
 import com.cabbooking.repository.DriverRepository;
@@ -20,9 +20,9 @@ import com.cabbooking.repository.DriverRepository;
  * - Interacts with the DriverRepository to perform database queries and updates.
  * - Handles tasks such as viewing top-rated drivers and managing their verification status.
  *
- * Workflow:
- * - This service is injected into controllers, primarily the AdminController, to expose driver management functionality.
- * - It uses the DriverRepository to fetch and manipulate driver data from the database.
+ * Dependencies:
+ * - DriverRepository for accessing driver data in the database.
+ * - IFileUploadService for handling file uploads.
  */
 @Service
 public class DriverServiceImpl implements IDriverService {
@@ -68,9 +68,7 @@ public class DriverServiceImpl implements IDriverService {
      */
     @Override
     public List<Driver> viewUnverifiedDrivers() {
-        return driverRepository.findAll().stream()
-                .filter(driver -> driver.getVerified() != null && !driver.getVerified())
-                .collect(Collectors.toList());
+        return driverRepository.findByVerifiedFalse();
     }
 
     /**
@@ -83,38 +81,43 @@ public class DriverServiceImpl implements IDriverService {
      * - Saves the updated driver entity back to the database.
      *
      * @param driverId The unique ID of the driver to verify.
-     * @return The updated and verified Driver entity.
+     * @return A message indicating successful verification.
      * @throws IllegalArgumentException if no driver with the given ID is found.
      */
     @Override
-    public Driver verifyDriver(int driverId) {
+    public String verifyDriver(int driverId) {
         Driver driver = driverRepository.findById(driverId)
                 .orElseThrow(() -> new IllegalArgumentException("Driver not found with id: " + driverId));
         
         driver.setVerified(true);
-        return driverRepository.save(driver);
+        driverRepository.save(driver);
+        return "Driver verified successfully";
     }
 
     /*
      * Uploads a profile photo for a driver and updates their record.
      *
      * Workflow:
-     * - Finds the driver by their unique ID.
+     * - Finds the driver by their unique username.
      * - Throws an exception if no driver is found.
      * - Uses the IFileUploadService to upload the file and get its unique filename.
      * - Constructs the API path to serve the file and sets it on the driver's profile.
      * - Saves the updated driver entity back to the database.
      *
-     * @param driverId The ID of the driver.
+     * @param username The username of the driver.
      * @param file The image file to upload.
      * @return The updated Driver object with the new photo URL.
      * @throws IOException if the file upload fails.
      */
     @Override
-    public Driver uploadProfilePhoto(int driverId, MultipartFile file) throws IOException {
+    public Driver uploadProfilePhoto(String username, MultipartFile file) throws IOException {
         // Find the driver
-        Driver driver = driverRepository.findById(driverId)
-                .orElseThrow(() -> new IllegalArgumentException("Driver not found..."));
+        Driver driver = driverRepository.findByUsername(username);
+        
+        // Throw exception if no driver is found
+        if (driver == null) {
+            throw new IllegalArgumentException("Driver not found...");
+        }
 
         // If an old image exists, delete it first before uploading the new one
         if (driver.getProfilePhotoUrl() != null && !driver.getProfilePhotoUrl().isEmpty()) {
@@ -157,11 +160,16 @@ public class DriverServiceImpl implements IDriverService {
      */
     @Override
     @Transactional
-    public Driver removeProfilePhoto(int driverId) throws IOException {
+    public Driver removeProfilePhoto(String username) throws IOException {
         // Find the driver
-        Driver driver = driverRepository.findById(driverId)
-                .orElseThrow(() -> new IllegalArgumentException("Driver not found with id: " + driverId));
+        Driver driver = driverRepository.findByUsername(username);
         
+        // Throw exception if no driver is found
+        if (driver == null) {
+            throw new IllegalArgumentException("Driver not found...");
+        }
+
+        // Get the photo URL
         String photoUrl = driver.getProfilePhotoUrl();
 
         // Check if a photo URL exists
