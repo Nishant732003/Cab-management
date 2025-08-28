@@ -1,0 +1,243 @@
+<div class="overview-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="header-content">
+      <h1 class="page-title">Dashboard Overview</h1>
+      <div class="header-actions">
+        <button class="refresh-btn" (click)="refreshData()">
+          <i class="icon-refresh"></i>
+          Refresh
+        </button>
+        <div class="date-filter">
+          <select [(ngModel)]="selectedTimeFrame" (change)="onTimeFrameChange()">
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+            <option value="year">This Year</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <div class="stat-card total-rides">
+      <div class="stat-icon">
+        <i class="icon-car"></i>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-number">{{ statistics.totalRides | number }}</h3>
+        <p class="stat-label">Total Rides</p>
+        <div class="stat-change" [ngClass]="{'positive': statistics.ridesChange >= 0, 'negative': statistics.ridesChange < 0}">
+          <i class="icon-arrow" [ngClass]="statistics.ridesChange >= 0 ? 'up' : 'down'"></i>
+          {{ statistics.ridesChange }}% vs last {{ selectedTimeFrame }}
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card active-drivers">
+      <div class="stat-icon">
+        <i class="icon-users"></i>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-number">{{ statistics.activeDrivers | number }}</h3>
+        <p class="stat-label">Active Drivers</p>
+        <div class="stat-change positive">
+          <i class="icon-arrow up"></i>
+          {{ statistics.driversChange }}% online now
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card revenue">
+      <div class="stat-icon">
+        <i class="icon-money"></i>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-number">₹{{ statistics.totalRevenue | number:'1.0-0' }}</h3>
+        <p class="stat-label">Total Revenue</p>
+        <div class="stat-change" [ngClass]="{'positive': statistics.revenueChange >= 0, 'negative': statistics.revenueChange < 0}">
+          <i class="icon-arrow" [ngClass]="statistics.revenueChange >= 0 ? 'up' : 'down'"></i>
+          {{ statistics.revenueChange }}% vs last {{ selectedTimeFrame }}
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card customer-satisfaction">
+      <div class="stat-icon">
+        <i class="icon-star"></i>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-number">{{ statistics.avgRating | number:'1.1-1' }}</h3>
+        <p class="stat-label">Avg Rating</p>
+        <div class="stat-change positive">
+          <i class="icon-arrow up"></i>
+          {{ statistics.ratingChange }}% customer satisfaction
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts and Analytics Section -->
+  <div class="analytics-section">
+    <div class="chart-container">
+      <div class="chart-header">
+        <h2>Rides Overview</h2>
+        <div class="chart-filters">
+          <button 
+            *ngFor="let period of chartPeriods" 
+            [class.active]="selectedChartPeriod === period.value"
+            (click)="setChartPeriod(period.value)"
+            class="period-btn">
+            {{ period.label }}
+          </button>
+        </div>
+      </div>
+      <div class="chart-content">
+        <!-- Chart placeholder - you can integrate with Chart.js, D3, or Angular Charts -->
+        <div class="chart-placeholder">
+          <div class="chart-bars">
+            <div *ngFor="let data of chartData" class="chart-bar" [style.height.%]="data.value">
+              <span class="bar-label">{{ data.label }}</span>
+              <span class="bar-value">{{ data.rides }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-overview">
+      <h2>Ride Status Distribution</h2>
+      <div class="status-chart">
+        <div class="status-item" *ngFor="let status of rideStatusData">
+          <div class="status-indicator" [style.background-color]="status.color"></div>
+          <div class="status-details">
+            <span class="status-name">{{ status.name }}</span>
+            <span class="status-count">{{ status.count }}</span>
+            <span class="status-percentage">{{ status.percentage }}%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Activity Section -->
+  <div class="activity-section">
+    <div class="recent-rides">
+      <div class="section-header">
+        <h2>Recent Rides</h2>
+        <a routerLink="/rides" class="view-all-link">View All</a>
+      </div>
+      <div class="rides-list">
+        <div *ngFor="let ride of recentRides" class="ride-item">
+          <div class="ride-avatar">
+            <div class="avatar-circle">{{ ride.customerName.charAt(0) }}</div>
+          </div>
+          <div class="ride-details">
+            <div class="ride-info">
+              <span class="customer-name">{{ ride.customerName }}</span>
+              <span class="ride-id">#{{ ride.id }}</span>
+            </div>
+            <div class="ride-route">
+              <span class="pickup">{{ ride.pickup }}</span>
+              <i class="icon-arrow-right"></i>
+              <span class="destination">{{ ride.destination }}</span>
+            </div>
+            <div class="ride-meta">
+              <span class="ride-time">{{ ride.startTime | date:'short' }}</span>
+              <span class="ride-driver">Driver: {{ ride.driverName }}</span>
+            </div>
+          </div>
+          <div class="ride-status">
+            <span class="status-badge" [ngClass]="ride.status">{{ ride.status | titlecase }}</span>
+            <span class="ride-fare">₹{{ ride.fare }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="driver-activity">
+      <div class="section-header">
+        <h2>Top Drivers</h2>
+        <a routerLink="/drivers" class="view-all-link">View All</a>
+      </div>
+      <div class="drivers-list">
+        <div *ngFor="let driver of topDrivers; let i = index" class="driver-item">
+          <div class="driver-rank">{{ i + 1 }}</div>
+          <div class="driver-avatar">
+            <div class="avatar-circle">{{ driver.name.charAt(0) }}</div>
+            <div class="status-dot" [ngClass]="{'online': driver.isOnline, 'offline': !driver.isOnline}"></div>
+          </div>
+          <div class="driver-info">
+            <div class="driver-name">{{ driver.name }}</div>
+            <div class="driver-vehicle">{{ driver.vehicleNumber }}</div>
+            <div class="driver-stats">
+              <span class="rides-count">{{ driver.ridesCompleted }} rides</span>
+              <span class="driver-rating">
+                <i class="icon-star"></i>
+                {{ driver.rating | number:'1.1-1' }}
+              </span>
+            </div>
+          </div>
+          <div class="driver-earnings">
+            <span class="earnings-amount">₹{{ driver.earnings | number:'1.0-0' }}</span>
+            <span class="earnings-label">This {{ selectedTimeFrame }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions Section -->
+  <div class="quick-actions">
+    <h2>Quick Actions</h2>
+    <div class="actions-grid">
+      <div class="action-card" (click)="navigateTo('/bookings/new')">
+        <div class="action-icon">
+          <i class="icon-plus"></i>
+        </div>
+        <div class="action-content">
+          <h3>New Booking</h3>
+          <p>Create a new ride booking</p>
+        </div>
+      </div>
+
+      <div class="action-card" (click)="navigateTo('/drivers/manage')">
+        <div class="action-icon">
+          <i class="icon-user-plus"></i>
+        </div>
+        <div class="action-content">
+          <h3>Manage Drivers</h3>
+          <p>Add or update driver information</p>
+        </div>
+      </div>
+
+      <div class="action-card" (click)="navigateTo('/reports')">
+        <div class="action-icon">
+          <i class="icon-chart"></i>
+        </div>
+        <div class="action-content">
+          <h3>View Reports</h3>
+          <p>Detailed analytics and reports</p>
+        </div>
+      </div>
+
+      <div class="action-card" (click)="navigateTo('/settings')">
+        <div class="action-icon">
+          <i class="icon-settings"></i>
+        </div>
+        <div class="action-content">
+          <h3>Settings</h3>
+          <p>System and app configuration</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <p>Loading data...</p>
+  </div>
+</div>

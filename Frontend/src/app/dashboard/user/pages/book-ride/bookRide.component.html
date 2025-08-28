@@ -1,0 +1,98 @@
+// book-ride/book-ride.component.html
+<div class="book-ride-container">
+  <div class="header">
+    <h2>🚗 Book a Ride</h2>
+    <p>Enter your trip details to find available drivers</p>
+  </div>
+
+  <div class="booking-form">
+    <div class="form-group">
+      <label for="pickup">📍 Pickup Location</label>
+      <input 
+        id="pickup"
+        type="text" 
+        [(ngModel)]="pickup" 
+        placeholder="Enter pickup location"
+        class="form-input">
+    </div>
+
+    <div class="form-group">
+      <label for="destination">🎯 Destination</label>
+      <input 
+        id="destination"
+        type="text" 
+        [(ngModel)]="destination" 
+        placeholder="Enter destination"
+        class="form-input">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="date">📅 Date</label>
+        <input 
+          id="date"
+          type="date" 
+          [(ngModel)]="selectedDate" 
+          class="form-input">
+      </div>
+
+      <div class="form-group">
+        <label for="time">🕐 Time</label>
+        <input 
+          id="time"
+          type="time" 
+          [(ngModel)]="selectedTime" 
+          class="form-input">
+      </div>
+    </div>
+
+    <button 
+      class="search-btn" 
+      (click)="searchDrivers()"
+      [disabled]="searchingDrivers">
+      <span *ngIf="!searchingDrivers">🔍 Search Available Drivers</span>
+      <span *ngIf="searchingDrivers">⏳ Searching...</span>
+    </button>
+  </div>
+
+  <div class="drivers-section" *ngIf="showDrivers || searchingDrivers">
+    <div class="loading" *ngIf="searchingDrivers">
+      <div class="spinner"></div>
+      <p>Finding the best drivers for you...</p>
+    </div>
+
+    <div class="drivers-list" *ngIf="showDrivers">
+      <h3>Available Drivers ({{availableDrivers.length}})</h3>
+      
+      <div class="driver-card" *ngFor="let driver of availableDrivers">
+        <div class="driver-info">
+          <div class="driver-avatar">{{driver.photo}}</div>
+          <div class="driver-details">
+            <h4>{{driver.name}}</h4>
+            <div class="rating">
+              <span *ngFor="let star of getStarArray(driver.rating)" 
+                    class="star" 
+                    [class.filled]="star">★</span>
+              <span class="rating-text">{{driver.rating}}</span>
+            </div>
+            <p class="car-info">{{driver.carModel}} • {{driver.licensePlate}}</p>
+          </div>
+        </div>
+        
+        <div class="trip-info">
+          <div class="eta">
+            <span class="eta-label">ETA</span>
+            <span class="eta-time">{{driver.eta}}</span>
+          </div>
+          <div class="fare">${{driver.fare}}</div>
+        </div>
+
+        <div class="driver-actions">
+          <button class="contact-btn call" (click)="callDriver(driver)">📞</button>
+          <button class="contact-btn message" (click)="messageDriver(driver)">💬</button>
+          <button class="book-btn" (click)="bookRide(driver)">Book Ride</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

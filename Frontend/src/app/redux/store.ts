@@ -1,19 +1,22 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { Injectable } from '@angular/core';
 import adminAuthReducer, { AdminStaffAuthState } from './slice/adminAuthslice';
-import driverAuthReducer, { DriverAuthState } from './slice/driverAuthslice'; // Add this import
+import driverAuthReducer, { DriverAuthState } from './slice/driverAuthslice';
+import userAuthReducer, { UserAuthState } from './slice/userAuthSlice'; // Add userAuth import
 
-// Root state interface - Updated to include both auth slices
+// Root state interface - Updated to include all auth slices
 export interface RootState {
   adminstaffauth: AdminStaffAuthState;
-  driverAuth: DriverAuthState; // Add driver auth state
+  driverAuth: DriverAuthState;
+  userAuth: UserAuthState; // Add user auth state
 }
 
-// Configure Redux store with both reducers
+// Configure Redux store with all reducers
 const reduxStore = configureStore({
   reducer: {
     adminstaffauth: adminAuthReducer,
-    driverAuth: driverAuthReducer, // Add driver auth reducer
+    driverAuth: driverAuthReducer,
+    userAuth: userAuthReducer, // Add user auth reducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -65,7 +68,7 @@ export class ReduxStore {
     return this.getState().adminstaffauth.error;
   }
 
-  // Driver Auth Selectors - Add these
+  // Driver Auth Selectors
   selectDriverUser() {
     return this.getState().driverAuth.user;
   }
@@ -80,6 +83,32 @@ export class ReduxStore {
 
   selectDriverError() {
     return this.getState().driverAuth.error;
+  }
+
+  // User Auth Selectors - Add these new selectors
+  selectUserUser() {
+    return this.getState().userAuth.user;
+  }
+
+  selectUserIsAuthenticated() {
+    return this.getState().userAuth.isAuthenticated;
+  }
+
+  selectUserIsLoading() {
+    return this.getState().userAuth.isLoading;
+  }
+
+  selectUserError() {
+    return this.getState().userAuth.error;
+  }
+
+  selectUserToken() {
+    return this.getState().userAuth.token;
+  }
+
+  // Generic selectors for accessing any auth slice
+  selectAuthState<T extends keyof RootState>(authType: T): RootState[T] {
+    return this.getState()[authType];
   }
 }
 

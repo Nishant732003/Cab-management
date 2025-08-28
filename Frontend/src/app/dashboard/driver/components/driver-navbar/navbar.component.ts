@@ -329,9 +329,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
     // Example: this.driverAuthContext.router.navigate(['/driver/search'], { queryParams: { q: query.trim() } });
   }
 
-  /**
-   * Handle search input keypress events
-   */
+ 
   onSearchKeyPress(event: KeyboardEvent): void {
     if (event.key === 'Enter') {
       event.preventDefault();
@@ -339,46 +337,33 @@ export class NavbarComponent implements OnInit, OnDestroy {
     }
   }
 
-  /**
-   * Handle mobile search input keypress events
-   */
   onMobileSearchKeyPress(event: KeyboardEvent): void {
     if (event.key === 'Enter') {
       event.preventDefault();
       this.onSearch(this.mobileSearchQuery);
-      this.closeMobileSidebar(); // Close sidebar after search
+      this.closeMobileSidebar(); 
     }
   }
 
-  /**
-   * Clear search queries
-   */
   clearSearch(): void {
     this.searchQuery = '';
     this.mobileSearchQuery = '';
   }
 
-  /**
-   * Handle escape key to close mobile sidebar
-   */
   onEscapeKey(event: KeyboardEvent): void {
     if (event.key === 'Escape' && this.isMobileSidebarOpen) {
       this.closeMobileSidebar();
     }
   }
 
-  /**
-   * Handle window resize to close mobile sidebar on larger screens
-   */
+ 
+
   onWindowResize(): void {
     if (window.innerWidth >= 768 && this.isMobileSidebarOpen) {
       this.closeMobileSidebar();
     }
   }
 
-  /**
-   * Emergency contact handler
-   */
   handleEmergencyContact(): void {
     // TODO: Implement emergency contact functionality
     console.log('Emergency contact initiated');

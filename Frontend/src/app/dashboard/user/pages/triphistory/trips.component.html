@@ -1,0 +1,205 @@
+<div class="trip-history-container">
+  <div class="header">
+    <h2>📋 Trip History</h2>
+    <p>View and manage your completed rides</p>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="controls-section">
+    <div class="search-box">
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        (input)="onSearchChange()"
+        placeholder="Search trips, locations, or drivers..."
+        class="search-input">
+      <span class="search-icon">🔍</span>
+    </div>
+    
+    <div class="filters">
+      <select [(ngModel)]="filterStatus" (change)="onFilterChange()" class="filter-select">
+        <option value="all">All Status</option>
+        <option value="completed">Completed</option>
+        <option value="ongoing">Ongoing</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+      
+      <select [(ngModel)]="sortBy" (change)="onSortChange()" class="filter-select">
+        <option value="date">Sort by Date</option>
+        <option value="fare">Sort by Fare</option>
+        <option value="rating">Sort by Rating</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Trip List -->
+  <div class="trips-list" *ngIf="filteredTrips.length > 0">
+    <div class="trip-card" 
+         *ngFor="let trip of filteredTrips" 
+         (click)="viewTripDetails(trip)">
+      <div class="trip-header">
+        <div class="trip-id">Trip #{{trip.id}}</div>
+        <div class="trip-status" [ngClass]="getStatusClass(trip.status)">
+          <span class="status-icon">{{getStatusIcon(trip.status)}}</span>
+          <span class="status-text">{{trip.status | titlecase}}</span>
+        </div>
+      </div>
+      
+      <div class="trip-route">
+        <div class="route-point pickup">
+          <span class="route-icon">🟢</span>
+          <span class="route-text">{{trip.pickup}}</span>
+        </div>
+        <div class="route-line"></div>
+        <div class="route-point destination">
+          <span class="route-icon">🔴</span>
+          <span class="route-text">{{trip.destination}}</span>
+        </div>
+      </div>
+      
+      <div class="trip-details">
+        <div class="detail-item">
+          <span class="detail-label">Date</span>
+          <span class="detail-value">{{formatDate(trip.date)}}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Time</span>
+          <span class="detail-value">{{formatTime(trip.time)}}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Driver</span>
+          <span class="detail-value">{{trip.driver.name}}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Fare</span>
+          <span class="detail-value" [class.cancelled-fare]="trip.status === 'cancelled'">
+            {{trip.status === 'cancelled' ? 'N/A' : '$' + trip.fare}}
+          </span>
+        </div>
+      </div>
+      
+      <div class="trip-rating" *ngIf="trip.status === 'completed'">
+        <div class="rating" *ngIf="trip.rating">
+          <span *ngFor="let star of getStarArray(trip.rating)" 
+                class="star filled">★</span>
+          <span class="rating-text">{{trip.rating}}/5</span>
+        </div>
+        <button class="rate-btn" 
+                *ngIf="!trip.rating" 
+                (click)="openRatingModal(trip); $event.stopPropagation()">
+          Rate Trip
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Results -->
+  <div class="no-results" *ngIf="filteredTrips.length === 0">
+    <div class="no-results-icon">🚗💭</div>
+    <h3>No trips found</h3>
+    <p>Try adjusting your search or filter criteria</p>
+  </div>
+
+  <!-- Trip Details Modal -->
+  <div class="modal-overlay" *ngIf="selectedTrip" (click)="closeTripDetails()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Trip Details</h3>
+        <button class="close-btn" (click)="closeTripDetails()">✕</button>
+      </div>
+      
+      <div class="modal-body">
+        <div class="trip-info-section">
+          <h4>📍 Route Information</h4>
+          <div class="route-details">
+            <p><strong>From:</strong> {{selectedTrip.pickup}}</p>
+            <p><strong>To:</strong> {{selectedTrip.destination}}</p>
+            <p><strong>Distance:</strong> {{selectedTrip.distance}}</p>
+            <p><strong>Duration:</strong> {{selectedTrip.duration}}</p>
+          </div>
+        </div>
+        
+        <div class="trip-info-section">
+          <h4>👨‍💼 Driver Information</h4>
+          <div class="driver-details">
+            <div class="driver-avatar">{{selectedTrip.driver.photo}}</div>
+            <div class="driver-info">
+              <p><strong>{{selectedTrip.driver.name}}</strong></p>
+              <div class="rating">
+                <span *ngFor="let star of getStarArray(selectedTrip.driver.rating)" 
+                      class="star filled">★</span>
+                <span class="rating-text">{{selectedTrip.driver.rating}}</span>
+              </div>
+              <p>{{selectedTrip.driver.carModel}} • {{selectedTrip.driver.licensePlate}}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="trip-info-section">
+          <h4>💰 Payment Information</h4>
+          <div class="payment-details">
+            <p><strong>Fare:</strong> 
+              <span [class.cancelled-fare]="selectedTrip.status === 'cancelled'">
+                {{selectedTrip.status === 'cancelled' ? 'N/A' : '$' + selectedTrip.fare}}
+              </span>
+            </p>
+            <p><strong>Payment Method:</strong> {{selectedTrip.paymentMethod}}</p>
+            <p><strong>Trip Date:</strong> {{formatDate(selectedTrip.date)}} at {{formatTime(selectedTrip.time)}}</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-actions">
+        <button class="action-btn secondary" (click)="rebookTrip(selectedTrip)">
+          🔄 Rebook
+        </button>
+        <button class="action-btn primary" (click)="callDriver(selectedTrip)">
+          📞 Call Driver
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rating Modal -->
+  <div class="modal-overlay" *ngIf="showRatingModal" (click)="closeRatingModal()">
+    <div class="modal-content rating-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Rate Your Trip</h3>
+        <button class="close-btn" (click)="closeRatingModal()">✕</button>
+      </div>
+      
+      <div class="modal-body" *ngIf="ratingTrip">
+        <div class="rating-driver">
+          <div class="driver-avatar">{{ratingTrip.driver.photo}}</div>
+          <h4>{{ratingTrip.driver.name}}</h4>
+          <p>{{ratingTrip.driver.carModel}}</p>
+        </div>
+        
+        <div class="rating-stars">
+          <span *ngFor="let star of [1,2,3,4,5]; let i = index"
+                class="rating-star"
+                [class.active]="i < currentRating"
+                (click)="setRating(i + 1)">★</span>
+        </div>
+        
+        <div class="rating-text">
+          <span *ngIf="currentRating === 0">Tap stars to rate</span>
+          <span *ngIf="currentRating === 1">Poor</span>
+          <span *ngIf="currentRating === 2">Fair</span>
+          <span *ngIf="currentRating === 3">Good</span>
+          <span *ngIf="currentRating === 4">Very Good</span>
+          <span *ngIf="currentRating === 5">Excellent</span>
+        </div>
+      </div>
+      
+      <div class="modal-actions">
+        <button class="action-btn secondary" (click)="closeRatingModal()">Cancel</button>
+        <button class="action-btn primary" 
+                [disabled]="currentRating === 0"
+                (click)="submitRating()">
+          Submit Rating
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

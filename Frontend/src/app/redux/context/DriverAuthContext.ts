@@ -11,13 +11,12 @@ import {
   updateDriverStatus,
   updateDriverProfile,
   DriverUser 
-} from '../slice/driverAuthslice' // Make sure import path is correct
+} from '../slice/driverAuthslice' 
 
 @Injectable({
   providedIn: 'root'
 })
 export class DriverAuthContext {
-  // Observables for reactive updates
   private userSubject = new BehaviorSubject<DriverUser | null>(null);
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   private isLoadingSubject = new BehaviorSubject<boolean>(false);
@@ -36,7 +35,6 @@ export class DriverAuthContext {
     this.subscribeToStore();
   }
 
-  // Check if we're in browser environment
   private isBrowser(): boolean {
     return isPlatformBrowser(this.platformId);
   }

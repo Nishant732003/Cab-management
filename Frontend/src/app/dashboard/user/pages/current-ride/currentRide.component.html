@@ -1,0 +1,127 @@
+<div class="current-rides-container">
+  <div class="header">
+    <h2>🚙 Current Ride</h2>
+    <p>Track your ongoing trip in real-time</p>
+  </div>
+
+  <div class="no-trip" *ngIf="!currentTrip">
+    <div class="no-trip-icon">🚗💨</div>
+    <h3>No Active Rides</h3>
+    <p>You don't have any ongoing trips at the moment.</p>
+    <button class="book-new-btn">Book a New Ride</button>
+  </div>
+
+  <div class="trip-tracking" *ngIf="currentTrip">
+    <!-- Trip Status -->
+    <div class="status-card">
+      <div class="status-header">
+        <div class="status-indicator" [style.background-color]="getStatusColor(currentTrip.status)">
+          <span class="status-dot"></span>
+        </div>
+        <div class="status-info">
+          <h3>{{getStatusText(currentTrip.status)}}</h3>
+          <p>Trip ID: #{{currentTrip.id}}</p>
+        </div>
+      </div>
+      
+      <div class="trip-progress">
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="currentTrip.progress"></div>
+        </div>
+        <div class="progress-text">{{currentTrip.progress | number:'1.0-0'}}% Complete</div>
+      </div>
+    </div>
+
+    <!-- Route Information -->
+    <div class="route-card">
+      <h4>📍 Trip Details</h4>
+      <div class="route-details">
+        <div class="location">
+          <span class="location-icon pickup">🟢</span>
+          <div class="location-info">
+            <strong>Pickup</strong>
+            <p>{{currentTrip.pickup}}</p>
+          </div>
+        </div>
+        
+        <div class="route-line"></div>
+        
+        <div class="location">
+          <span class="location-icon destination">🔴</span>
+          <div class="location-info">
+            <strong>Destination</strong>
+            <p>{{currentTrip.destination}}</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="trip-meta">
+        <div class="meta-item">
+          <span class="meta-label">Duration</span>
+          <span class="meta-value">{{currentTrip.estimatedDuration}}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Fare</span>
+          <span class="meta-value">${{currentTrip.fare}}</span>
+        </div>
+        <div class="meta-item" *ngIf="currentTrip.startTime">
+          <span class="meta-label">Started</span>
+          <span class="meta-value">{{currentTrip.startTime}}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Driver Information -->
+    <div class="driver-card">
+      <h4>👨‍💼 Your Driver</h4>
+      <div class="driver-info">
+        <div class="driver-avatar">{{currentTrip.driver.photo}}</div>
+        <div class="driver-details">
+          <h5>{{currentTrip.driver.name}}</h5>
+          <div class="rating">
+            <span *ngFor="let star of getStarArray(currentTrip.driver.rating)" 
+                  class="star" 
+                  [class.filled]="star">★</span>
+            <span class="rating-text">{{currentTrip.driver.rating}}</span>
+          </div>
+          <p class="car-info">{{currentTrip.driver.carModel}} • {{currentTrip.driver.licensePlate}}</p>
+        </div>
+        <div class="contact-actions">
+          <button class="contact-btn call" (click)="callDriver()">📞</button>
+          <button class="contact-btn message" (click)="messageDriver()">💬</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Tracking -->
+    <div class="tracking-card">
+      <h4>🗺️ Live Tracking</h4>
+      <div class="map-placeholder">
+        <div class="map-content">
+          <div class="driver-marker">🚗</div>
+          <div class="route-path"></div>
+          <div class="destination-marker">📍</div>
+        </div>
+        <div class="tracking-overlay" *ngIf="trackingActive">
+          <div class="tracking-pulse"></div>
+          <p>Live tracking active</p>
+        </div>
+      </div>
+      
+      <div class="location-info" *ngIf="currentTrip.currentLocation">
+        <strong>Current Location:</strong>
+        <p>{{currentTrip.currentLocation}}</p>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button class="action-btn share" (click)="shareLocation()">
+        📍 Share Location
+      </button>
+      <button class="action-btn cancel" (click)="cancelTrip()">
+        ❌ Cancel Trip
+      </button>
+    </div>
+  </div>
+</div>
