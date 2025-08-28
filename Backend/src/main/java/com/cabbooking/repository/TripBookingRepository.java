@@ -1,10 +1,11 @@
 package com.cabbooking.repository;
 
-import com.cabbooking.model.TripBooking;
-import org.springframework.data.jpa.repository.JpaRepository;
-
 import java.time.LocalDateTime;
 import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.cabbooking.model.TripBooking;
 
 /**
  * Spring Data JPA repository for {@link TripBooking} entities.
@@ -26,11 +27,11 @@ public interface TripBookingRepository extends JpaRepository<TripBooking, Intege
     List<TripBooking> findByCustomer_Id(Integer customerId);
 
     /**
-     * Finds all trips associated with a specific cab.
-     * @param cabId The ID of the cab.
-     * @return A list of trips for that cab.
+     * Finds all trips associated with a specific driver.
+     * @param driverId The ID of the driver.
+     * @return A list of trips for that driver.
      */
-    List<TripBooking> findByCab_CabId(Integer cabId);
+    List<TripBooking> findByDriver_Id(Integer driverId);
 
     /**
      * Finds all trips that started within a given date and time range.

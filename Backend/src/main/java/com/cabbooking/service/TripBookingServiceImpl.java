@@ -73,16 +73,16 @@ public class TripBookingServiceImpl implements ITripBookingService {
      * Workflow: 
      * - Validate that the customer exists. 
      * - Check if a future scheduledTime is provided in the request. 
-     * - Find the best available driver (highest rating). 
-     * - Create a new TripBooking entity. 
      * - Set the status to SCHEDULED if a future scheduledTime is provided in the request. 
+     * - Else find the best available driver (highest rating). 
+     * - Create a new TripBooking entity. 
      * - Assign the driver to the trip. 
      * - Save the trip to the database. 
      * - Return the saved trip.
      *
      * @param tripBookingRequest The request from the customer containing trip
      * details.
-     * @return The saved {@link TripBooking} object.
+     * @return The saved TripBooking object.
      * @throws AuthenticationException if the customer ID is invalid.
      * @throws RuntimeException if no drivers are available for an immediate booking.
      */
@@ -152,13 +152,13 @@ public class TripBookingServiceImpl implements ITripBookingService {
     /**
      * Updates the status of a trip according to predefined business rules.
      *
-     * Main Responsibilities: - Handles the logic for updating the status of a
-     * trip. - Applies business rules for status transitions. - Throws an
-     * exception if the status transition is not allowed.
+     * Main Responsibilities:
+     * - Handles the logic for updating the status of a trip.
+     * - Applies business rules for status transitions.
+     * - Throws an exception if the status transition is not allowed.
      *
      * @param tripId The ID of the trip.
-     * @param newStatusStr The new status as a string (e.g., "IN_PROGRESS",
-     * "CANCELLED").
+     * @param newStatusStr The new status as a string (e.g., "IN_PROGRESS", "CANCELLED").
      * @return The updated trip.
      * @throws IllegalStateException if the status transition is not allowed.
      */
@@ -225,9 +225,12 @@ public class TripBookingServiceImpl implements ITripBookingService {
     /**
      * Completes a trip, calculates the bill, and sets the end time.
      *
-     * Workflow: - Completes the trip. - Calculates the final bill. - Sets the
-     * end time. - Sets the driver and cab to available. - Returns the completed
-     * trip.
+     * Workflow:
+     * - Completes the trip.
+     * - Calculates the final bill.
+     * - Sets the end time.
+     * - Sets the driver and cab to available.
+     * - Returns the completed trip.
      *
      * @param tripId The ID of the trip to complete.
      * @return The completed trip with the final bill.
@@ -238,12 +241,15 @@ public class TripBookingServiceImpl implements ITripBookingService {
         TripBooking trip = tripBookingRepository.findById(tripId)
                 .orElseThrow(() -> new RuntimeException("Trip not found..."));
 
+        // Complete the trip
         trip.setToDateTime(LocalDateTime.now());
         trip.setStatus(TripStatus.COMPLETED);
 
+        // Calculate the final bill
         float bill = trip.getDistanceInKm() * trip.getCab().getPerKmRate();
         trip.setBill(bill);
 
+        // Set the driver and cab to available
         Driver driver = trip.getDriver();
         if (driver != null) {
             driver.setIsAvailable(true);
@@ -262,24 +268,28 @@ public class TripBookingServiceImpl implements ITripBookingService {
     /**
      * Retrieves the trip history for a given customer.
      *
-     * Workflow: - Retrieves all trips for the customer. - Returns the list of
-     * trips.
+     * Workflow:
+     * - Retrieves all trips for the customer.
+     * - Returns the list of trips.
      *
      * @param customerId The customer's ID.
      * @return A list of trips.
      */
     @Override
-    public List<TripBooking> viewAllTripsCustomer(Integer customerId) {
+    public List<TripBooking> getAllTripsCustomer(Integer customerId) {
         return tripBookingRepository.findByCustomer_Id(customerId);
     }
 
     /**
-     * Applies a customer's rating to a completed trip and updates the driver's
-     * average rating.
+     * Applies a customer's rating to a completed trip and updates the driver's average rating.
      *
-     * Workflow: - Finds the trip. - Validates the request. - Gets the driver
-     * and the new rating. - Calculates the new average rating. - Updates the
-     * trip with the customer's rating. - Returns the updated trip.
+     * Workflow:
+     * - Finds the trip.
+     * - Validates the request.
+     * - Gets the driver and the new rating.
+     * - Calculates the new average rating.
+     * - Updates the trip with the customer's rating.
+     * - Returns the updated trip.
      *
      * @param tripId The ID of the trip to rate.
      * @param ratingRequest The DTO containing the rating value.

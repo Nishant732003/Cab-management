@@ -42,7 +42,7 @@ public interface ITripBookingService {
      * @param customerId The ID of the customer.
      * @return A list of {@link TripBooking} entities representing the customer's trip history.
      */
-    List<TripBooking> viewAllTripsCustomer(Integer customerId);
+    List<TripBooking> getAllTripsCustomer(Integer customerId);
 
     // ==> ADD THIS NEW METHOD <==
     TripBooking rateTrip(Integer tripId, RatingRequest ratingRequest);

@@ -58,9 +58,6 @@ public class TripSchedulerService {
      * - It checks for scheduled trips that are due to start within the next 15 minutes.
      * - If a trip is due, it attempts to find an available driver and assign them to the trip.
      * - If driver is found, the trip status is updated to 'IN_PROGRESS'.
-     *
-     * Security: 
-     * - This method is only accessible to users with the 'Admin' role.
      */
     @Scheduled(fixedRate = 60000) // Runs every 1 minute
     @Transactional
