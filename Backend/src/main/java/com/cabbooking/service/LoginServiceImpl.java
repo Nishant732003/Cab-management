@@ -1,20 +1,21 @@
 package com.cabbooking.service;
 
-import com.cabbooking.dto.LoginRequest;
-import com.cabbooking.dto.LoginResponse;
-import com.cabbooking.exception.AuthenticationException;
-import com.cabbooking.model.Customer;
-import com.cabbooking.model.Admin;
-import com.cabbooking.model.Driver;
-import com.cabbooking.repository.CustomerRepository;
-import com.cabbooking.repository.AdminRepository;
-import com.cabbooking.repository.DriverRepository;
-import com.cabbooking.security.JwtUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.cabbooking.dto.LoginRequest;
+import com.cabbooking.dto.LoginResponse;
+import com.cabbooking.exception.AuthenticationException;
+import com.cabbooking.model.Admin;
+import com.cabbooking.model.Customer;
+import com.cabbooking.model.Driver;
+import com.cabbooking.repository.AdminRepository;
+import com.cabbooking.repository.CustomerRepository;
+import com.cabbooking.repository.DriverRepository;
+import com.cabbooking.security.JwtUtil;
 
 /**
  * Implementation of the ILoginService interface.
@@ -34,9 +35,18 @@ import org.slf4j.LoggerFactory;
  * On successful authentication, it generates a JWT token and returns it as
  * part of the LoginResponse.
  * 
- * Important:
- * - Throws AuthenticationException on invalid login credentials or if no matching user is found.
+ * Main Responsibilities:
+ * - Authenticates users based on username and password.
+ * - Generates JWT tokens for authenticated users.
  * - Logs login attempts, successes, and failures for monitoring and debugging.
+ * - Throws AuthenticationException on invalid login credentials or if no matching user is found.
+ * 
+ * Dependencies:
+ * - CustomerRepository for customer authentication.
+ * - AdminRepository for admin authentication.
+ * - DriverRepository for driver authentication.
+ * - PasswordEncoder for securely hashing and comparing passwords.
+ * - JwtUtil for generating and validating JWT tokens.
  */
 @Service
 public class LoginServiceImpl implements ILoginService {
@@ -87,11 +97,6 @@ public class LoginServiceImpl implements ILoginService {
      * - If not found/failed, repeats above steps for Driver repository.
      * - If still no match, repeats for Customer repository.
      * - If no user found in any repository, throws AuthenticationException.
-     * 
-     * Logging:
-     * - Logs login attempt receipt.
-     * - Logs successful authentications including username.
-     * - Logs authentication failures including invalid password attempts and missing users.
      * 
      * @param request LoginRequest object containing username and plaintext password
      * @return LoginResponse with success message, user ID, user type, and JWT token on successful authentication

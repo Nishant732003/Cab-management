@@ -1,36 +1,40 @@
 package com.cabbooking.service;
 
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.cabbooking.model.AbstractUser;
+import com.cabbooking.model.Admin;
+import com.cabbooking.model.Customer;
+import com.cabbooking.model.Driver;
 import com.cabbooking.model.VerificationToken;
 import com.cabbooking.repository.AdminRepository;
 import com.cabbooking.repository.CustomerRepository;
 import com.cabbooking.repository.DriverRepository;
 import com.cabbooking.repository.VerificationTokenRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.cabbooking.model.Admin;
-import com.cabbooking.model.Customer;
-import com.cabbooking.model.Driver;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
-import java.util.Optional;
 
 /**
  * Service to manage the email verification process.
- * This service handles sending verification links to users, verifying the tokens, and updating user email verification status.
+ * 
+ * This service handles sending verification links to users, 
+ * verifying the tokens, and updating user email verification status.
  * 
  * Main Responsibilities:
  * - Sends a verification link to the user's email.
  * - Verifies the email using the provided token.
  * - Updates the user's email verification status.
  * 
- * Security:
- * - The service is transactional to ensure data consistency.
- * - The service is secure using method-level security.
- * - Only users with the 'Admin' role can access these endpoints.
+ * Dependencies:
+ * - VerificationTokenRepository: Repository for Token entity.
+ * - IEmailService: Service for sending emails.
+ * - AdminRepository: Repository for Admin entity.
+ * - CustomerRepository: Repository for Customer entity.
+ * - DriverRepository: Repository for Driver entity.
  */
 @Service
 public class VerificationServiceImpl implements IVerificationService {
