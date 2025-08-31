@@ -3,9 +3,6 @@ package com.cabbooking.service;
 import com.cabbooking.dto.AdminRegistrationRequest;
 import com.cabbooking.model.Admin;
 
-/*
- * Service interface for admin registration
- */
 public interface IAdminRegistrationService {
 
     /**

@@ -24,7 +24,6 @@ public class AdminVerificationServiceImpl implements IAdminVerificationService {
 
     /**
      * Repository used for CRUD operations on Admin entities.
-     * Provides access to the underlying database.
      */
     @Autowired
     private AdminRepository adminRepository;

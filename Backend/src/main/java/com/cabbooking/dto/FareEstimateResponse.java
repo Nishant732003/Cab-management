@@ -1,25 +1,14 @@
 package com.cabbooking.dto;
 
 /**
- * DTO for providing a fare estimate to the customer. It includes the car type
- * and the calculated minimum and maximum possible fares for a given distance
- * based on the available cabs of that type.
+ * DTO for providing a fare estimate to the customer.
+ * It includes the car type and the calculated minimum and maximum possible fares
+ * for a given distance based on the available cabs of that type.
  */
 public class FareEstimateResponse {
 
-    /*
-     * The car type for which the fare estimate is being provided.
-     */
     private String carType;
-
-    /*
-     * The minimum possible fare for the specified car type and distance.
-     */
     private float minFare;
-
-    /*
-     * The maximum possible fare for the specified car type and distance.
-     */
     private float maxFare;
 
     public FareEstimateResponse(String carType, float minFare, float maxFare) {
@@ -28,7 +17,8 @@ public class FareEstimateResponse {
         this.maxFare = maxFare;
     }
 
-    // ======= Getters and Setters =======
+    // Getters and Setters
+
     public String getCarType() {
         return carType;
     }

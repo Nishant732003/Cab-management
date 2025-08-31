@@ -5,25 +5,10 @@ package com.cabbooking.dto;
  */
 public class LoginResponse {
 
-    /**
-     * Message indicating the success or failure of the login attempt.
-     */
     private String message;
-
-    /**
-     * ID of the logged-in user.
-     */
     private Integer userId;
-
-    /**
-     * Type of the logged-in user (e.g., "admin", "customer", "driver").
-     */
     private String userType;
-
-    /**
-     * JWT token for authentication.
-     */
-    private String token;
+    private String token;  // New field to carry JWT token
 
     public LoginResponse(String message, Integer userId, String userType, String token) {
         this.message = message;
@@ -32,7 +17,8 @@ public class LoginResponse {
         this.token = token;
     }
 
-    // ======= Getters and Setters =======
+    // Getters and setters...
+
     public String getMessage() {
         return message;
     }

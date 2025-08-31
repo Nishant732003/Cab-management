@@ -6,29 +6,18 @@ import java.time.LocalDateTime;
 @Entity
 public class VerificationToken {
 
-    /*
-     * A verification token is a token that is generated when a user registers
-     * and is used to verify their email address. It is valid for 24 hours.
-     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /*
-     * The token itself. It's unique and is generated when the user registers.
-     */
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true) // The token itself should be unique
     private String token;
 
-    /*
-     * The date and time when the token expires.
-     */
     @Column(nullable = false)
     private LocalDateTime expiryDate;
 
-    /*
-     * The email address of the user who registered.
-     */
+    // ==> THIS IS THE KEY CHANGE <==
+    // Store the user's email directly. It's unique across the system.
     @Column(nullable = false)
     private String userEmail;
 
@@ -41,7 +30,7 @@ public class VerificationToken {
         this.userEmail = userEmail;
     }
 
-    // ======= Getters and Setters =======
+    // --- Getters and Setters ---
     
     public Long getId() {
         return id;

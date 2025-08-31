@@ -8,6 +8,8 @@ import java.util.List;
 
 /**
  * Service interface defining the business logic for the Trip Booking module.
+ * This interface abstracts the implementation details, allowing for easier testing
+ * and maintenance. It outlines the core operations related to managing trips.
  */
 public interface ITripBookingService {
 

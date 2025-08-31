@@ -5,27 +5,15 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
-/*
- * Represents a token that has been invalidated due to logout or
- * other security measures.
- */
 @Entity
 public class BlacklistedToken {
 
-    /*
-     * Represents a token that has been invalidated due to logout or
-     * other security measures.
-     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /*
-     * The token itself.
-     */
     private String token;
 
-    // ======= Getters and Setters =======
     public Long getId() {
         return id;
     }

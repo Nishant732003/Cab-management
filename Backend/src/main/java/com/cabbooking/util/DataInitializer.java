@@ -81,7 +81,6 @@ public class DataInitializer implements CommandLineRunner {
             Cab cab = new Cab();
             cab.setCarType("Sedan");
             cab.setPerKmRate(15.0f);
-            cab.setNumberPlate("MH12AB1234");
             cab.setIsAvailable(true);
             cabRepo.save(cab);
         }

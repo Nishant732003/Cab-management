@@ -5,14 +5,16 @@ import java.time.LocalDateTime;
 /**
  * ErrorResponse is a Data Transfer Object (DTO) used to standardize error
  * messages sent in API responses when exceptions occur.
- *
- * It includes: - timestamp: When the error occurred (server time) - status:
- * HTTP status code (e.g., 404, 500) - error: HTTP error phrase (e.g., "Not
- * Found", "Internal Server Error") - message: Detailed error message - path:
- * The URL path of the request that caused the error
- *
- * This provides clients with structured, informative error details and aids
- * developers in debugging.
+ * 
+ * It includes:
+ * - timestamp: When the error occurred (server time)
+ * - status: HTTP status code (e.g., 404, 500)
+ * - error: HTTP error phrase (e.g., "Not Found", "Internal Server Error")
+ * - message: Detailed error message
+ * - path: The URL path of the request that caused the error
+ * 
+ * This provides clients with structured, informative error details and
+ * aids developers in debugging.
  */
 public class ErrorResponse {
 
@@ -25,12 +27,11 @@ public class ErrorResponse {
     /**
      * Default constructor needed for frameworks.
      */
-    public ErrorResponse() {
-    }
+    public ErrorResponse() {}
 
     /**
      * Creates a new error response instance, capturing the current timestamp.
-     *
+     * 
      * @param status HTTP status code
      * @param error HTTP status phrase
      * @param message Detailed error message
@@ -44,7 +45,8 @@ public class ErrorResponse {
         this.path = path;
     }
 
-    // ======= Getters and Setters =======
+    // Standard getters and setters:
+
     public LocalDateTime getTimestamp() {
         return timestamp;
     }

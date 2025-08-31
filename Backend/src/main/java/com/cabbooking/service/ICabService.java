@@ -1,16 +1,21 @@
 package com.cabbooking.service;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-
-import org.springframework.web.multipart.MultipartFile;
 
 import com.cabbooking.dto.FareEstimateResponse;
 import com.cabbooking.model.Cab;
 
 /**
  * Service interface for cab management operations.
+ *
+ * Main Responsibilities:
+ * - Defines the contract for all business logic related to the cab fleet.
+ * - Abstracts the implementation details for creating, updating, deleting, and viewing cabs.
+ *
+ * Workflow:
+ * - Implementations of this interface will be injected into controllers that handle cab management.
+ * - It provides a clear set of operations that can be performed on Cab entities.
  */
 public interface ICabService {
 
@@ -71,21 +76,4 @@ public interface ICabService {
     Optional<Cab> viewCab(int cabId);
     List<Cab> viewAllCabs();
     List<Cab> viewAllAvailableCabs();
-
-    /**
-     * Uploads an image for a specific cab.
-     * @param cabId The ID of the cab.
-     * @param file The image file to upload.
-     * @return The updated Cab object with the new image URL.
-     * @throws IOException if the file upload fails.
-     */
-    Cab uploadImage(int cabId, MultipartFile file) throws IOException;
-
-    /**
-     * Removes the image for a specific cab.
-     * @param cabId The ID of the cab.
-     * @return The updated Cab object with the image URL removed.
-     * @throws IOException if the file deletion fails.
-     */
-    Cab removeImage(int cabId) throws IOException;
 }

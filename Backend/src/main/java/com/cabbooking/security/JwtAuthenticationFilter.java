@@ -22,20 +22,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 /**
- * A custom Spring Security filter that intercepts every incoming HTTP request
- * once.
+ * A custom Spring Security filter that intercepts every incoming HTTP request once.
  *
- * Main Responsibilities: - Extracts the JWT from the 'Authorization' header. -
- * Checks if the token has been blacklisted (i.e., the user has logged out). -
- * Validates the token's signature and expiration. - Parses the user's username
- * and role (authority) from the token. - Sets the user's authentication details
- * in the Spring Security context for the duration of the request.
+ * Main Responsibilities:
+ * - Extracts the JWT from the 'Authorization' header.
+ * - Checks if the token has been blacklisted (i.e., the user has logged out).
+ * - Validates the token's signature and expiration.
+ * - Parses the user's username and role (authority) from the token.
+ * - Sets the user's authentication details in the Spring Security context for the duration of the request.
  *
- * Workflow: - This filter is executed before the standard Spring Security
- * authentication filters. - If a valid, non-blacklisted token is found, it
- * authenticates the user, allowing them to access protected endpoints. - If no
- * token is found, it passes the request down the filter chain, where access
- * will be denied for protected endpoints.
+ * Workflow:
+ * - This filter is executed before the standard Spring Security authentication filters.
+ * - If a valid, non-blacklisted token is found, it authenticates the user, allowing them to access protected endpoints.
+ * - If no token is found, it passes the request down the filter chain, where access will be denied for protected endpoints.
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {

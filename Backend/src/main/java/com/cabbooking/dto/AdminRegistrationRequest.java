@@ -5,20 +5,20 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 /**
- * Data Transfer Object (DTO) representing the input data required to register a
- * new Admin user in the Cab Booking Platform.
- *
- * This class is used to receive admin registration details from client requests
- * (e.g., REST API JSON payload).
- *
- * Validation annotations ensure the data integrity at the input level by
- * enforcing mandatory fields and format constraints.
+ * Data Transfer Object (DTO) representing the input data required to
+ * register a new Admin user in the Cab Booking Platform.
+ * 
+ * This class is used to receive admin registration details from client
+ * requests (e.g., REST API JSON payload).
+ * 
+ * Validation annotations ensure the data integrity at the input level
+ * by enforcing mandatory fields and format constraints.
  */
 public class AdminRegistrationRequest {
 
     /**
      * Username for the new admin account.
-     *
+     * 
      * Must be provided (not blank) and unique in the system.
      */
     @NotBlank(message = "Username is required")
@@ -26,9 +26,9 @@ public class AdminRegistrationRequest {
 
     /**
      * Plain text password entered by the admin user.
-     *
-     * Must be provided (not blank) and have at least 6 characters. The password
-     * will be hashed before storage.
+     * 
+     * Must be provided (not blank) and have at least 6 characters.
+     * The password will be hashed before storage.
      */
     @NotBlank(message = "Password is required")
     @Size(min = 6, message = "Password must be at least 6 characters")
@@ -36,26 +36,29 @@ public class AdminRegistrationRequest {
 
     /**
      * Email address of the admin.
+     * 
+     * Optional, but if provided, must be a valid email format.
+     * Used for communication or account recovery potentially.
      */
-    @NotBlank(message = "Password is required")
     @Email(message = "Email should be valid")
     private String email;
 
     /**
      * Address of the admin user.
-     *
+     * 
      * Optional field to store physical or mailing address.
      */
     private String address;
 
     /**
      * Mobile phone number of the admin.
-     *
+     * 
      * Optional but can be used for contact or multi-factor authentication.
      */
     private String mobileNumber;
 
     // ===== Getters and Setters =====
+
     public String getUsername() {
         return username;
     }

@@ -10,6 +10,14 @@ import com.cabbooking.model.Driver;
 
 /**
  * Service interface for driver management operations.
+ *
+ * Main Responsibilities:
+ * - Defines the contract for all business logic related to drivers.
+ * - Abstracts the implementation for viewing drivers and managing their verification status.
+ *
+ * Workflow:
+ * - Implementations of this interface are injected into controllers that handle driver management.
+ * - It provides a clear set of operations that an Admin can perform on Driver entities.
  */
 public interface IDriverService {
 

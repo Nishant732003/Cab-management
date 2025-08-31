@@ -11,20 +11,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmailServiceImpl implements IEmailService {
 
-    /*
-     * JavaMailSender is used to send emails.
-     */
     @Autowired
     private JavaMailSender mailSender;
 
     /**
      * Sends a simple plain text email.
-     * 
-     * Workflow:
-     * - Create a SimpleMailMessage object.
-     * - Set the recipient, subject, and text.
-     * - Send the email using the JavaMailSender.
-     * 
      * @param to The recipient's email address.
      * @param subject The subject of the email.
      * @param text The body content of the email.

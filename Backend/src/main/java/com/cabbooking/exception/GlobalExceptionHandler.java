@@ -11,16 +11,14 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 /**
- * GlobalExceptionHandler centralizes exception handling for the entire
- * application.
- *
+ * GlobalExceptionHandler centralizes exception handling for the entire application.
+ * 
  * It intercepts uncaught exceptions across all controllers and REST endpoints,
- * logs detailed error information including stack traces, HTTP method, and
- * request URI, and returns a standardized error response with accurate HTTP
- * status code.
- *
- * This improves error traceability and provides consistent feedback to API
- * clients, especially for authentication and token-related errors.
+ * logs detailed error information including stack traces, HTTP method, and request URI,
+ * and returns a standardized error response with accurate HTTP status code.
+ * 
+ * This improves error traceability and provides consistent feedback to API clients,
+ * especially for authentication and token-related errors.
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -28,9 +26,9 @@ public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     /**
-     * Handles all uncaught exceptions not explicitly handled elsewhere. Logs
-     * full stack trace with request details. Returns a standardized error
-     * response with HTTP 500 status.
+     * Handles all uncaught exceptions not explicitly handled elsewhere.
+     * Logs full stack trace with request details.
+     * Returns a standardized error response with HTTP 500 status.
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleAllExceptions(HttpServletRequest request, Exception ex) {
@@ -39,10 +37,10 @@ public class GlobalExceptionHandler {
         String detailedMessage = buildErrorMessageWithSource(ex);
 
         ErrorResponse error = new ErrorResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                detailedMessage,
-                request.getRequestURI()
+            HttpStatus.INTERNAL_SERVER_ERROR.value(),
+            HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+            detailedMessage,
+            request.getRequestURI()
         );
 
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -57,36 +55,36 @@ public class GlobalExceptionHandler {
         logger.warn("Authentication failure at [{} {}]: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
         ErrorResponse error = new ErrorResponse(
-                HttpStatus.UNAUTHORIZED.value(),
-                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
-                ex.getMessage(),
-                request.getRequestURI()
+            HttpStatus.UNAUTHORIZED.value(),
+            HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+            ex.getMessage(),
+            request.getRequestURI()
         );
 
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 
     /**
-     * Handles JWT exceptions, e.g., invalid, expired, malformed tokens. Returns
-     * HTTP 401 Unauthorized to prompt re-authentication.
+     * Handles JWT exceptions, e.g., invalid, expired, malformed tokens.
+     * Returns HTTP 401 Unauthorized to prompt re-authentication.
      */
     @ExceptionHandler(JwtException.class)
     public ResponseEntity<ErrorResponse> handleJwtException(HttpServletRequest request, JwtException ex) {
         logger.warn("JWT error at [{} {}]: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
 
         ErrorResponse error = new ErrorResponse(
-                HttpStatus.UNAUTHORIZED.value(),
-                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
-                "Invalid or expired JWT token",
-                request.getRequestURI()
+            HttpStatus.UNAUTHORIZED.value(),
+            HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+            "Invalid or expired JWT token",
+            request.getRequestURI()
         );
 
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 
     /**
-     * Builds a detailed error message from the exception including the file and
-     * line number where the error originated, for easier troubleshooting.
+     * Builds a detailed error message from the exception including the file and line number 
+     * where the error originated, for easier troubleshooting.
      */
     private String buildErrorMessageWithSource(Exception ex) {
         StackTraceElement[] stack = ex.getStackTrace();

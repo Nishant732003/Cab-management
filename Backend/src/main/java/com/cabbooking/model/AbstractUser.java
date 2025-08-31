@@ -1,19 +1,18 @@
 package com.cabbooking.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import jakarta.persistence.*;
 
 /**
  * AbstractUser is a base class representing common properties and structure
  * shared by all user entities in the Cab Booking Platform, such as Admin,
  * Customer, and Driver.
- *
- * This is annotated with @MappedSuperclass, allowing subclasses to inherit its
- * fields and JPA mapping without being a table on its own.
- *
- * Usage: - Extend this class in concrete user entities (e.g., Admin, Customer,
- * Driver). - Ensures a consistent user model across modules.
+ * 
+ * This is annotated with @MappedSuperclass, allowing subclasses to inherit
+ * its fields and JPA mapping without being a table on its own.
+ * 
+ * Usage:
+ * - Extend this class in concrete user entities (e.g., Admin, Customer, Driver).
+ * - Ensures a consistent user model across modules.
  */
 @MappedSuperclass
 public abstract class AbstractUser {
@@ -27,18 +26,17 @@ public abstract class AbstractUser {
     private Integer id;
 
     /**
-     * Username for login; must be unique and not null. Used to identify users
-     * in login and business logic.
+     * Username for login; must be unique and not null.
+     * Used to identify users in login and business logic.
      */
     @Column(unique = true, nullable = false)
     private String username;
 
     /**
-     * Password for login; cannot be null. In a real-world app, store hashed,
-     * not plain text.
+     * Password for login; cannot be null.
+     * In a real-world app, store hashed, not plain text.
      */
     @Column(nullable = false)
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     /**
@@ -59,60 +57,54 @@ public abstract class AbstractUser {
 
     private Boolean emailVerified = false;
 
-    // ======= Getters and Setters =======
-    public Integer getId() {
-        return id;
-    }
+    // ====== Getters and Setters =======
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
+    /**
+     * Gets the unique user ID (primary key).
+     */
+    public Integer getId() { return id; }
 
-    public String getUsername() {
-        return username;
-    }
+    public void setId(Integer id) { this.id = id; }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    /**
+     * Gets/sets the username.
+     */
+    public String getUsername() { return username; }
 
-    public String getPassword() {
-        return password;
-    }
+    public void setUsername(String username) { this.username = username; }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
+    /**
+     * Gets/sets the password.
+     */
+    public String getPassword() { return password; }
 
-    public String getAddress() {
-        return address;
-    }
+    public void setPassword(String password) { this.password = password; }
 
-    public void setAddress(String address) {
-        this.address = address;
-    }
+    /**
+     * Gets/sets the address.
+     */
+    public String getAddress() { return address; }
 
-    public String getMobileNumber() {
-        return mobileNumber;
-    }
+    public void setAddress(String address) { this.address = address; }
 
-    public void setMobileNumber(String mobileNumber) {
-        this.mobileNumber = mobileNumber;
-    }
+    /**
+     * Gets/sets the mobile number.
+     */
+    public String getMobileNumber() { return mobileNumber; }
 
-    public String getEmail() {
-        return email;
-    }
+    public void setMobileNumber(String mobileNumber) { this.mobileNumber = mobileNumber; }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    /**
+     * Gets/sets the email address.
+     */
+    public String getEmail() { return email; }
 
-    public Boolean getEmailVerified() {
-        return emailVerified;
-    }
+    public void setEmail(String email) { this.email = email; }
 
-    public void setEmailVerified(Boolean emailVerified) {
-        this.emailVerified = emailVerified;
-    }
+    /**
+     * Gets/sets the email verification status.
+     */
+    public Boolean getEmailVerified() { return emailVerified; }
+
+    public void setEmailVerified(Boolean emailVerified) { this.emailVerified = emailVerified; }
 }

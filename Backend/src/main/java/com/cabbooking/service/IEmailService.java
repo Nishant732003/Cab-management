@@ -1,8 +1,5 @@
 package com.cabbooking.service;
 
-/*
- * Service interface for sending emails
- */
 public interface IEmailService {
 
     /**
