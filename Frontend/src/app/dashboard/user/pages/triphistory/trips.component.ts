@@ -1,4 +1,3 @@
-
 import { Component, OnInit } from '@angular/core';
 
 interface Driver {
@@ -28,8 +27,9 @@ interface Trip {
 
 @Component({
   selector: 'app-trip-history',
-  templateUrl: './trip-history.component.html',
-  styleUrls: ['./trip-history.component.css']
+  standalone: false,
+  templateUrl: './trips.component.html',
+  styleUrls: ['./trips.component.css']
 })
 export class TripHistoryComponent implements OnInit {
   tripHistory: Trip[] = [];

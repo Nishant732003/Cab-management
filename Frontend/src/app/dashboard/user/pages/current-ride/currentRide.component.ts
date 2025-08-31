@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 interface Driver {
   id: number;
@@ -25,8 +26,10 @@ interface CurrentTrip {
 
 @Component({
   selector: 'app-current-rides',
-  templateUrl: './current-rides.component.html',
-  styleUrls: ['./current-rides.component.css']
+  standalone: false,
+  // imports: [CommonModule],
+  templateUrl: './currentRide.component.html',
+  styleUrls: ['./currentRide.component.css']
 })
 export class CurrentRidesComponent implements OnInit, OnDestroy {
   currentTrip: CurrentTrip | null = null;

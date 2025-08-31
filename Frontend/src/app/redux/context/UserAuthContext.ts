@@ -15,7 +15,18 @@ import {
   requestPasswordReset,
   verifyUser,
   refreshToken,
-  User
+  requestRide,
+  cancelRide,
+  addFavoriteLocation,
+  updateRidePreferences,
+  setActiveRide,
+  updateActiveRideStatus,
+  clearActiveRide,
+  removeFavoriteLocation,
+  User,
+  ActiveRide,
+  FavoriteLocation,
+  RidePreferences
 } from '../slice/userAuthSlice';
 
 @Injectable({
@@ -27,12 +38,14 @@ export class UserAuthContext {
   private isLoadingSubject = new BehaviorSubject<boolean>(false);
   private errorSubject = new BehaviorSubject<string | null>(null);
   private tokenSubject = new BehaviorSubject<string | null>(null);
+  private activeRideSubject = new BehaviorSubject<ActiveRide | null>(null);
 
   public user$ = this.userSubject.asObservable();
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
   public isLoading$ = this.isLoadingSubject.asObservable();
   public error$ = this.errorSubject.asObservable();
   public token$ = this.tokenSubject.asObservable();
+  public activeRide$ = this.activeRideSubject.asObservable();
 
   constructor(
     private reduxStore: ReduxStore,
@@ -59,6 +72,7 @@ export class UserAuthContext {
       this.isLoadingSubject.next(userAuth.isLoading);
       this.errorSubject.next(userAuth.error);
       this.tokenSubject.next(userAuth.token);
+      this.activeRideSubject.next(userAuth.activeRide);
     });
   }
 
@@ -87,7 +101,7 @@ export class UserAuthContext {
     password: string;
     firstName: string;
     lastName: string;
-    phone?: string;
+    phone: string;
   }): Promise<void> => {
     try {
       const result = await this.reduxStore.dispatch(registerUser(userData));
@@ -166,6 +180,88 @@ export class UserAuthContext {
       }
     } catch (error) {
       console.error('Failed to update user profile:', error);
+      throw error;
+    }
+  };
+
+  // Ride management methods
+  requestRide = async (rideData: {
+    pickupLocation: { address: string; coordinates: { lat: number; lng: number } };
+    dropoffLocation: { address: string; coordinates: { lat: number; lng: number } };
+    rideType: string;
+    paymentMethod: string;
+  }): Promise<void> => {
+    try {
+      const result = await this.reduxStore.dispatch(requestRide(rideData));
+      
+      if (requestRide.fulfilled.match(result)) {
+        // Optionally navigate to ride tracking page
+        this.router.navigate(['/user/ride/tracking']);
+      } else {
+        throw new Error(result.payload as string);
+      }
+    } catch (error) {
+      console.error('Ride request failed:', error);
+      throw error;
+    }
+  };
+
+  cancelActiveRide = async (rideId: string): Promise<void> => {
+    try {
+      const result = await this.reduxStore.dispatch(cancelRide(rideId));
+      
+      if (cancelRide.fulfilled.match(result)) {
+        // Optionally show cancellation confirmation
+        console.log('Ride cancelled successfully');
+      } else {
+        throw new Error(result.payload as string);
+      }
+    } catch (error) {
+      console.error('Ride cancellation failed:', error);
+      throw error;
+    }
+  };
+
+  updateActiveRideStatus = (status: ActiveRide['status']): void => {
+    this.reduxStore.dispatch(updateActiveRideStatus({ status }));
+  };
+
+  setActiveRide = (ride: ActiveRide): void => {
+    this.reduxStore.dispatch(setActiveRide(ride));
+  };
+
+  clearActiveRide = (): void => {
+    this.reduxStore.dispatch(clearActiveRide());
+  };
+
+  // Favorite locations management
+  addFavoriteLocation = async (location: Omit<FavoriteLocation, 'id'>): Promise<void> => {
+    try {
+      const result = await this.reduxStore.dispatch(addFavoriteLocation(location));
+      
+      if (!addFavoriteLocation.fulfilled.match(result)) {
+        throw new Error(result.payload as string);
+      }
+    } catch (error) {
+      console.error('Failed to add favorite location:', error);
+      throw error;
+    }
+  };
+
+  removeFavoriteLocation = (locationId: string): void => {
+    this.reduxStore.dispatch(removeFavoriteLocation(locationId));
+  };
+
+  // Ride preferences management
+  updateRidePreferences = async (preferences: RidePreferences): Promise<void> => {
+    try {
+      const result = await this.reduxStore.dispatch(updateRidePreferences(preferences));
+      
+      if (!updateRidePreferences.fulfilled.match(result)) {
+        throw new Error(result.payload as string);
+      }
+    } catch (error) {
+      console.error('Failed to update ride preferences:', error);
       throw error;
     }
   };
@@ -249,6 +345,11 @@ export class UserAuthContext {
     return state.userAuth?.token || null;
   }
 
+  get activeRide(): ActiveRide | null {
+    const state = this.reduxStore.getState();
+    return state.userAuth?.activeRide || null;
+  }
+
   // Observable getters for reactive programming
   getUser(): Observable<User | null> {
     return this.user$;
@@ -270,8 +371,12 @@ export class UserAuthContext {
     return this.token$;
   }
 
+  getActiveRide(): Observable<ActiveRide | null> {
+    return this.activeRide$;
+  }
+
   // Storage methods
-  private initializeAuth(): void {
+  initializeAuth(): void {
     if (!this.isBrowser()) {
       return;
     }
@@ -345,11 +450,17 @@ export class UserAuthContext {
     const role = this.getUserRole();
     // Implement your permission logic here
     if (role === 'admin') return true;
-    // Add more role-based permissions as needed
-    return false;
+    if (role === 'premium') {
+      // Premium users might have additional permissions
+      const premiumPermissions = ['book_premium_rides', 'priority_support'];
+      return premiumPermissions.includes(permission);
+    }
+    // Regular user permissions
+    const userPermissions = ['book_rides', 'view_history', 'manage_profile'];
+    return userPermissions.includes(permission);
   }
 
-  // Method to check if token is expired (you'll need to implement token validation)
+  // Method to check if token is expired
   isTokenExpired(): boolean {
     const token = this.token;
     if (!token) return true;
@@ -364,4 +475,118 @@ export class UserAuthContext {
       return true;
     }
   }
+
+  // Ride-specific utility methods
+  hasActiveRide(): boolean {
+    return this.activeRide !== null;
+  }
+
+  canCancelRide(): boolean {
+    const ride = this.activeRide;
+    if (!ride) return false;
+    
+    const cancellableStatuses = ['requested', 'accepted', 'driver_arriving'];
+    return cancellableStatuses.includes(ride.status);
+  }
+
+  getRideStatusMessage(): string {
+    const ride = this.activeRide;
+    if (!ride) return '';
+
+    switch (ride.status) {
+      case 'requested':
+        return 'Looking for a driver...';
+      case 'accepted':
+        return `Driver ${ride.driverName} is on the way`;
+      case 'driver_arriving':
+        return 'Your driver is arriving soon';
+      case 'driver_arrived':
+        return 'Your driver has arrived';
+      case 'in_progress':
+        return 'Trip in progress';
+      case 'completed':
+        return 'Trip completed';
+      case 'cancelled':
+        return 'Trip cancelled';
+      default:
+        return 'Unknown status';
+    }
+  }
+
+  getEstimatedArrivalTime(): string {
+    const ride = this.activeRide;
+    if (!ride?.estimatedArrival) return '';
+
+    const arrival = new Date(ride.estimatedArrival);
+    const now = new Date();
+    const diffMinutes = Math.ceil((arrival.getTime() - now.getTime()) / (1000 * 60));
+
+    if (diffMinutes <= 0) return 'Arriving now';
+    if (diffMinutes === 1) return '1 minute away';
+    return `${diffMinutes} minutes away`;
+  }
+
+  // Payment and wallet methods
+  updatePaymentMethod = async (paymentMethodId: string): Promise<void> => {
+    await this.updateProfile({ preferredPaymentMethod: paymentMethodId });
+  };
+
+  getFormattedWalletBalance(): string {
+    if (!this.user?.wallet) return '$0.00';
+    
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: this.user.wallet.currency || 'USD'
+    }).format(this.user.wallet.balance);
+  }
+
+  // Location and preferences helpers
+  getFavoriteLocationByName(name: string): FavoriteLocation | undefined {
+    return this.user?.favoriteLocations.find(loc => 
+      loc.name.toLowerCase() === name.toLowerCase()
+    );
+  }
+
+  getRecentDestinations(): FavoriteLocation[] {
+    // This would typically come from ride history or a separate API
+    // For now, return favorite locations as a placeholder
+    return this.user?.favoriteLocations.slice(0, 5) || [];
+  }
+
+  // Emergency contact methods
+  addEmergencyContact = async (contact: {
+    name: string;
+    phone: string;
+    relationship: string;
+  }): Promise<void> => {
+    const currentContacts = this.user?.emergencyContacts || [];
+    const newContact = {
+      id: `emergency_${Date.now()}`,
+      ...contact
+    };
+    
+    await this.updateProfile({
+      emergencyContacts: [...currentContacts, newContact]
+    });
+  };
+
+  removeEmergencyContact = async (contactId: string): Promise<void> => {
+    const currentContacts = this.user?.emergencyContacts || [];
+    const updatedContacts = currentContacts.filter(contact => contact.id !== contactId);
+    
+    await this.updateProfile({
+      emergencyContacts: updatedContacts
+    });
+  };
+
+  // Notification preferences
+  updateNotificationPreferences = async (notifications: {
+    rideUpdates: boolean;
+    promotions: boolean;
+    newsletter: boolean;
+  }): Promise<void> => {
+    
+    
+  
+  };
 }

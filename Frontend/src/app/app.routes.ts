@@ -17,13 +17,13 @@ export const routes: Routes = [
      loadChildren: () => import('./dashboard/driver/driver.module').then(m => m.DriverModule),
     canActivate: [AuthGuard, DriverGuard]
   },
-  
-  // Uncomment when driver module is ready
-  // { 
-  //   path: 'driver',
-  //   loadChildren: () => import('./dashboard/driver/driver.module').then(m => m.DriverModule),
-  //   canActivate: [AuthGuard]
-  // },
+
+  { 
+    path: 'user',
+    loadChildren: () => import('./dashboard/user/user.module').then(m => m.UserModule),
+    canActivate: [AuthGuard]
+  },  
+
   
   // Add user dashboard route when ready
   // { 

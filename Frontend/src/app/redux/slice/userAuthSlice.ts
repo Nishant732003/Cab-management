@@ -1,25 +1,107 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 
-// User interface
+// Favorite location interface
+export interface FavoriteLocation {
+  id: string;
+  name: string;
+  address: string;
+  coordinates?: {
+    lat: number;
+    lng: number;
+  };
+}
+
+// Ride preferences interface
+export interface RidePreferences {
+  preferredRideType: 'economy' | 'comfort' | 'premium' | 'luxury';
+  allowSharedRides: boolean;
+  musicPreference?: 'pop' | 'rock' | 'jazz' | 'classical' | 'none';
+  temperaturePreference?: 'cool' | 'warm' | 'auto';
+  accessibility?: {
+    wheelchairAccessible: boolean;
+    hearingAssistance: boolean;
+    visualAssistance: boolean;
+  };
+}
+
+// Active ride interface
+export interface ActiveRide {
+  id: string;
+  status: 'requested' | 'accepted' | 'driver_arriving' | 'driver_arrived' | 'in_progress' | 'completed' | 'cancelled';
+  driverId: string;
+  driverName: string;
+  driverPhone: string;
+  driverRating: number;
+  vehicleInfo: {
+    make: string;
+    model: string;
+    year: number;
+    color: string;
+    plateNumber: string;
+  };
+  pickupLocation: {
+    address: string;
+    coordinates: { lat: number; lng: number };
+  };
+  dropoffLocation: {
+    address: string;
+    coordinates: { lat: number; lng: number };
+  };
+  estimatedArrival?: string;
+  estimatedDuration?: number; // in minutes
+  fare: {
+    basePrice: number;
+    distance: number;
+    duration: number;
+    totalPrice: number;
+    currency: string;
+  };
+  paymentMethod: string;
+  requestedAt: string;
+  acceptedAt?: string;
+  completedAt?: string;
+}
+
+// Updated User interface for ride-sharing app
 export interface User {
   id: string;
+  userName: string; // Combined display name
   email: string;
-  firstName: string;
-  lastName: string;
-  phone?: string;
-  avatar?: string;
+  firstName?: string;
+  lastName?: string;
+  phone: string;
+  profilePicture?: string | null;
   isActive: boolean;
   isVerified: boolean;
+  rating: number;
+  totalRides: number;
+  preferredPaymentMethod?: string;
+  favoriteLocations: FavoriteLocation[];
+  ridePreferences: RidePreferences;
+  wallet?: {
+    balance: number;
+    currency: string;
+  };
+  emergencyContacts?: Array<{
+    id: string;
+    name: string;
+    phone: string;
+    relationship: string;
+  }>;
   preferences?: {
-    notifications: boolean;
-    theme: 'light' | 'dark';
+    notifications: {
+      rideUpdates: boolean;
+      promotions: boolean;
+      newsletter: boolean;
+    };
+    theme: 'light' | 'dark' | 'auto';
     language: string;
     [key: string]: any;
   };
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
   lastLogin?: string;
-  role: 'user' | 'admin';
+  role?: 'user' | 'premium' | 'admin';
 }
 
 // Auth state interface
@@ -29,14 +111,13 @@ interface UserAuthState {
   isLoading: boolean;
   error: string | null;
   token: string | null;
+  activeRide: ActiveRide | null;
+  rideHistory: ActiveRide[];
 }
 
-// Root state interface - adjust this to match your actual RootState
+// Root state interface
 interface RootState {
   userAuth: UserAuthState;
-  // Add other slices here as needed
-  // example: products: ProductState;
-  // example: ui: UIState;
 }
 
 // Initial state
@@ -46,14 +127,134 @@ const initialState: UserAuthState = {
   isLoading: false,
   error: null,
   token: null,
+  activeRide: null,
+  rideHistory: [],
 };
 
-// Async thunks
+// Async thunks for ride management
+export const requestRide = createAsyncThunk(
+  'userAuth/requestRide',
+  async (rideData: {
+    pickupLocation: { address: string; coordinates: { lat: number; lng: number } };
+    dropoffLocation: { address: string; coordinates: { lat: number; lng: number } };
+    rideType: string;
+    paymentMethod: string;
+  }, { getState, rejectWithValue }) => {
+    try {
+      const state = getState() as RootState;
+      const token = state.userAuth.token;
+
+      const response = await fetch('/api/rides/request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(rideData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        return rejectWithValue(errorData.message || 'Ride request failed');
+      }
+
+      const data = await response.json();
+      return data.ride;
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Network error occurred');
+    }
+  }
+);
+
+export const cancelRide = createAsyncThunk(
+  'userAuth/cancelRide',
+  async (rideId: string, { getState, rejectWithValue }) => {
+    try {
+      const state = getState() as RootState;
+      const token = state.userAuth.token;
+
+      const response = await fetch(`/api/rides/${rideId}/cancel`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        return rejectWithValue(errorData.message || 'Ride cancellation failed');
+      }
+
+      return rideId;
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Network error occurred');
+    }
+  }
+);
+
+export const addFavoriteLocation = createAsyncThunk(
+  'userAuth/addFavoriteLocation',
+  async (location: Omit<FavoriteLocation, 'id'>, { getState, rejectWithValue }) => {
+    try {
+      const state = getState() as RootState;
+      const token = state.userAuth.token;
+
+      const response = await fetch('/api/user/favorites', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(location),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        return rejectWithValue(errorData.message || 'Failed to add favorite location');
+      }
+
+      const data = await response.json();
+      return data.location;
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Network error occurred');
+    }
+  }
+);
+
+export const updateRidePreferences = createAsyncThunk(
+  'userAuth/updateRidePreferences',
+  async (preferences: RidePreferences, { getState, rejectWithValue }) => {
+    try {
+      const state = getState() as RootState;
+      const token = state.userAuth.token;
+
+      const response = await fetch('/api/user/ride-preferences', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(preferences),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        return rejectWithValue(errorData.message || 'Failed to update preferences');
+      }
+
+      const data = await response.json();
+      return data.preferences;
+    } catch (error: any) {
+      return rejectWithValue(error.message || 'Network error occurred');
+    }
+  }
+);
+
+// Existing async thunks (updated to match new User interface)
 export const loginUser = createAsyncThunk(
   'userAuth/login',
   async (credentials: { email: string; password: string }, { rejectWithValue }) => {
     try {
-      // Replace with your actual API call
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -82,7 +283,7 @@ export const registerUser = createAsyncThunk(
     password: string;
     firstName: string;
     lastName: string;
-    phone?: string;
+    phone: string;
   }, { rejectWithValue }) => {
     try {
       const response = await fetch('/api/auth/register', {
@@ -90,7 +291,10 @@ export const registerUser = createAsyncThunk(
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(userData),
+        body: JSON.stringify({
+          ...userData,
+          userName: `${userData.firstName} ${userData.lastName}`
+        }),
       });
 
       if (!response.ok) {
@@ -99,7 +303,7 @@ export const registerUser = createAsyncThunk(
       }
 
       const data = await response.json();
-      return data; // Should contain { user: User, token: string }
+      return data;
     } catch (error: any) {
       return rejectWithValue(error.message || 'Network error occurred');
     }
@@ -153,7 +357,7 @@ export const updateUserProfile = createAsyncThunk(
 
       if (!response.ok) {
         const errorData = await response.json();
-        return rejectWithValue(errorData.message || 'Status update failed');
+        return rejectWithValue(errorData.message || 'Profile update failed');
       }
 
       const data = await response.json();
@@ -234,7 +438,7 @@ export const refreshToken = createAsyncThunk(
       }
 
       const data = await response.json();
-      return data; // Should contain { user: User, token: string }
+      return data;
     } catch (error: any) {
       return rejectWithValue(error.message || 'Network error occurred');
     }
@@ -263,8 +467,31 @@ const userAuthSlice = createSlice({
       state.isAuthenticated = false;
       state.error = null;
       state.isLoading = false;
+      state.activeRide = null;
+      state.rideHistory = [];
     },
     resetUserState: () => initialState,
+    setActiveRide: (state, action: PayloadAction<ActiveRide>) => {
+      state.activeRide = action.payload;
+    },
+    updateActiveRideStatus: (state, action: PayloadAction<{ status: ActiveRide['status'] }>) => {
+      if (state.activeRide) {
+        state.activeRide.status = action.payload.status;
+      }
+    },
+    clearActiveRide: (state) => {
+      if (state.activeRide) {
+        state.rideHistory.push(state.activeRide);
+        state.activeRide = null;
+      }
+    },
+    removeFavoriteLocation: (state, action: PayloadAction<string>) => {
+      if (state.user) {
+        state.user.favoriteLocations = state.user.favoriteLocations.filter(
+          loc => loc.id !== action.payload
+        );
+      }
+    },
   },
   extraReducers: (builder) => {
     // Login cases
@@ -301,6 +528,61 @@ const userAuthSlice = createSlice({
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
+        state.error = action.payload as string;
+      });
+
+    // Request ride cases
+    builder
+      .addCase(requestRide.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(requestRide.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.activeRide = action.payload;
+        state.error = null;
+      })
+      .addCase(requestRide.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      });
+
+    // Cancel ride cases
+    builder
+      .addCase(cancelRide.fulfilled, (state, action) => {
+        if (state.activeRide && state.activeRide.id === action.payload) {
+          state.activeRide.status = 'cancelled';
+          setTimeout(() => {
+            if (state.activeRide) {
+              state.rideHistory.push(state.activeRide);
+              state.activeRide = null;
+            }
+          }, 2000);
+        }
+      })
+      .addCase(cancelRide.rejected, (state, action) => {
+        state.error = action.payload as string;
+      });
+
+    // Add favorite location cases
+    builder
+      .addCase(addFavoriteLocation.fulfilled, (state, action) => {
+        if (state.user) {
+          state.user.favoriteLocations.push(action.payload);
+        }
+      })
+      .addCase(addFavoriteLocation.rejected, (state, action) => {
+        state.error = action.payload as string;
+      });
+
+    // Update ride preferences cases
+    builder
+      .addCase(updateRidePreferences.fulfilled, (state, action) => {
+        if (state.user) {
+          state.user.ridePreferences = action.payload;
+        }
+      })
+      .addCase(updateRidePreferences.rejected, (state, action) => {
         state.error = action.payload as string;
       });
 
@@ -394,19 +676,23 @@ export const {
   clearUserError,
   logoutUser,
   resetUserState,
+  setActiveRide,
+  updateActiveRideStatus,
+  clearActiveRide,
+  removeFavoriteLocation,
 } = userAuthSlice.actions;
 
-// Fixed selectors that work with your RootState
+// Selectors
 export const selectUser = (state: RootState) => state.userAuth.user;
 export const selectUserIsAuthenticated = (state: RootState) => state.userAuth.isAuthenticated;
 export const selectUserIsLoading = (state: RootState) => state.userAuth.isLoading;
 export const selectUserError = (state: RootState) => state.userAuth.error;
 export const selectUserToken = (state: RootState) => state.userAuth.token;
+export const selectActiveRide = (state: RootState) => state.userAuth.activeRide;
+export const selectRideHistory = (state: RootState) => state.userAuth.rideHistory;
 
-// Alternative selectors if you prefer a different pattern
 export const getUserAuthState = (state: RootState) => state.userAuth;
 
 export type { UserAuthState, RootState };
 
-// Export reducer
 export default userAuthSlice.reducer;

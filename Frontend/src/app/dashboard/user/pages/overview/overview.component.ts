@@ -58,8 +58,8 @@ interface TopDriver {
 
 @Component({
   selector: 'app-overview',
-  standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  standalone: false,
+  // imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './overview.component.html',
   styleUrls: ['./overview.component.css']
 })
