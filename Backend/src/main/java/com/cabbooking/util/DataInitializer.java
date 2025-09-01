@@ -10,7 +10,6 @@ import com.cabbooking.model.Cab;
 import com.cabbooking.model.Customer;
 import com.cabbooking.model.Driver;
 import com.cabbooking.repository.AdminRepository;
-import com.cabbooking.repository.CabRepository;
 import com.cabbooking.repository.CustomerRepository;
 import com.cabbooking.repository.DriverRepository;
 
@@ -25,22 +24,19 @@ public class DataInitializer implements CommandLineRunner {
 
     @Autowired
     private DriverRepository driverRepo;
-    
-    @Autowired
-    private CabRepository cabRepo;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) throws Exception {
-        // Seed superadmin user "super" with verified status
+        // Seed superadmin user "Super" with verified status
         if (adminRepo.findByUsername("Super") == null) {
             Admin superadmin = new Admin();
             superadmin.setUsername("Super");
             superadmin.setPassword(passwordEncoder.encode("superpass"));
             superadmin.setEmail("super@gmail.com");
-            superadmin.setVerified(true);
+            superadmin.setVerified(true); // Superadmin is always verified
             adminRepo.save(superadmin);
         }
 
@@ -50,6 +46,7 @@ public class DataInitializer implements CommandLineRunner {
             admin.setUsername("Admin");
             admin.setPassword(passwordEncoder.encode("adminpass"));
             admin.setEmail("admin@gmail.com");
+            // 'verified' defaults to false, so no need to set it
             adminRepo.save(admin);
         }
 
@@ -62,28 +59,32 @@ public class DataInitializer implements CommandLineRunner {
             customerRepo.save(customer);
         }
 
-        // Seed driver user "Driver" with verified status
+        // Seed driver user "Driver" and associate a Cab
         if (driverRepo.findByUsername("Driver") == null) {
+            // 1. Create the Driver
             Driver driver = new Driver();
             driver.setUsername("Driver");
             driver.setPassword(passwordEncoder.encode("driverpass"));
             driver.setEmail("driver@gmail.com");
             driver.setLicenceNo("LIC123");
             driver.setRating(4.5f);
-            driver.setVerified(true); // Set to true for testing booking
-            driver.setIsAvailable(true); // Set to true for testing booking
-            driver.setTotalRatings(10); // Set total ratings for testing
-            driverRepo.save(driver);
-        }
-        
-        // Seed cab instance "Sedan" with perKmRate
-        if (cabRepo.count() == 0) {
+            driver.setVerified(true);
+            driver.setIsAvailable(true);
+            driver.setTotalRatings(10);
+
+            // 2. Create the Cab
             Cab cab = new Cab();
             cab.setCarType("Sedan");
             cab.setPerKmRate(15.0f);
             cab.setNumberPlate("MH12AB1234");
             cab.setIsAvailable(true);
-            cabRepo.save(cab);
+
+            // 3. Establish the bidirectional link
+            driver.setCab(cab);
+            cab.setDriver(driver);
+
+            // 4. Save the driver. The associated cab will be saved automatically due to CascadeType.ALL.
+            driverRepo.save(driver);
         }
     }
 }

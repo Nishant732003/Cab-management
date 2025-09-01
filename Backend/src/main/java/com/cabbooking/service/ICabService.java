@@ -32,12 +32,14 @@ public interface ICabService {
     List<Cab> getCabsOfType(String carType);
 
     /**
-     * Calculates fare estimates for all available car types for a given distance.
+     * Calculates fare estimates for all available and nearby cab types for a given distance and location.
      *
      * @param distance The distance of the trip in kilometers.
-     * @return A list of FareEstimateResponse DTOs, one for each available car type.
+     * @param fromLocationLat The from location's latitude.
+     * @param fromLocationLng The from location's longitude.
+     * @return A list of FareEstimateResponse DTOs, one for each available and nearby car type.
      */
-    List<FareEstimateResponse> getAllFareEstimates(float distance);
+    List<FareEstimateResponse> getAllFareEstimates(float distance, double fromLocationLat, double fromLocationLng);
 
     /**
      * Retrieves a single cab by its unique ID.

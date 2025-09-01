@@ -51,6 +51,18 @@ public class TripBookingRequest {
     @NotBlank(message = "Car type is required")
     private String carType;
 
+    /*
+     * Pickup location, represented as latitude
+     */
+    @NotNull(message = "From Location latitude is required")
+    private Double fromLatitude;
+
+    /*
+     * Pickup location, represented as longitude
+     */
+    @NotNull(message = "From Location longitude is required")
+    private Double fromLongitude;
+
     // ======= Getters and Setters =======
 
     public Integer getCustomerId() {
@@ -91,6 +103,22 @@ public class TripBookingRequest {
 
     public void setScheduledTime(LocalDateTime scheduledTime) {
         this.scheduledTime = scheduledTime;
+    }
+
+    public Double getFromLatitude() {
+        return fromLatitude;
+    }
+
+    public void setFromLatitude(Double fromLatitude) {
+        this.fromLatitude = fromLatitude;
+    }
+
+    public Double getFromLongitude() {
+        return fromLongitude;
+    }
+
+    public void setFromLongitude(Double fromLongitude) {
+        this.fromLongitude = fromLongitude;
     }
 
     public String getCarType() {

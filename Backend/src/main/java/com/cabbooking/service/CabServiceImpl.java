@@ -37,6 +37,8 @@ import com.cabbooking.repository.DriverRepository;
 @Service
 public class CabServiceImpl implements ICabService {
 
+    private static final double NEARBY_RADIUS_KM = 5.0; // 5km radius for nearby drivers
+
     /*
      * Repository to interact with the database
      * Provides methods for CRUD operations
@@ -98,8 +100,11 @@ public class CabServiceImpl implements ICabService {
      * Retrieves a list of all cabs that match a specific car type.
      * 
      * Workflow: 
-     * - Calls the repository to find cabs by their car type.
-     * - Returns the resulting list of cabs.
+     * - Find all drivers who are available and have a location
+     * - Filter the list to include only drivers who are nearby
+     * - Group the nearby drivers' cabs by car type
+     * - For each car type, calculate the minimum and maximum possible fares for a given distance
+     * - Return a list of FareEstimateResponse DTOs, one for each available and nearby car type
      *
      * @param carType The car type to filter by (e.g., "Sedan", "SUV").
      * @return A list of Cab entities matching the specified type.
@@ -110,26 +115,37 @@ public class CabServiceImpl implements ICabService {
     }
 
     /*
-     * Calculates the fare estimates for all available cabs based on the distance.
+     * Retrieves a list of all cabs that match a specific car type.
      * 
-     * Workflow:
-     * - Retrieves all available cabs from the repository.
-     * - Groups the cabs by their car type.
-     * - For each car type, calculates the minimum and maximum fares for the given distance.
-     * - Creates a FareEstimateResponse object for each car type and returns a list of them.
-     * 
-     * @param distance The distance in kilometers.
-     * @return A list of FareEstimateResponse objects, one for each available car type.
+     * Workflow: 
+     * - Find all drivers who are available and have a location
+     * - Filter the list to include only drivers who are nearby
+     * - Group the nearby drivers' cabs by car type
+     * - For each car type, calculate the minimum and maximum possible fares for a given distance
+     * - Return a list of FareEstimateResponse DTOs, one for each available and nearby car type
+     *
+     * @param distance The distance of the trip in kilometers.
+     * @param fromLocationLat The from location's latitude.
+     * @param fromLocationLng The from location's longitude.
+     * @return A list of FareEstimateResponse DTOs, one for each available and nearby car type
      */
     @Override
-    public List<FareEstimateResponse> getAllFareEstimates(float distance) {
-        // Find all available cabs
-        List<Cab> availableCabs = cabRepository.findAll().stream()
-                .filter(Cab::getIsAvailable)
-                .collect(Collectors.toList());
+    public List<FareEstimateResponse> getAllFareEstimates(float distance, double fromLocationLat, double fromLocationLng) {
+        // Find all drivers who are available and have a location
+        List<Driver> availableDrivers = driverRepository.findAll().stream()
+                .filter(driver -> driver.getIsAvailable() && driver.getVerified() &&
+                                  driver.getLatitude() != null && driver.getLongitude() != null &&
+                                  driver.getCab() != null)
+                .toList();
 
-        // Group the cabs by their car type
-        Map<String, List<Cab>> cabsByType = availableCabs.stream()
+        // Filter the list to include only drivers who are nearby
+        List<Driver> nearbyDrivers = availableDrivers.stream()
+                .filter(driver -> calculateDistance(fromLocationLat, fromLocationLng, driver.getLatitude(), driver.getLongitude()) <= NEARBY_RADIUS_KM)
+                .toList();
+        
+        // Group the nearby drivers' cabs by car type
+        Map<String, List<Cab>> cabsByType = nearbyDrivers.stream()
+                .map(Driver::getCab)
                 .collect(Collectors.groupingBy(Cab::getCarType));
 
         // For each car type, calculate the min/max fare and create a response object
@@ -151,6 +167,25 @@ public class CabServiceImpl implements ICabService {
                     return new FareEstimateResponse(carType, minRate * distance, maxRate * distance);
                 })
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Calculates the distance between two points on Earth using the Haversine formula.
+     * @return Distance in kilometers.
+     */
+    private double calculateDistance(double lat1, double lng1, double lat2, double lng2) {
+        final int R = 6371; // Radius of the earth in km
+
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lng2 - lng1);
+
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c;
     }
 
     /**

@@ -1,7 +1,15 @@
 package com.cabbooking.model;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 /**
  * Represents a single trip booking record in the system. This entity is the
@@ -95,6 +103,16 @@ public class TripBooking {
      * This is crucial for the scheduler to assign the correct type of cab.
      */
     private String carType;
+    
+    /*
+     * From Location's latitude
+     */
+    private Double fromLatitude;
+
+    /*
+     * From Location's longitude
+     */
+    private Double fromLongitude;
 
     // ======= Getters and Setters =======
     public Integer getTripBookingId() {
@@ -199,5 +217,21 @@ public class TripBooking {
 
     public void setCarType(String carType) {
         this.carType = carType;
+    }
+
+    public Double getFromLatitude() {
+        return fromLatitude;
+    }
+
+    public void setFromLatitude(Double fromLatitude) {
+        this.fromLatitude = fromLatitude;
+    }
+
+    public Double getFromLongitude() {
+        return fromLongitude;
+    }
+
+    public void setFromLongitude(Double fromLongitude) {
+        this.fromLongitude = fromLongitude;
     }
 }

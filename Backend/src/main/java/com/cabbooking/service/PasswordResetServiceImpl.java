@@ -1,5 +1,6 @@
 package com.cabbooking.service;
 
+import java.util.Optional;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -92,8 +93,8 @@ public class PasswordResetServiceImpl implements IPasswordResetService {
     @Override
     @Transactional
     public void createAndSendPasswordResetToken(String email) {
-        AbstractUser user = profileService.getUserProfileByUsername(email) // Assuming username is email for this flow
-                .orElseThrow(() -> new IllegalArgumentException("No user found with email: " + email));
+        AbstractUser user = findUserByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("User associated with token not found."));
 
         String token = UUID.randomUUID().toString();
         PasswordResetToken resetToken = new PasswordResetToken(token, LocalDateTime.now().plusHours(1), user.getEmail());
@@ -129,7 +130,7 @@ public class PasswordResetServiceImpl implements IPasswordResetService {
             return false; // Token is invalid or expired
         }
 
-        AbstractUser user = profileService.getUserProfileByUsername(resetToken.getUserEmail())
+        AbstractUser user = findUserByEmail(resetToken.getUserEmail())
                 .orElseThrow(() -> new IllegalStateException("User associated with token not found."));
 
         user.setPassword(passwordEncoder.encode(newPassword));
@@ -137,6 +138,19 @@ public class PasswordResetServiceImpl implements IPasswordResetService {
 
         tokenRepository.delete(resetToken); // Invalidate the token after use
         return true;
+    }
+
+    /*
+     * Helper method to find a user by email address.
+     * 
+     * @param email The email address of the user to find.
+     * @return An Optional containing the user if found, empty otherwise.
+     */
+    private Optional<AbstractUser> findUserByEmail(String email) {
+        return adminRepository.findByEmail(email)
+                .<AbstractUser>map(admin -> admin)
+                .or(() -> customerRepository.findByEmail(email).map(customer -> customer))
+                .or(() -> driverRepository.findByEmail(email).map(driver -> driver));
     }
 
     /**

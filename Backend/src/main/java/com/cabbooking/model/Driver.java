@@ -58,6 +58,16 @@ public class Driver extends AbstractUser {
     private String profilePhotoUrl;
 
     /*
+     * The driver's current location, represented as latitude
+     */
+    private Double latitude;
+
+    /*
+     * The driver's current location, represented as longitude
+     */
+    private Double longitude;
+
+    /*
      * Relationship to the Cab entity representing the driver's vehicle.
      * A driver can only drive one cab at a time.
      */
@@ -111,6 +121,22 @@ public class Driver extends AbstractUser {
 
     public void setProfilePhotoUrl(String profilePhotoUrl) {
         this.profilePhotoUrl = profilePhotoUrl;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
     }
 
     public Cab getCab() {

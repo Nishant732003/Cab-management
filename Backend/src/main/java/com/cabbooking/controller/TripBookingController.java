@@ -2,12 +2,10 @@ package com.cabbooking.controller;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +21,6 @@ import com.cabbooking.dto.FareEstimateResponse;
 import com.cabbooking.dto.RatingRequest;
 import com.cabbooking.dto.TripBookingRequest;
 import com.cabbooking.model.TripBooking;
-import com.cabbooking.repository.TripBookingRepository;
 import com.cabbooking.service.ICabService;
 import com.cabbooking.service.ITripBookingService;
 
@@ -62,30 +59,29 @@ public class TripBookingController {
     @Autowired
     private ICabService cabService;
 
-    // Repository for accessing trip data
-    @Autowired
-    private TripBookingRepository tripBookingRepository;
-
     /**
-     * Endpoint to get a list of fare estimates for all available car types.
-     * 
-     * Customers can use this to see the price range for their trip across all options.
+     * Endpoint to get a list of fare estimates for nearby and available car types.
      * 
      * GET /api/trips/estimate
      * 
      * Workflow:
-     * - Used by the customer to get a list of fare estimates for all available car types.
-     * - Calls the service layer to fetch all available fare estimates.
-     * - Returns a ResponseEntity containing a list of fare estimates.
+     * - Used by the customer to get a list of fare estimates for nearby and available car types.
+     * - Calls the service layer to calculate the estimates.
+     * - Returns a ResponseEntity containing the list of fare estimates.
      *
      * @param distance The estimated distance of the trip in kilometers.
+     * @param lat The customer's current latitude.
+     * @param lng The customer's current longitude.
      * @return A ResponseEntity containing a list of fare estimates.
      */
     @GetMapping("/estimate")
     @PreAuthorize("hasRole('Customer')")
-    public ResponseEntity<List<FareEstimateResponse>> getFareEstimates(@RequestParam float distance) {
+    public ResponseEntity<List<FareEstimateResponse>> getFareEstimates(
+            @RequestParam float distance,
+            @RequestParam double lat,
+            @RequestParam double lng) {
         logger.info("Received request to get fare estimates.");
-        List<FareEstimateResponse> estimates = cabService.getAllFareEstimates(distance);
+        List<FareEstimateResponse> estimates = cabService.getAllFareEstimates(distance, lat, lng);
         logger.info("Retrieved fare estimates.");
         return ResponseEntity.ok(estimates);
     }
@@ -129,9 +125,9 @@ public class TripBookingController {
      */
     @PutMapping("/{tripId}/status")
     @PreAuthorize("hasRole('Driver')")
-    public ResponseEntity<TripBooking> updateTripStatus(@PathVariable Integer tripId, @RequestParam String status) {
+    public ResponseEntity<TripBooking> updateTripStatus(@PathVariable Integer tripId, @RequestParam String status, Principal principal) {
         logger.info("Received request to update trip status.");
-        TripBooking updatedTrip = tripBookingService.updateTripStatus(tripId, status);
+        TripBooking updatedTrip = tripBookingService.updateTripStatus(tripId, status, principal.getName());
         logger.info("Trip status updated successfully.");
         return ResponseEntity.ok(updatedTrip);
     }
@@ -152,9 +148,9 @@ public class TripBookingController {
      */
     @PutMapping("/{tripId}/complete")
     @PreAuthorize("hasRole('Driver')")
-    public ResponseEntity<TripBooking> completeTrip(@PathVariable Integer tripId) {
+    public ResponseEntity<TripBooking> completeTrip(@PathVariable Integer tripId, Principal principal) {
         logger.info("Received request to complete a trip.");
-        TripBooking completedTrip = tripBookingService.completeTrip(tripId);
+        TripBooking completedTrip = tripBookingService.completeTrip(tripId, principal.getName());
         logger.info("Trip completed successfully.");
         return ResponseEntity.ok(completedTrip);
     }
@@ -195,30 +191,9 @@ public class TripBookingController {
                                                 @Valid @RequestBody RatingRequest ratingRequest,
                                                 Principal principal) {
         
-        logger.info("Received request to rate trip ID: {}", tripId);
+        logger.info("Customer '{}' trying to rate trip ID: {}", principal.getName(), tripId);
 
-        // Find the trip from the database.
-        Optional<TripBooking> tripOpt = tripBookingRepository.findById(tripId);
-        if (tripOpt.isEmpty()) {
-            logger.warn("Trip not found with ID: {}", tripId);
-            return ResponseEntity.notFound().build();
-        }
-        TripBooking trip = tripOpt.get();
-
-        // Get the username of the customer who booked the trip.
-        String customerUsernameOnTrip = trip.getCustomer().getUsername();
-        
-        // Get the username of the person making this request.
-        String loggedInUsername = principal.getName();
-
-        // Compare them. If they don't match, deny access.
-        if (!customerUsernameOnTrip.equals(loggedInUsername)) {
-            logger.warn("Authorization failure: User '{}' attempted to rate a trip belonging to '{}'.", loggedInUsername, customerUsernameOnTrip);
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build(); // Return 403 Forbidden
-        }
-
-        // If the check passes, proceed to the service layer to apply the rating.
-        TripBooking ratedTrip = tripBookingService.rateTrip(tripId, ratingRequest);
+        TripBooking ratedTrip = tripBookingService.rateTrip(tripId, ratingRequest, principal.getName());
 
         logger.info("Trip rated successfully.");
         return ResponseEntity.ok(ratedTrip);
