@@ -1,98 +1,199 @@
-
 <div class="book-ride-container">
   <div class="header">
     <h2>🚗 Book a Ride</h2>
     <p>Enter your trip details to find available drivers</p>
   </div>
 
-  <div class="booking-form">
-    <div class="form-group">
-      <label for="pickup">📍 Pickup Location</label>
-      <input 
-        id="pickup"
-        type="text" 
-        [(ngModel)]="pickup" 
-        placeholder="Enter pickup location"
-        class="form-input">
+  <!-- Location Selection Step -->
+  <div class="booking-step" *ngIf="currentStep === 'location'">
+    <div class="step-indicator">
+      <div class="step active">1. Location</div>
+      <div class="step">2. Vehicle</div>
+      <div class="step">3. Confirm</div>
     </div>
 
-    <div class="form-group">
-      <label for="destination">🎯 Destination</label>
-      <input 
-        id="destination"
-        type="text" 
-        [(ngModel)]="destination" 
-        placeholder="Enter destination"
-        class="form-input">
-    </div>
-
-    <div class="form-row">
+    <div class="booking-form">
       <div class="form-group">
-        <label for="date">📅 Date</label>
+        <label for="pickup">📍 Pickup Location</label>
         <input 
-          id="date"
-          type="date" 
-          [(ngModel)]="selectedDate" 
+          id="pickup"
+          type="text" 
+          [(ngModel)]="pickupLocation" 
+          placeholder="Enter pickup location"
           class="form-input">
+        <div class="suggestions" *ngIf="pickupLocation">
+          <div *ngFor="let location of locationSuggestions" 
+               class="suggestion-item"
+               (click)="selectLocationSuggestion(location, 'pickup')">
+            <div class="suggestion-name">{{location.name}}</div>
+            <div class="suggestion-address">{{location.address}}</div>
+          </div>
+        </div>
       </div>
 
       <div class="form-group">
-        <label for="time">🕐 Time</label>
+        <label for="destination">🎯 Destination</label>
         <input 
-          id="time"
-          type="time" 
-          [(ngModel)]="selectedTime" 
+          id="destination"
+          type="text" 
+          [(ngModel)]="destinationLocation" 
+          placeholder="Enter destination"
           class="form-input">
+        <div class="suggestions" *ngIf="destinationLocation">
+          <div *ngFor="let location of locationSuggestions" 
+               class="suggestion-item"
+               (click)="selectLocationSuggestion(location, 'destination')">
+            <div class="suggestion-name">{{location.name}}</div>
+            <div class="suggestion-address">{{location.address}}</div>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <button 
-      class="search-btn" 
-      (click)="searchDrivers()"
-      [disabled]="searchingDrivers">
-      <span *ngIf="!searchingDrivers">🔍 Search Available Drivers</span>
-      <span *ngIf="searchingDrivers">⏳ Searching...</span>
-    </button>
+      <div class="form-row">
+        <div class="form-group">
+          <label>
+            <input type="checkbox" [(ngModel)]="isScheduled"> Schedule for later
+          </label>
+        </div>
+      </div>
+
+      <div class="form-row" *ngIf="isScheduled">
+        <div class="form-group">
+          <label for="date">📅 Date</label>
+          <input 
+            id="date"
+            type="date" 
+            [(ngModel)]="selectedDate" 
+            class="form-input">
+        </div>
+
+        <div class="form-group">
+          <label for="time">🕐 Time</label>
+          <input 
+            id="time"
+            type="time" 
+            [(ngModel)]="selectedTime" 
+            class="form-input">
+        </div>
+      </div>
+
+      <button 
+        class="primary-btn" 
+        (click)="proceedToVehicleSelection()"
+        [disabled]="!pickupLocation || !destinationLocation">
+        Continue to Vehicle Selection
+      </button>
+    </div>
   </div>
 
-  <div class="drivers-section" *ngIf="showDrivers || searchingDrivers">
-    <div class="loading" *ngIf="searchingDrivers">
-      <div class="spinner"></div>
-      <p>Finding the best drivers for you...</p>
+  <!-- Vehicle Selection Step -->
+  <div class="booking-step" *ngIf="currentStep === 'vehicle'">
+    <div class="step-indicator">
+      <div class="step completed">1. Location</div>
+      <div class="step active">2. Vehicle</div>
+      <div class="step">3. Confirm</div>
     </div>
 
-    <div class="drivers-list" *ngIf="showDrivers">
-      <h3>Available Drivers ({{availableDrivers.length}})</h3>
-      
-      <div class="driver-card" *ngFor="let driver of availableDrivers">
-        <div class="driver-info">
-          <div class="driver-avatar">{{driver.photo}}</div>
-          <div class="driver-details">
-            <h4>{{driver.name}}</h4>
-            <div class="rating">
-              <span *ngFor="let star of getStarArray(driver.rating)" 
-                    class="star" 
-                    [class.filled]="star">★</span>
-              <span class="rating-text">{{driver.rating}}</span>
-            </div>
-            <p class="car-info">{{driver.carModel}} • {{driver.licensePlate}}</p>
-          </div>
-        </div>
-        
-        <div class="trip-info">
-          <div class="eta">
-            <span class="eta-label">ETA</span>
-            <span class="eta-time">{{driver.eta}}</span>
-          </div>
-          <div class="fare">${{driver.fare}}</div>
-        </div>
+    <div class="trip-summary">
+      <h3>Trip Summary</h3>
+      <p><strong>From:</strong> {{pickupLocation}}</p>
+      <p><strong>To:</strong> {{destinationLocation}}</p>
+      <p><strong>Distance:</strong> {{estimatedDistance}}</p>
+      <p><strong>Duration:</strong> {{estimatedDuration}}</p>
+    </div>
 
-        <div class="driver-actions">
-          <button class="contact-btn call" (click)="callDriver(driver)">📞</button>
-          <button class="contact-btn message" (click)="messageDriver(driver)">💬</button>
-          <button class="book-btn" (click)="bookRide(driver)">Book Ride</button>
+    <div class="vehicle-selection">
+      <h3>Select Vehicle Type</h3>
+      <div class="vehicle-options">
+        <div *ngFor="let vehicle of vehicleTypes" 
+             class="vehicle-card" 
+             [class.selected]="selectedVehicleType === vehicle.id"
+             (click)="selectVehicleType(vehicle)">
+          <div class="vehicle-icon">{{vehicle.icon}}</div>
+          <div class="vehicle-details">
+            <h4>{{vehicle.name}}</h4>
+            <p>Capacity: {{vehicle.capacity}} people</p>
+            <p>ETA: {{vehicle.estimatedTime}}</p>
+          <p class="fare-estimate">{{formatCurrency(calculateVehicleFare(vehicle))}}</p>
+          </div>
         </div>
       </div>
     </div>
+
+    <div class="action-buttons">
+      <button class="secondary-btn" (click)="goBack()">Back</button>
+      <button 
+        class="primary-btn" 
+        (click)="proceedToConfirmation()"
+        [disabled]="!selectedVehicleType">
+        Continue to Confirmation
+      </button>
+    </div>
+  </div>
+
+  <!-- Confirmation Step -->
+  <div class="booking-step" *ngIf="currentStep === 'confirmation'">
+    <div class="step-indicator">
+      <div class="step completed">1. Location</div>
+      <div class="step completed">2. Vehicle</div>
+      <div class="step active">3. Confirm</div>
+    </div>
+
+    <div class="confirmation-details">
+      <h3>Confirm Your Ride</h3>
+      
+      <div class="trip-details">
+        <div class="detail-row">
+          <span class="label">From:</span>
+          <span class="value">{{pickupLocation}}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">To:</span>
+          <span class="value">{{destinationLocation}}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Vehicle:</span>
+          <span class="value">{{getVehicleTypeById(selectedVehicleType)?.name}}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Distance:</span>
+          <span class="value">{{estimatedDistance}}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Estimated Fare:</span>
+          <span class="value fare">{{formatCurrency(estimatedFare)}}</span>
+        </div>
+        <div *ngIf="isScheduled && scheduledTime" class="detail-row">
+          <span class="label">Scheduled Time:</span>
+          <span class="value">{{scheduledTime}}</span>
+        </div>
+      </div>
+
+      <div class="notes-section">
+        <label for="rideNotes">Special Instructions (optional):</label>
+        <textarea 
+          id="rideNotes"
+          [(ngModel)]="rideNotes" 
+          placeholder="Any special instructions for the driver..."
+          class="form-textarea"></textarea>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button class="secondary-btn" (click)="goBack()">Back</button>
+      <button 
+        class="primary-btn" 
+        (click)="confirmBooking()"
+        [disabled]="isLoading">
+        <span *ngIf="!isLoading">Confirm Booking</span>
+        <span *ngIf="isLoading">Processing...</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Processing your booking...</p>
   </div>
 </div>

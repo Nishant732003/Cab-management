@@ -1,28 +1,30 @@
 import { Component, OnInit } from '@angular/core';
-
-interface Driver {
-  id: number;
-  name: string;
-  rating: number;
-  phone: string;
-  carModel: string;
-  licensePlate: string;
-  photo: string;
-}
+import { RideService,BookRideResponse } from '../../../../core/services/user/ride.service';
 
 interface Trip {
-  id: number;
-  pickup: string;
-  destination: string;
-  date: string;
-  time: string;
-  driver: Driver;
-  status: 'completed' | 'ongoing' | 'cancelled';
-  fare: number;
-  rating?: number;
-  distance: string;
-  duration: string;
-  paymentMethod: string;
+  tripBookingId: number;
+  fromLocation: string;
+  toLocation: string;
+  fromDateTime: string;
+  toDateTime: string | null;
+  status: 'CONFIRMED' | 'COMPLETED' | 'CANCELLED' | 'IN_PROGRESS';
+  distanceInKm: number;
+  bill: number;
+  customerRating: number | null;
+  driver: {
+    id: number;
+    username: string;
+    mobileNumber: string | null;
+    rating: number;
+    profilePhotoUrl: string | null;
+    licenceNo: string;
+  };
+  cab: {
+    cabId: number;
+    carType: string;
+    numberPlate: string;
+    imageUrl: string | null;
+  };
 }
 
 @Component({
@@ -41,125 +43,121 @@ export class TripHistoryComponent implements OnInit {
   showRatingModal: boolean = false;
   currentRating: number = 0;
   ratingTrip: Trip | null = null;
+  isLoading: boolean = true;
+  errorMessage: string = '';
 
-  constructor() {}
+  constructor(private rideService: RideService) {}
 
   ngOnInit(): void {
-    this.initializeTripHistory();
-    this.applyFilters();
+    this.loadTripHistory();
   }
 
-  initializeTripHistory(): void {
+  loadTripHistory(): void {
+    this.isLoading = true;
+    const customerId = 1;
+    
+    this.rideService.getCustomerTrips(customerId).subscribe({
+      next: (trips: BookRideResponse[]) => {
+        this.tripHistory = trips.map(trip => this.mapApiResponseToTrip(trip));
+        this.applyFilters();
+        this.isLoading = false;
+      },
+      error: (error:any) => {
+        console.error('Error loading trip history:', error);
+        this.errorMessage = 'Failed to load trip history. Please try again later.';
+        this.isLoading = false;
+        
+        // Fallback to mock data if API fails
+        this.initializeMockTripHistory();
+      }
+    });
+  }
+
+  // Add this method to your RideService or create a new method if it doesn't exist
+ 
+  mapApiResponseToTrip(apiResponse: BookRideResponse): Trip {
+    return {
+      tripBookingId: apiResponse.tripBookingId,
+      fromLocation: apiResponse.fromLocation,
+      toLocation: apiResponse.toLocation,
+      fromDateTime: apiResponse.fromDateTime,
+      toDateTime: apiResponse.toDateTime,
+      status: apiResponse.status as 'CONFIRMED' | 'COMPLETED' | 'CANCELLED' | 'IN_PROGRESS',
+      distanceInKm: apiResponse.distanceInKm,
+      bill: apiResponse.bill,
+      customerRating: apiResponse.customerRating,
+      driver: {
+        id: apiResponse.driver.id,
+        username: apiResponse.driver.username,
+        mobileNumber: apiResponse.driver.mobileNumber,
+        rating: apiResponse.driver.rating,
+        profilePhotoUrl: apiResponse.driver.profilePhotoUrl,
+        licenceNo: apiResponse.driver.licenceNo
+      },
+      cab: {
+        cabId: apiResponse.cab.cabId,
+        carType: apiResponse.cab.carType,
+        numberPlate: apiResponse.cab.numberPlate,
+        imageUrl: apiResponse.cab.imageUrl
+      }
+    };
+  }
+
+  initializeMockTripHistory(): void {
+    // Fallback mock data based on the API response structure
     this.tripHistory = [
       {
-        id: 1001,
-        pickup: 'Downtown Mall',
-        destination: 'Airport Terminal 1',
-        date: '2024-01-15',
-        time: '14:30',
+        tripBookingId: 1,
+        fromLocation: 'Mumbai',
+        toLocation: 'Pune',
+        fromDateTime: '2025-08-31T22:31:32.5751',
+        toDateTime: null,
+        status: 'CONFIRMED',
+        distanceInKm: 150.0,
+        bill: 0.0,
+        customerRating: null,
         driver: {
           id: 1,
-          name: 'John Smith',
-          rating: 4.8,
-          phone: '+1-555-0101',
-          carModel: 'Toyota Camry',
-          licensePlate: 'ABC-123',
-          photo: '👨‍💼'
+          username: 'Driver',
+          mobileNumber: '+1-555-0101',
+          rating: 4.5,
+          profilePhotoUrl: null,
+          licenceNo: 'LIC123'
         },
-        status: 'completed',
-        fare: 25.50,
-        rating: 5,
-        distance: '12.3 km',
-        duration: '18 mins',
-        paymentMethod: 'Credit Card'
+        cab: {
+          cabId: 1,
+          carType: 'Sedan',
+          numberPlate: 'MH12AB1234',
+          imageUrl: null
+        }
       },
       {
-        id: 1002,
-        pickup: 'Home',
-        destination: 'Office Building',
-        date: '2024-01-14',
-        time: '08:15',
+        tripBookingId: 2,
+        fromLocation: 'Downtown Mall',
+        toLocation: 'Airport Terminal 1',
+        fromDateTime: '2024-01-15T14:30:00',
+        toDateTime: '2024-01-15T15:00:00',
+        status: 'COMPLETED',
+        distanceInKm: 12.3,
+        bill: 25.50,
+        customerRating: 5,
         driver: {
           id: 2,
-          name: 'Sarah Johnson',
-          rating: 4.9,
-          phone: '+1-555-0102',
-          carModel: 'Honda Civic',
-          licensePlate: 'XYZ-789',
-          photo: '👩‍💼'
+          username: 'John Smith',
+          mobileNumber: '+1-555-0101',
+          rating: 4.8,
+          profilePhotoUrl: null,
+          licenceNo: 'ABC-123'
         },
-        status: 'completed',
-        fare: 12.75,
-        rating: 4,
-        distance: '8.7 km',
-        duration: '15 mins',
-        paymentMethod: 'Cash'
-      },
-      {
-        id: 1003,
-        pickup: 'Restaurant Plaza',
-        destination: 'City Center',
-        date: '2024-01-13',
-        time: '20:45',
-        driver: {
-          id: 3,
-          name: 'Mike Davis',
-          rating: 4.7,
-          phone: '+1-555-0103',
-          carModel: 'Ford Focus',
-          licensePlate: 'DEF-456',
-          photo: '👨‍🦲'
-        },
-        status: 'cancelled',
-        fare: 0,
-        distance: '5.2 km',
-        duration: '0 mins',
-        paymentMethod: 'Credit Card'
-      },
-      {
-        id: 1004,
-        pickup: 'Train Station',
-        destination: 'University Campus',
-        date: '2024-01-12',
-        time: '16:20',
-        driver: {
-          id: 4,
-          name: 'Emily Brown',
-          rating: 4.6,
-          phone: '+1-555-0104',
-          carModel: 'Nissan Altima',
-          licensePlate: 'GHI-789',
-          photo: '👩‍🔬'
-        },
-        status: 'completed',
-        fare: 18.25,
-        distance: '15.1 km',
-        duration: '22 mins',
-        paymentMethod: 'Digital Wallet'
-      },
-      {
-        id: 1005,
-        pickup: 'Shopping Center',
-        destination: 'Medical Clinic',
-        date: '2024-01-11',
-        time: '11:30',
-        driver: {
-          id: 5,
-          name: 'David Wilson',
-          rating: 4.5,
-          phone: '+1-555-0105',
-          carModel: 'Hyundai Elantra',
-          licensePlate: 'JKL-012',
-          photo: '👨‍⚕️'
-        },
-        status: 'completed',
-        fare: 15.80,
-        rating: 3,
-        distance: '9.8 km',
-        duration: '16 mins',
-        paymentMethod: 'Credit Card'
+        cab: {
+          cabId: 2,
+          carType: 'Toyota Camry',
+          numberPlate: 'ABC-123',
+          imageUrl: null
+        }
       }
     ];
+    this.applyFilters();
   }
 
   applyFilters(): void {
@@ -167,16 +165,23 @@ export class TripHistoryComponent implements OnInit {
 
     // Filter by status
     if (this.filterStatus !== 'all') {
-      filtered = filtered.filter(trip => trip.status === this.filterStatus);
+      const statusMap: {[key: string]: string} = {
+        'completed': 'COMPLETED',
+        'ongoing': 'IN_PROGRESS',
+        'cancelled': 'CANCELLED'
+      };
+      
+      const targetStatus = statusMap[this.filterStatus] || this.filterStatus;
+      filtered = filtered.filter(trip => trip.status === targetStatus);
     }
 
     // Filter by search term
     if (this.searchTerm.trim()) {
       const term = this.searchTerm.toLowerCase();
       filtered = filtered.filter(trip => 
-        trip.pickup.toLowerCase().includes(term) ||
-        trip.destination.toLowerCase().includes(term) ||
-        trip.driver.name.toLowerCase().includes(term)
+        trip.fromLocation.toLowerCase().includes(term) ||
+        trip.toLocation.toLowerCase().includes(term) ||
+        trip.driver.username.toLowerCase().includes(term)
       );
     }
 
@@ -184,11 +189,11 @@ export class TripHistoryComponent implements OnInit {
     filtered.sort((a, b) => {
       switch (this.sortBy) {
         case 'date':
-          return new Date(b.date + ' ' + b.time).getTime() - new Date(a.date + ' ' + a.time).getTime();
+          return new Date(b.fromDateTime).getTime() - new Date(a.fromDateTime).getTime();
         case 'fare':
-          return b.fare - a.fare;
+          return b.bill - a.bill;
         case 'rating':
-          return (b.rating || 0) - (a.rating || 0);
+          return (b.customerRating || 0) - (a.customerRating || 0);
         default:
           return 0;
       }
@@ -219,7 +224,7 @@ export class TripHistoryComponent implements OnInit {
 
   openRatingModal(trip: Trip): void {
     this.ratingTrip = trip;
-    this.currentRating = trip.rating || 0;
+    this.currentRating = trip.customerRating || 0;
     this.showRatingModal = true;
   }
 
@@ -235,40 +240,67 @@ export class TripHistoryComponent implements OnInit {
 
   submitRating(): void {
     if (this.ratingTrip) {
-      this.ratingTrip.rating = this.currentRating;
-      // Here you would typically send the rating to your backend
-      alert(`Rating submitted: ${this.currentRating} stars for ${this.ratingTrip.driver.name}`);
-      this.closeRatingModal();
-      this.applyFilters(); // Refresh the list
+      // Call the API to submit the rating
+      this.rideService.rateRide(this.ratingTrip.tripBookingId, this.currentRating).subscribe({
+        next: () => {
+          // Update local data on success
+          this.ratingTrip!.customerRating = this.currentRating;
+          alert(`Rating submitted: ${this.currentRating} stars for ${this.ratingTrip!.driver.username}`);
+          this.closeRatingModal();
+          this.applyFilters(); // Refresh the list
+        },
+        error: (error) => {
+          console.error('Error submitting rating:', error);
+          alert('Failed to submit rating. Please try again.');
+        }
+      });
     }
   }
 
   rebookTrip(trip: Trip): void {
-    const confirmed = confirm(`Rebook trip from ${trip.pickup} to ${trip.destination}?`);
+    const confirmed = confirm(`Rebook trip from ${trip.fromLocation} to ${trip.toLocation}?`);
     if (confirmed) {
       alert('Redirecting to booking page with pre-filled details...');
+      // You would typically navigate to booking page with pre-filled data
     }
   }
 
   callDriver(trip: Trip): void {
-    alert(`Calling ${trip.driver.name} at ${trip.driver.phone}`);
+    if (trip.driver.mobileNumber) {
+      alert(`Calling ${trip.driver.username} at ${trip.driver.mobileNumber}`);
+      // In a real app, you might use: window.open(`tel:${trip.driver.mobileNumber}`);
+    } else {
+      alert('Driver phone number not available');
+    }
   }
 
   getStatusClass(status: string): string {
     switch (status) {
-      case 'completed': return 'status-completed';
-      case 'ongoing': return 'status-ongoing';
-      case 'cancelled': return 'status-cancelled';
+      case 'COMPLETED': return 'status-completed';
+      case 'IN_PROGRESS': return 'status-ongoing';
+      case 'CONFIRMED': return 'status-confirmed';
+      case 'CANCELLED': return 'status-cancelled';
       default: return 'status-default';
     }
   }
 
   getStatusIcon(status: string): string {
     switch (status) {
-      case 'completed': return '✅';
-      case 'ongoing': return '🚗';
-      case 'cancelled': return '❌';
+      case 'COMPLETED': return '✅';
+      case 'IN_PROGRESS': return '🚗';
+      case 'CONFIRMED': return '⏱️';
+      case 'CANCELLED': return '❌';
       default: return '❓';
+    }
+  }
+
+  getStatusDisplayText(status: string): string {
+    switch (status) {
+      case 'COMPLETED': return 'Completed';
+      case 'IN_PROGRESS': return 'Ongoing';
+      case 'CONFIRMED': return 'Confirmed';
+      case 'CANCELLED': return 'Cancelled';
+      default: return status;
     }
   }
 
@@ -289,11 +321,22 @@ export class TripHistoryComponent implements OnInit {
     });
   }
 
-  formatTime(timeString: string): string {
-    const [hours, minutes] = timeString.split(':');
-    const hour = parseInt(hours);
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 || 12;
-    return `${displayHour}:${minutes} ${ampm}`;
+  formatTime(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  formatDateTime(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
 }

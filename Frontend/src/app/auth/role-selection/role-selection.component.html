@@ -1,0 +1,55 @@
+<!-- role-selection.component.html -->
+<div class="role-selection-container">
+  <div class="header">
+    <h1>Cab Management System</h1>
+    <p>Select your role to continue</p>
+  </div>
+
+  <div class="role-cards">
+    <!-- Admin Card -->
+    <div class="role-card admin-card" (click)="selectRole('admin')">
+      <div class="role-icon">
+        <i class="fas fa-user-shield"></i>
+      </div>
+      <h3>Admin</h3>
+      <p>Manage the entire system</p>
+      <div class="role-features">
+        <span>• System Management</span>
+        <span>• User Control</span>
+        <span>• Analytics</span>
+      </div>
+    </div>
+
+    <!-- User Card -->
+    <div class="role-card user-card" (click)="selectRole('user')">
+      <div class="role-icon">
+        <i class="fas fa-user"></i>
+      </div>
+      <h3>User</h3>
+      <p>Book and manage rides</p>
+      <div class="role-features">
+        <span>• Book Rides</span>
+        <span>• Track Trips</span>
+        <span>• Payment</span>
+      </div>
+    </div>
+
+    <!-- Driver Card -->
+    <div class="role-card driver-card" (click)="selectRole('driver')">
+      <div class="role-icon">
+        <i class="fas fa-car"></i>
+      </div>
+      <h3>Driver</h3>
+      <p>Accept and complete rides</p>
+      <div class="role-features">
+        <span>• Accept Rides</span>
+        <span>• Navigate</span>
+        <span>• Earnings</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>Choose your role to access the appropriate features</p>
+  </div>
+</div>

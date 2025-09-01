@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+// import { RideService, BookRideRequest, BookRideResponse, Driver as ApiDriver, Cab } from '../../services/ride.service';
+import { RideService ,BookRideRequest,BookRideResponse,Driver as ApiDriver,Cab} from '../../../../core/services/user/ride.service';
 
 interface Location {
   name: string;
@@ -28,17 +30,17 @@ interface Driver {
   vehicleType: string;
   estimatedArrival: string;
   photo: string;
-  // Additional properties required by template
   carModel: string;
   licensePlate: string;
   eta: string;
   fare: number;
+  apiDriver?: ApiDriver; // Reference to the actual API driver object
+  // apiCab?: Cab; // Reference to the actual API cab object
 }
 
 @Component({
   selector: 'app-book-ride',
   standalone: false,
-  // imports: [CommonModule, FormsModule],
   templateUrl: './bookRide.component.html',
   styleUrls: ['./bookRide.component.css']
 })
@@ -49,7 +51,7 @@ export class BookRideComponent implements OnInit {
   selectedDate: string = '';
   selectedTime: string = '';
   
-  // Booking form data (keeping existing for backward compatibility)
+  // Booking form data
   pickupLocation: string = '';
   destinationLocation: string = '';
   selectedVehicleType: string = '';
@@ -82,7 +84,7 @@ export class BookRideComponent implements OnInit {
   // Vehicle types
   vehicleTypes: VehicleType[] = [
     {
-      id: 'economy',
+      id: 'Sedan',
       name: 'Economy',
       capacity: 4,
       baseFare: 50,
@@ -92,7 +94,7 @@ export class BookRideComponent implements OnInit {
       features: ['Air Conditioning', 'Music System']
     },
     {
-      id: 'comfort',
+      id: 'Premium',
       name: 'Comfort',
       capacity: 4,
       baseFare: 80,
@@ -102,7 +104,7 @@ export class BookRideComponent implements OnInit {
       features: ['Premium Interior', 'WiFi', 'Phone Charger']
     },
     {
-      id: 'luxury',
+      id: 'Luxury',
       name: 'Luxury',
       capacity: 4,
       baseFare: 150,
@@ -112,7 +114,7 @@ export class BookRideComponent implements OnInit {
       features: ['Leather Seats', 'Premium Sound', 'Complimentary Water']
     },
     {
-      id: 'suv',
+      id: 'SUV',
       name: 'SUV',
       capacity: 6,
       baseFare: 100,
@@ -123,7 +125,10 @@ export class BookRideComponent implements OnInit {
     }
   ];
 
-  constructor() {}
+  // Store the selected driver for booking
+  private selectedDriver: Driver | null = null;
+
+  constructor(private rideService: RideService) {}
 
   ngOnInit(): void {
     this.setCurrentLocationAsPickup();
@@ -149,12 +154,45 @@ export class BookRideComponent implements OnInit {
     this.pickupLocation = this.pickup;
     this.destinationLocation = this.destination;
 
-    // Simulate searching for drivers
-    setTimeout(() => {
-      this.findAvailableDriversForTemplate();
-      this.searchingDrivers = false;
-      this.showDrivers = true;
-    }, 2000);
+    // Get available drivers from API
+    this.rideService.getAvailableDrivers(this.pickupLocation, this.destinationLocation)
+      .subscribe({
+        next: (apiDrivers) => {
+          this.transformApiDriversToUiDrivers(apiDrivers);
+          this.searchingDrivers = false;
+          this.showDrivers = true;
+        },
+        error: (error) => {
+          console.error('Error fetching drivers:', error);
+          alert('Failed to find available drivers. Please try again.');
+          this.searchingDrivers = false;
+        }
+      });
+  }
+
+  // Transform API drivers to UI drivers
+  private transformApiDriversToUiDrivers(apiDrivers: ApiDriver[]): void {
+    this.availableDrivers = apiDrivers.map((apiDriver, index) => {
+      // In a real app, you would get this from the API or match with available cabs
+      const vehicleType = this.vehicleTypes[index % this.vehicleTypes.length];
+      const distance = parseFloat(this.estimatedDistance) || 10; // Default to 10km if not calculated
+      const fare = this.rideService.calculateFare(distance, vehicleType.perKmRate, vehicleType.baseFare);
+      
+      return {
+        id: `D${apiDriver.id}`,
+        name: apiDriver.username,
+        rating: apiDriver.rating,
+        vehicleNumber: apiDriver.licenceNo,
+        vehicleType: vehicleType.id,
+        estimatedArrival: `${5 + index} min`,
+        photo: '👨‍💼', // Default emoji
+        carModel: vehicleType.name,
+        licensePlate: apiDriver.licenceNo,
+        eta: `${5 + index} min`,
+        fare: fare,
+        apiDriver: apiDriver
+      };
+    });
   }
 
   callDriver(driver: Driver): void {
@@ -166,56 +204,60 @@ export class BookRideComponent implements OnInit {
   }
 
   bookRide(driver: Driver): void {
-    const confirmation = confirm(`Book ride with ${driver.name} for $${driver.fare}?`);
+    this.selectedDriver = driver;
+    const confirmation = confirm(`Book ride with ${driver.name} for ${this.formatCurrency(driver.fare)}?`);
+    
     if (confirmation) {
-      alert(`Ride booked with ${driver.name}! They will arrive in ${driver.eta}.`);
-      this.resetBooking();
+      this.confirmBookingWithDriver();
     }
   }
 
-  findAvailableDriversForTemplate(): void {
-    // Create drivers with all required properties for template
-    this.availableDrivers = [
-      {
-        id: 'D001',
-        name: 'Rajesh Kumar',
-        rating: 4.8,
-        vehicleNumber: 'MH 12 AB 1234',
-        vehicleType: 'economy',
-        estimatedArrival: '3 min',
-        photo: '👨‍💼',
-        carModel: 'Honda City',
-        licensePlate: 'MH 12 AB 1234',
-        eta: '3 min',
-        fare: 250
+  // Actually book the ride with the selected driver
+  private confirmBookingWithDriver(): void {
+    if (!this.selectedDriver) {
+      alert('No driver selected');
+      return;
+    }
+
+    this.isLoading = true;
+    
+    // Prepare the request payload
+    const request: BookRideRequest = {
+      customerId: this.getCurrentCustomerId(), // You need to implement this based on your auth system
+      fromLocation: this.pickupLocation,
+      toLocation: this.destinationLocation,
+      distanceInKm: parseFloat(this.estimatedDistance) || 10, // Default to 10km if not calculated
+      carType: this.selectedDriver.vehicleType,
+      scheduledTime: this.isScheduled && this.scheduledTime ? this.scheduledTime : null
+    };
+
+    // Call the API to book the ride
+    this.rideService.bookRide(request).subscribe({
+      next: (response: BookRideResponse) => {
+        this.isLoading = false;
+        alert(`Ride booked successfully with ${response.driver.username}! Your booking ID is ${response.tripBookingId}.`);
+        this.resetBooking();
       },
-      {
-        id: 'D002',
-        name: 'Suresh Patel',
-        rating: 4.6,
-        vehicleNumber: 'MH 14 CD 5678',
-        vehicleType: 'comfort',
-        estimatedArrival: '5 min',
-        photo: '👨‍🦲',
-        carModel: 'Toyota Camry',
-        licensePlate: 'MH 14 CD 5678',
-        eta: '5 min',
-        fare: 320
-      },
-      {
-        id: 'D003',
-        name: 'Amit Singh',
-        rating: 4.9,
-        vehicleNumber: 'MH 16 EF 9012',
-        vehicleType: 'luxury',
-        estimatedArrival: '7 min',
-        photo: '👨‍⚕️',
-        carModel: 'BMW 3 Series',
-        licensePlate: 'MH 16 EF 9012',
-        eta: '7 min',
-        fare: 450
+      error: (error) => {
+        this.isLoading = false;
+        console.error('Error booking ride:', error);
+        alert('Failed to book ride. Please try again.');
       }
-    ];
+    });
+  }
+
+  // Get current customer ID from authentication (you'll need to implement based on your auth system)
+  private getCurrentCustomerId(): number {
+    // This is a placeholder - you should replace with actual authentication logic
+    const userData = localStorage.getItem('currentUser');
+    if (userData) {
+      const user = JSON.parse(userData);
+      return user.id;
+    }
+    
+    // Fallback - in a real app, you would redirect to login
+    alert('Please log in to book a ride');
+    throw new Error('User not authenticated');
   }
 
   selectLocationSuggestion(location: Location, type: 'pickup' | 'destination'): void {
@@ -239,7 +281,7 @@ export class BookRideComponent implements OnInit {
   }
 
   calculateEstimates(): void {
-    // Simulate distance and fare calculation
+    // Simulate distance calculation based on locations
     const baseDistance = Math.random() * 20 + 5; // 5-25 km
     this.estimatedDistance = `${baseDistance.toFixed(1)} km`;
     this.estimatedDuration = `${Math.floor(baseDistance * 2 + 10)}-${Math.floor(baseDistance * 3 + 15)} min`;
@@ -254,55 +296,58 @@ export class BookRideComponent implements OnInit {
     
     this.findAvailableDrivers(vehicleType.id);
   }
+calculateVehicleFare(vehicle: VehicleType): number {
+  const distance = parseFloat(this.estimatedDistance) || 0;
+  return vehicle.baseFare + (distance * vehicle.perKmRate);
+}
 
   findAvailableDrivers(vehicleTypeId: string): void {
     this.isLoading = true;
     
-    // Simulate API call to find drivers
-    setTimeout(() => {
-      this.availableDrivers = [
-        {
-          id: 'D001',
-          name: 'Rajesh Kumar',
-          rating: 4.8,
-          vehicleNumber: 'MH 12 AB 1234',
-          vehicleType: vehicleTypeId,
-          estimatedArrival: '3 min',
-          photo: '👨‍💼',
-          carModel: 'Honda City',
-          licensePlate: 'MH 12 AB 1234',
-          eta: '3 min',
-          fare: 250
+    // Get available drivers for the selected vehicle type
+    this.rideService.getAvailableDrivers(this.pickupLocation, this.destinationLocation)
+      .subscribe({
+        next: (apiDrivers) => {
+          // Filter drivers by vehicle type and transform to UI format
+          this.availableDrivers = apiDrivers
+            .filter((driver, index) => {
+              // In a real app, you would check the driver's actual vehicle type
+              // This is a simplified filter for demonstration
+              const availableTypes = ['Sedan', 'Premium', 'Luxury', 'SUV'];
+              const driverType = availableTypes[index % availableTypes.length];
+              return driverType === vehicleTypeId;
+            })
+            .map((apiDriver, index) => {
+              const vehicleType = this.getVehicleTypeById(vehicleTypeId);
+              const distance = parseFloat(this.estimatedDistance);
+              const fare = vehicleType ? 
+                vehicleType.baseFare + (distance * vehicleType.perKmRate) : 
+                0;
+              
+              return {
+                id: `D${apiDriver.id}`,
+                name: apiDriver.username,
+                rating: apiDriver.rating,
+                vehicleNumber: apiDriver.licenceNo,
+                vehicleType: vehicleTypeId,
+                estimatedArrival: `${5 + index} min`,
+                photo: '👨‍💼',
+                carModel: vehicleType?.name || 'Car',
+                licensePlate: apiDriver.licenceNo,
+                eta: `${5 + index} min`,
+                fare: fare,
+                apiDriver: apiDriver
+              };
+            });
+          
+          this.isLoading = false;
         },
-        {
-          id: 'D002',
-          name: 'Suresh Patel',
-          rating: 4.6,
-          vehicleNumber: 'MH 14 CD 5678',
-          vehicleType: vehicleTypeId,
-          estimatedArrival: '5 min',
-          photo: '👨‍🦲',
-          carModel: 'Toyota Camry',
-          licensePlate: 'MH 14 CD 5678',
-          eta: '5 min',
-          fare: 320
-        },
-        {
-          id: 'D003',
-          name: 'Amit Singh',
-          rating: 4.9,
-          vehicleNumber: 'MH 16 EF 9012',
-          vehicleType: vehicleTypeId,
-          estimatedArrival: '7 min',
-          photo: '👨‍⚕️',
-          carModel: 'BMW 3 Series',
-          licensePlate: 'MH 16 EF 9012',
-          eta: '7 min',
-          fare: 450
+        error: (error) => {
+          console.error('Error fetching drivers:', error);
+          alert('Failed to find available drivers. Please try again.');
+          this.isLoading = false;
         }
-      ];
-      this.isLoading = false;
-    }, 1500);
+      });
   }
 
   proceedToConfirmation(): void {
@@ -316,12 +361,29 @@ export class BookRideComponent implements OnInit {
   confirmBooking(): void {
     this.isLoading = true;
     
-    // Simulate booking confirmation
-    setTimeout(() => {
-      this.isLoading = false;
-      alert('Ride booked successfully! Driver will arrive in 3-5 minutes.');
-      this.resetBooking();
-    }, 2000);
+    // Prepare the request payload
+    const request: BookRideRequest = {
+      customerId: this.getCurrentCustomerId(),
+      fromLocation: this.pickupLocation,
+      toLocation: this.destinationLocation,
+      distanceInKm: parseFloat(this.estimatedDistance),
+      carType: this.selectedVehicleType,
+      scheduledTime: this.isScheduled && this.scheduledTime ? this.scheduledTime : null
+    };
+
+    // Call the API to book the ride
+    this.rideService.bookRide(request).subscribe({
+      next: (response: BookRideResponse) => {
+        this.isLoading = false;
+        alert(`Ride booked successfully! Your booking ID is ${response.tripBookingId}.`);
+        this.resetBooking();
+      },
+      error: (error) => {
+        this.isLoading = false;
+        console.error('Error booking ride:', error);
+        alert('Failed to book ride. Please try again.');
+      }
+    });
   }
 
   resetBooking(): void {
@@ -342,6 +404,7 @@ export class BookRideComponent implements OnInit {
     this.estimatedDuration = '';
     this.searchingDrivers = false;
     this.showDrivers = false;
+    this.selectedDriver = null;
   }
 
   goBack(): void {

@@ -1,13 +1,18 @@
+// login.component.ts - Updated to handle both email and username
 import { Component, Inject, PLATFORM_ID } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [
+    CommonModule, 
+    ReactiveFormsModule,
+  ],
   templateUrl: './login.component.html'
 })
 export class LoginComponent {
@@ -22,7 +27,7 @@ export class LoginComponent {
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
+      identifier: ['', [Validators.required]], 
       password: ['', [Validators.required, Validators.minLength(1)]]
     });
   }
@@ -33,44 +38,55 @@ export class LoginComponent {
     this.isLoading = true;
     this.errorMessage = '';
 
-    setTimeout(() => {
-      const formValue = this.loginForm.value;
-      
-      // Safely extract email and password with null checks
-      const email = formValue.email?.trim() || '';
-      const password = formValue.password?.trim() || '';
-      
-      // Additional validation
-      if (!email || !password) {
-        this.errorMessage = 'Please enter both email and password';
-        this.isLoading = false;
-        return;
-      }
-      
-      const loginSuccess = this.authService.login(email, password);
+    const formValue = this.loginForm.value;
+    const identifier = formValue.identifier?.trim() || ''; 
+    const password = formValue.password?.trim() || '';
 
-      if (loginSuccess) {
-        const currentUser = this.authService.getCurrentUser();
-        
-        // Navigate based on user role
-        switch(currentUser?.role) {
-          case 'admin':
-            this.router.navigate(['/admin']);
-            break;
-          case 'driver':
-            this.router.navigate(['/driver']); // Enable this when driver module is ready
-            break;
-          case 'user':
-            this.router.navigate(['/user']); // Add user dashboard route
-            break;
-          default:
-            this.router.navigate(['/login']);
-        }
-      } else {
-        this.errorMessage = 'Invalid email or password';
-      }
-
+    if (!identifier || !password) {
+      this.errorMessage = 'Please enter both username/email and password';
       this.isLoading = false;
-    }, 800);
+      return;
+    }
+
+    this.authService.login(identifier, password)
+      .pipe(
+        finalize(() => {
+          this.isLoading = false;
+        })
+      )
+      .subscribe({
+        next: (response) => {
+          if (response.userId && response.token) {
+            const currentUser = this.authService.getCurrentUser();
+            
+            switch(currentUser?.userType) {
+              case 'Admin':
+                this.router.navigate(['/admin']);
+                break;
+              case 'Driver':
+                this.router.navigate(['/driver']); 
+                break;
+              case 'Customer':
+              case 'User':
+                this.router.navigate(['/user']); 
+                break;
+              default:
+                this.router.navigate(['/login']);
+            }
+          } else {
+            this.errorMessage = response.message || 'Login failed';
+          }
+        },
+        error: (error) => {
+          console.error('Login error:', error);
+          if (error.error?.message) {
+            this.errorMessage = error.error.message;
+          } else if (error.message) {
+            this.errorMessage = error.message;
+          } else {
+            this.errorMessage = 'Login failed. Please try again.';
+          }
+        }
+      });
   }
 }
