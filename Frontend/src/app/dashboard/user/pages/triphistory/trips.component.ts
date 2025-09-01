@@ -46,7 +46,7 @@ export class TripHistoryComponent implements OnInit {
   isLoading: boolean = true;
   errorMessage: string = '';
 
-  constructor(private rideService: RideService) {}
+  constructor(public rideService: RideService) {}
 
   ngOnInit(): void {
     this.loadTripHistory();

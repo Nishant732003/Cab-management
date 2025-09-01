@@ -11,17 +11,17 @@
         </div>
         <div class="stat-info">
           <h3>Today's Earnings</h3>
-          <p class="stat-value">₹{{ (todayStats?.earnings || 0) | number:'1.0-0' }}</p>
+          <p class="stat-value">₹{{ (todayStats.earnings || 0) | number:'1.0-0' }}</p>
         </div>
       </div>
       <div class="stat-footer">
         <span class="change-indicator" 
-              [class.positive]="(todayStats?.earningsChange || 0) >= 0" 
-              [class.negative]="(todayStats?.earningsChange || 0) < 0">
+              [class.positive]="(todayStats.earningsChange || 0) >= 0" 
+              [class.negative]="(todayStats.earningsChange || 0) < 0">
           <i class="fas" 
-             [class.fa-arrow-up]="(todayStats?.earningsChange || 0) >= 0" 
-             [class.fa-arrow-down]="(todayStats?.earningsChange || 0) < 0"></i>
-          {{ Math.abs(todayStats?.earningsChange || 0) | number:'1.1-1' }}% vs yesterday
+             [class.fa-arrow-up]="(todayStats.earningsChange || 0) >= 0" 
+             [class.fa-arrow-down]="(todayStats.earningsChange || 0) < 0"></i>
+          {{ Math.abs(todayStats.earningsChange || 0) | number:'1.1-1' }}% vs yesterday
         </span>
       </div>
     </div>
@@ -33,17 +33,17 @@
         </div>
         <div class="stat-info">
           <h3>Trips Completed</h3>
-          <p class="stat-value">{{ todayStats?.trips || 0 }}</p>
+          <p class="stat-value">{{ todayStats.trips || 0 }}</p>
         </div>
       </div>
       <div class="stat-footer">
         <span class="change-indicator" 
-              [class.positive]="(todayStats?.tripsChange || 0) >= 0" 
-              [class.negative]="(todayStats?.tripsChange || 0) < 0">
+              [class.positive]="(todayStats.tripsChange || 0) >= 0" 
+              [class.negative]="(todayStats.tripsChange || 0) < 0">
           <i class="fas" 
-             [class.fa-arrow-up]="(todayStats?.tripsChange || 0) >= 0" 
-             [class.fa-arrow-down]="(todayStats?.tripsChange || 0) < 0"></i>
-          {{ Math.abs(todayStats?.tripsChange || 0) | number:'1.1-1' }}% vs yesterday
+             [class.fa-arrow-up]="(todayStats.tripsChange || 0) >= 0" 
+             [class.fa-arrow-down]="(todayStats.tripsChange || 0) < 0"></i>
+          {{ Math.abs(todayStats.tripsChange || 0) | number:'1.1-1' }}% vs yesterday
         </span>
       </div>
     </div>
@@ -55,7 +55,7 @@
         </div>
         <div class="stat-info">
           <h3>Distance Covered</h3>
-          <p class="stat-value">{{ (todayStats?.distance || 0) | number:'1.1-1' }} km</p>
+          <p class="stat-value">{{ (todayStats.distance || 0) | number:'1.1-1' }} km</p>
         </div>
       </div>
       <div class="stat-footer">

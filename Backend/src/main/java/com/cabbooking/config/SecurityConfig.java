@@ -54,10 +54,11 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedOrigins(List.of("http://localhost:4200")); // frontend URL
 
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type","Accept")); // allow all headers
+        config.setExposedHeaders(List.of("Authorization")); // if token is in header
         config.setAllowCredentials(true); // allow cookies/auth headers if needed
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

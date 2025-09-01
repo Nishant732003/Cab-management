@@ -150,9 +150,12 @@ export class RideService {
   }
 
   // Helper method to get fallback image
-  getDriverImage(driver: Driver): string {
-    return driver.profilePhotoUrl || 'assets/images/driver.avif';
+  getDriverImage(driver: Partial<Driver> | null): string {
+  if (!driver || !driver.profilePhotoUrl) {
+    return 'assets/images/driver.avif';
   }
+  return driver.profilePhotoUrl;
+}
 
   // Helper method to get fallback cab image
   getCabImage(cab: Cab): string {
