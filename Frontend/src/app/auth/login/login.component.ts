@@ -1,4 +1,3 @@
-// login.component.ts - Updated to handle both email and username
 import { Component, Inject, PLATFORM_ID } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -10,7 +9,7 @@ import { finalize } from 'rxjs/operators';
   selector: 'app-login',
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
     ReactiveFormsModule,
   ],
   templateUrl: './login.component.html'
@@ -26,20 +25,25 @@ export class LoginComponent {
     private authService: AuthService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
+    // This defines the form controls. The names here MUST match the
+    // formControlName attributes in the HTML.
     this.loginForm = this.fb.group({
-      identifier: ['', [Validators.required]], 
+      identifier: ['', [Validators.required]],
       password: ['', [Validators.required, Validators.minLength(1)]]
     });
   }
 
   onSubmit() {
-    if (this.loginForm.invalid) return;
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      return;
+    };
 
     this.isLoading = true;
     this.errorMessage = '';
 
     const formValue = this.loginForm.value;
-    const identifier = formValue.identifier?.trim() || ''; 
+    const identifier = formValue.identifier?.trim() || '';
     const password = formValue.password?.trim() || '';
 
     if (!identifier || !password) {
@@ -59,16 +63,17 @@ export class LoginComponent {
           if (response.userId && response.token) {
             const currentUser = this.authService.getCurrentUser();
             
-            switch(currentUser?.userType) {
+            // Redirect user based on their role after successful login
+            switch (currentUser?.userType) {
               case 'Admin':
                 this.router.navigate(['/admin']);
                 break;
               case 'Driver':
-                this.router.navigate(['/driver']); 
+                this.router.navigate(['/driver']);
                 break;
               case 'Customer':
               case 'User':
-                this.router.navigate(['/user']); 
+                this.router.navigate(['/user']);
                 break;
               default:
                 this.router.navigate(['/login']);

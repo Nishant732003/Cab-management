@@ -1,11 +1,14 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+// Frontend/src/app/redux/slice/adminAuthslice.ts
 
-// Types
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+
+// --- FIX: Exporting all necessary interfaces ---
 export interface AdminStaffUser {
   id: string;
   userName: string;
   email: string;
   userType: 'admin' | 'staff';
+  role?: string;
 }
 
 export interface AdminStaffAuthState {
@@ -13,101 +16,45 @@ export interface AdminStaffAuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  token: string | null;
 }
 
-// Initial state
 const initialState: AdminStaffAuthState = {
   user: null,
   isAuthenticated: false,
   isLoading: false,
   error: null,
+  token: null,
 };
 
-// Async thunks
-export const loginUser = createAsyncThunk(
-  'adminAuth/login',
-  async (credentials: { email: string; password: string }) => {
-    // Mock API call - replace with your actual API
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const user: AdminStaffUser = {
-      id: '1',
-      userName: 'John Doe',
-      email: credentials.email,
-      userType: credentials.email.includes('admin') ? 'admin' : 'staff'
-    };
-    
-    const token = 'mock-jwt-token-' + Date.now();
-    
-    // Store in localStorage
-    localStorage.setItem('adminToken', token);
-    localStorage.setItem('adminUser', JSON.stringify(user));
-    
-    return { user, token };
-  }
-);
-
-export const logoutUser = createAsyncThunk(
-  'adminAuth/logout',
-  async () => {
-    // Clear localStorage
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminUser');
-    return null;
-  }
-);
-
-// Slice
 const adminAuthSlice = createSlice({
   name: 'adminAuth',
   initialState,
   reducers: {
-    // Sync actions
-    setUser: (state, action: PayloadAction<AdminStaffUser>) => {
-      state.user = action.payload;
+    adminLogin(state, action: PayloadAction<{ admin: AdminStaffUser; token: string }>) {
+      state.user = action.payload.admin;
+      state.token = action.payload.token;
       state.isAuthenticated = true;
+      state.isLoading = false;
       state.error = null;
     },
-    clearError: (state) => {
+    resetAuth(state) {
+      Object.assign(state, initialState);
+    },
+    clearError(state) {
       state.error = null;
     },
-    resetAuth: () => initialState,
-    setLoading: (state, action: PayloadAction<boolean>) => {
-      state.isLoading = action.payload;
-    },
-  },
-  extraReducers: (builder) => {
-    // Login
-    builder
-      .addCase(loginUser.pending, (state) => {
-        state.isLoading = true;
-        state.error = null;
-      })
-      .addCase(loginUser.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.user = action.payload.user;
-        state.isAuthenticated = true;
-        state.error = null;
-      })
-      .addCase(loginUser.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.error.message || 'Login failed';
-        state.isAuthenticated = false;
-        state.user = null;
-      })
-      
-      // Logout
-      .addCase(logoutUser.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(logoutUser.fulfilled, () => initialState)
-      .addCase(logoutUser.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.error.message || 'Logout failed';
-      });
+    setUser(state, action: PayloadAction<AdminStaffUser>) {
+        state.user = action.payload;
+    }
   },
 });
 
-// Export actions and reducer
-export const { setUser, clearError, resetAuth, setLoading } = adminAuthSlice.actions;
+export const {
+  adminLogin,
+  resetAuth,
+  clearError,
+  setUser
+} = adminAuthSlice.actions;
+
 export default adminAuthSlice.reducer;

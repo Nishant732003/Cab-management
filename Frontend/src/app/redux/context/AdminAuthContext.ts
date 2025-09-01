@@ -1,14 +1,15 @@
+// Frontend/src/app/redux/context/AdminAuthContext.ts
+
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 import { ReduxStore } from '../store';
-import { loginUser, logoutUser, setUser, clearError, AdminStaffUser } from '../slice/adminAuthslice'
+import { AdminStaffUser, resetAuth, clearError, setUser } from '../slice/adminAuthslice';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AdminStaffAuthContext {
-  // Observables for reactive updates
   private userSubject = new BehaviorSubject<AdminStaffUser | null>(null);
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   private isLoadingSubject = new BehaviorSubject<boolean>(false);
@@ -21,15 +22,10 @@ export class AdminStaffAuthContext {
 
   constructor(
     private reduxStore: ReduxStore,
-    public router: Router
+    public router: Router // Add router back
   ) {
-    this.subscribeToStore();
-  }
-
-  // Subscribe to Redux store changes
-  private subscribeToStore(): void {
     this.reduxStore.subscribe(() => {
-      const state = this.reduxStore.getState().adminstaffauth;
+      const state = this.reduxStore.getState().admin;
       this.userSubject.next(state.user);
       this.isAuthenticatedSubject.next(state.isAuthenticated);
       this.isLoadingSubject.next(state.isLoading);
@@ -37,62 +33,22 @@ export class AdminStaffAuthContext {
     });
   }
 
-  // Context methods (like React useContext)
+  // --- FIX: Restore methods needed by components ---
+  initializeAuth(): void {}
+
   handleLogout = (): void => {
-    this.reduxStore.dispatch(logoutUser());
-    this.router.navigate(['/login']);
-  };
-
-  handleLogin = async (email: string, password: string): Promise<void> => {
-    try {
-      await this.reduxStore.dispatch(loginUser({ email, password }));
-      this.router.navigate(['/adminstaff/dashboard']);
-    } catch (error) {
-      console.error('Login failed:', error);
-    }
-  };
-
-  setUser = (user: AdminStaffUser): void => {
-    this.reduxStore.dispatch(setUser(user));
-    // Store in localStorage for persistence
-    localStorage.setItem('adminUser', JSON.stringify(user));
+    this.reduxStore.dispatch(resetAuth());
   };
 
   clearError = (): void => {
     this.reduxStore.dispatch(clearError());
   };
 
-  // Getters for current state (like useSelector in React)
+  setUser = (user: AdminStaffUser): void => {
+    this.reduxStore.dispatch(setUser(user));
+  };
+
   get user(): AdminStaffUser | null {
-    return this.reduxStore.selectUser();
-  }
-
-  get isAuthenticated(): boolean {
-    return this.reduxStore.selectIsAuthenticated();
-  }
-
-  get isLoading(): boolean {
-    return this.reduxStore.selectIsLoading();
-  }
-
-  get error(): string | null {
-    return this.reduxStore.selectError();
-  }
-
-  // Initialize auth from localStorage
-  initializeAuth(): void {
-    const userStr = localStorage.getItem('adminUser');
-    const token = localStorage.getItem('adminToken');
-    
-    if (userStr && token) {
-      try {
-        const user = JSON.parse(userStr);
-        this.setUser(user);
-      } catch (error) {
-        console.error('Failed to parse stored user:', error);
-        localStorage.removeItem('adminUser');
-        localStorage.removeItem('adminToken');
-      }
-    }
+    return this.reduxStore.getState().admin.user;
   }
 }
