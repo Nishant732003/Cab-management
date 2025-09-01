@@ -1,4 +1,4 @@
-// auth.service.ts - Updated to handle both email and username
+// auth.service.ts - Final Version with Registration Methods
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { BehaviorSubject, Observable } from 'rxjs';
@@ -9,11 +9,11 @@ import { environment } from '../../../environments/environment';
 export interface User {
   id: number;
   email: string;
-  username: string; // Add username field
+  username: string;
   role: 'admin' | 'driver' | 'user' | 'Customer';
   name: string;
   token?: string;
-  userType?: string; 
+  userType?: string;
 }
 
 export interface LoginResponse {
@@ -21,7 +21,14 @@ export interface LoginResponse {
   userId: number;
   userType: string;
   token: string;
-  success?: boolean; 
+  success?: boolean;
+}
+
+// Interface for the registration response from the backend
+export interface RegistrationResponse {
+  message: string;
+  userId: number;
+  success?: boolean;
 }
 
 @Injectable({
@@ -39,32 +46,63 @@ export class AuthService {
     this.initializeAuthState();
   }
 
-  // Check if input is email
+  /**
+   * Workflow: Registers a new user (customer) by calling the backend API.
+   * Sends a POST request to the '/api/auth/register/customer' endpoint.
+   */
+  registerUser(userData: any): Observable<RegistrationResponse> {
+    console.log('API call to register new user:', userData);
+    return this.http.post<RegistrationResponse>(`${environment.apiUrl}/auth/register/customer`, userData)
+      .pipe(
+        tap(response => console.log('User registration API successful:', response)),
+        catchError(error => {
+          console.error('User registration API error:', error);
+          throw error;
+        })
+      );
+  }
+
+  /**
+   * Workflow: Registers a new driver by calling the backend API.
+   * Sends a POST request to the '/api/auth/register/driver' endpoint.
+   */
+  registerDriver(driverData: any): Observable<RegistrationResponse> {
+    console.log('API call to register new driver:', driverData);
+    return this.http.post<RegistrationResponse>(`${environment.apiUrl}/auth/register/driver`, driverData)
+      .pipe(
+        tap(response => console.log('Driver registration API successful:', response)),
+        catchError(error => {
+          console.error('Driver registration API error:', error);
+          throw error;
+        })
+      );
+  }
+
+
+  // --- All your other existing methods remain below ---
+
   private isEmail(input: string): boolean {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(input);
   }
 
-  // API login method - updated to handle both email and username
   login(identifier: string, password: string): Observable<LoginResponse> {
     console.log('API login attempt:', identifier);
-    
-    // Determine if identifier is email or username
     const isEmail = this.isEmail(identifier);
-    const loginPayload = isEmail 
+    const loginPayload = isEmail
       ? { email: identifier, password }
       : { username: identifier, password };
-    
-    return this.http.post<LoginResponse>(`${environment.apiUrl}api/auth/login`, loginPayload)
+
+    return this.http.post<LoginResponse>(`${environment.apiUrl}/auth/login`, loginPayload)
       .pipe(
         tap(response => {
           if (response.userId && response.token) {
             const user: User = {
               id: response.userId,
-              email: isEmail ? identifier : '', // Set email if it was email
-              username: !isEmail ? identifier : '', // Set username if it was username
-              role: this.mapUserTypeToRole(response.userType), 
-              name: this.extractNameFromIdentifier(identifier), 
+              email: isEmail ? identifier : '',
+              username: !isEmail ? identifier : '',
+              role: this.mapUserTypeToRole(response.userType),
+              name: this.extractNameFromIdentifier(identifier),
               token: response.token,
               userType: response.userType
             };
@@ -78,16 +116,14 @@ export class AuthService {
       );
   }
 
-  // Extract name from identifier (email or username)
   private extractNameFromIdentifier(identifier: string): string {
-    const namePart = identifier.split('@')[0]; // For email, get part before @
+    const namePart = identifier.split('@')[0];
     return namePart.charAt(0).toUpperCase() + namePart.slice(1);
   }
 
   logout(): Observable<any> {
     console.log('API logout request');
-    
-    return this.http.post(`${environment.apiUrl}api/auth/logout`, {}).pipe(
+    return this.http.post(`${environment.apiUrl}/auth/logout`, {}).pipe(
       tap(() => {
         this.clearAuthData();
       }),
@@ -99,14 +135,12 @@ export class AuthService {
     );
   }
 
-  // Helper method to clear authentication data
   private clearAuthData(): void {
     this.currentUserSubject.next(null);
     this.removeItem('currentUser');
     this.removeItem('authToken');
   }
 
-  // Map userType from API to role for internal use
   private mapUserTypeToRole(userType: string): User['role'] {
     const typeMap: { [key: string]: User['role'] } = {
       'Customer': 'user',
@@ -114,19 +148,15 @@ export class AuthService {
       'Driver': 'driver',
       'User': 'user'
     };
-    
-    return typeMap[userType] || 'user'; 
+    return typeMap[userType] || 'user';
   }
 
   isLoggedIn(): boolean {
     if (!this.initialized) {
       this.initializeAuthState();
     }
-    
     const user = this.currentUserSubject.value;
-    const isLoggedIn = user !== null && user.token !== undefined;
-    console.log('isLoggedIn check:', isLoggedIn);
-    return isLoggedIn;
+    return user !== null && user.token !== undefined;
   }
 
   getCurrentUser(): User | null {
@@ -143,24 +173,18 @@ export class AuthService {
 
   hasRole(role: string): boolean {
     const currentUser = this.getCurrentUser();
-    const hasRole = currentUser?.role === role;
-    console.log(`hasRole(${role}) check:`, hasRole);
-    return hasRole;
+    return currentUser?.role === role;
   }
 
-  // Check userType directly from API response
   hasUserType(userType: string): boolean {
     const currentUser = this.getCurrentUser();
-    const hasUserType = currentUser?.userType === userType;
-    console.log(`hasUserType(${userType}) check:`, hasUserType);
-    return hasUserType;
+    return currentUser?.userType === userType;
   }
 
   private setUser(user: User): void {
     console.log('Setting user:', user);
     this.currentUserSubject.next(user);
     this.setItem('currentUser', JSON.stringify(user));
-    
     if (user.token) {
       this.setItem('authToken', user.token);
     }
@@ -168,24 +192,18 @@ export class AuthService {
 
   private initializeAuthState(): void {
     if (this.initialized) return;
-    
-    console.log('Initializing auth state');
-    
     if (isPlatformBrowser(this.platformId)) {
       const userJson = this.getItem('currentUser');
-      
       if (userJson) {
         try {
           const user = JSON.parse(userJson);
           this.currentUserSubject.next(user);
-          console.log('Restored user from storage:', user);
         } catch (e) {
           console.error('Error parsing user data', e);
           this.clearAuthData();
         }
       }
     }
-    
     this.initialized = true;
   }
 

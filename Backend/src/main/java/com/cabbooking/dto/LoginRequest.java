@@ -22,11 +22,23 @@ public class LoginRequest {
      */
     private String password;
 
-    // ====== Getters and Setters ======
+    
+    private String email;
+
+     
+    public String getEmail() {
+        return email;
+    }
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+// ====== Getters and Setters ======
 
     /**
      * Returns the username.
      */
+
     public String getUsername() {
         return username;
     }

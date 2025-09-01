@@ -35,7 +35,7 @@ public interface CustomerRepository extends JpaRepository<Customer, Integer> {
      * @param username the unique email of the admin
      * @return Admin entity matching the email, or null if not found
      */
-    Optional<Customer> findByEmail(String email);
+    Customer findByEmail(String email);
 
     /**
      * Checks if an Customer with the given username already exists.

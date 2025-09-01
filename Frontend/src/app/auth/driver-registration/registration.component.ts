@@ -1,12 +1,14 @@
+// driver-registration.component.ts - Final Version with API Call
 import { Component, Inject, PLATFORM_ID } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-driver-registration',
-  standalone: false,
+  standalone: true, // Set to true as it's not in a module
   imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './registration.component.html',
   styleUrls: ['./registration.component.css']
@@ -21,8 +23,7 @@ export class DriverRegistrationComponent {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private authService: AuthService,
-    @Inject(PLATFORM_ID) private platformId: Object
+    private authService: AuthService
   ) {
     this.registrationForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2)]],
@@ -43,7 +44,6 @@ export class DriverRegistrationComponent {
   passwordMatchValidator(form: any) {
     const password = form.get('password');
     const confirmPassword = form.get('confirmPassword');
-    
     if (password.value !== confirmPassword.value) {
       confirmPassword.setErrors({ passwordMismatch: true });
     } else {
@@ -61,33 +61,32 @@ export class DriverRegistrationComponent {
   }
 
   onSubmit() {
-    if (this.registrationForm.invalid) return;
+    if (this.registrationForm.invalid) {
+        this.registrationForm.markAllAsTouched();
+        return;
+    }
 
     this.isLoading = true;
     this.errorMessage = '';
 
-    setTimeout(() => {
-      const formValue = this.registrationForm.value;
-      
-      // Remove confirmPassword from the data to be submitted
-      const { confirmPassword, agreeToTerms, ...driverData } = formValue;
-      
-      // In a real application, you would call a registration service here
-      console.log('Driver registration data:', driverData);
-      
-      // Simulate API call
-      const registrationSuccess = Math.random() > 0.2; // 80% success rate for demo
-      
-      if (registrationSuccess) {
-        // Navigate to login or verification page
-        this.router.navigate(['/login'], { 
-          queryParams: { message: 'Registration successful! Please login.' } 
-        });
-      } else {
-        this.errorMessage = 'Registration failed. Please try again.';
-      }
+    const { confirmPassword, agreeToTerms, ...driverData } = this.registrationForm.value;
 
-      this.isLoading = false;
-    }, 1500);
+    // Call the AuthService to register the driver
+    this.authService.registerDriver(driverData).pipe(
+      finalize(() => {
+        this.isLoading = false;
+      })
+    ).subscribe({
+      next: (response) => {
+        // On success, navigate to login with a message about verification
+        this.router.navigate(['/login'], {
+          queryParams: { message: 'Registration successful! Your account is pending admin verification.' }
+        });
+      },
+      error: (error) => {
+        // On failure, display the error message
+        this.errorMessage = error.error?.message || 'Registration failed. Please try again.';
+      }
+    });
   }
 }

@@ -1,8 +1,10 @@
+// user-registration.component.ts - Final Version with API Call
 import { Component, Inject, PLATFORM_ID } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-user-registration',
@@ -21,8 +23,7 @@ export class UserRegistrationComponent {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-    private authService: AuthService,
-    @Inject(PLATFORM_ID) private platformId: Object
+    private authService: AuthService
   ) {
     this.registrationForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2)]],
@@ -38,7 +39,6 @@ export class UserRegistrationComponent {
   passwordMatchValidator(form: any) {
     const password = form.get('password');
     const confirmPassword = form.get('confirmPassword');
-    
     if (password.value !== confirmPassword.value) {
       confirmPassword.setErrors({ passwordMismatch: true });
     } else {
@@ -56,33 +56,33 @@ export class UserRegistrationComponent {
   }
 
   onSubmit() {
-    if (this.registrationForm.invalid) return;
+    if (this.registrationForm.invalid) {
+        this.registrationForm.markAllAsTouched(); // Show validation errors on all fields
+        return;
+    }
 
     this.isLoading = true;
     this.errorMessage = '';
 
-    setTimeout(() => {
-      const formValue = this.registrationForm.value;
-      
-      // Remove confirmPassword from the data to be submitted
-      const { confirmPassword, agreeToTerms, ...userData } = formValue;
-      
-      // In a real application, you would call a registration service here
-      console.log('User registration data:', userData);
-      
-      // Simulate API call
-      const registrationSuccess = Math.random() > 0.2; // 80% success rate for demo
-      
-      if (registrationSuccess) {
-        // Navigate to login or verification page
-        this.router.navigate(['/login'], { 
-          queryParams: { message: 'Registration successful! Please login.' } 
-        });
-      } else {
-        this.errorMessage = 'Registration failed. Please try again.';
-      }
+    // Prepare the data to send to the API
+    const { confirmPassword, agreeToTerms, ...userData } = this.registrationForm.value;
 
-      this.isLoading = false;
-    }, 1500);
+    // Call the AuthService to register the user
+    this.authService.registerUser(userData).pipe(
+      finalize(() => {
+        this.isLoading = false; // Stop the loading spinner
+      })
+    ).subscribe({
+      next: (response) => {
+        // On success, navigate to the login page with a success message
+        this.router.navigate(['/login'], {
+          queryParams: { message: 'Registration successful! Please login to continue.' }
+        });
+      },
+      error: (error) => {
+        // On failure, display the error message from the backend
+        this.errorMessage = error.error?.message || 'Registration failed. Please try again.';
+      }
+    });
   }
 }

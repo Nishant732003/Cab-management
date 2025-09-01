@@ -36,7 +36,7 @@ public interface AdminRepository extends JpaRepository<Admin, Integer> {
      * @param username the unique email of the admin
      * @return Admin entity matching the email, or null if not found
      */
-    Optional<Admin> findByEmail(String email);
+    Admin findByEmail(String email);
 
     /**
      * Checks if an Admin with the given username already exists.

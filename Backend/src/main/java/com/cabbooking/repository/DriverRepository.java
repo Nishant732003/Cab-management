@@ -33,7 +33,7 @@ public interface DriverRepository extends JpaRepository<Driver, Integer> {
      * @param username the unique email of the admin
      * @return Admin entity matching the email, or null if not found
      */
-    Optional<Driver> findByEmail(String email);
+    Driver findByEmail(String email);
 
     /**
      * Checks if an Driver with the given username already exists.
