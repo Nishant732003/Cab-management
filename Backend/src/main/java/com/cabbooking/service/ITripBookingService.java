@@ -3,6 +3,7 @@ package com.cabbooking.service;
 import com.cabbooking.dto.RatingRequest;
 import com.cabbooking.dto.TripBookingRequest;
 import com.cabbooking.model.TripBooking;
+import java.time.LocalDate; // <-- IMPORT THIS
 
 import java.util.List;
 
@@ -48,4 +49,22 @@ public interface ITripBookingService {
 
     // ==> ADD THIS NEW METHOD <==
     TripBooking rateTrip(Integer tripId, RatingRequest ratingRequest);
+       
+    // --- ADD THE TWO NEW METHOD SIGNATURES BELOW ---
+
+    /**
+     * Retrieves all trips for a specific driver.
+     * @param driverId The ID of the driver.
+     * @return A list of TripBooking objects.
+     */
+    List<TripBooking> viewAllTripsDriver(int driverId);
+
+    /**
+     * Retrieves all trips that occurred on a specific date.
+     * @param date The date to search for.
+     * @return A list of TripBooking objects.
+     */
+    List<TripBooking> getTripsDatewise(LocalDate date);
+
+    TripBooking viewBill(int customerId);
 }

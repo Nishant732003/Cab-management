@@ -1,0 +1,46 @@
+<div class="container mx-auto px-4 sm:px-8 py-8">
+  <h2 class="text-2xl font-semibold leading-tight">View Trips</h2>
+
+  <div class="my-4 flex flex-col md:flex-row gap-4">
+    <div class="flex items-center gap-2">
+      <input type="number" placeholder="Driver ID" [(ngModel)]="driverId" class="border p-2 rounded-md">
+      <button (click)="fetchTripsByDriver()" class="px-4 py-2 bg-blue-600 text-white rounded-md">Find by Driver</button>
+    </div>
+    <div class="flex items-center gap-2">
+      <input type="date" [(ngModel)]="tripDate" class="border p-2 rounded-md">
+      <button (click)="fetchTripsByDate()" class="px-4 py-2 bg-blue-600 text-white rounded-md">Find by Date</button>
+    </div>
+  </div>
+
+  <p *ngIf="errorMessage" class="text-red-500">{{ errorMessage }}</p>
+
+  <div class="overflow-x-auto relative shadow-md sm:rounded-lg mt-6">
+    <table class="w-full text-sm text-left text-gray-500">
+      <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+        <tr>
+          <th scope="col" class="py-3 px-6">Trip ID</th>
+          <th scope="col" class="py-3 px-6">Customer</th>
+          <th scope="col" class="py-3 px-6">Driver</th>
+          <th scope="col" class="py-3 px-6">From</th>
+          <th scope="col" class="py-3 px-6">To</th>
+          <th scope="col" class="py-3 px-6">Status</th>
+          <th scope="col" class="py-3 px-6">Bill</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let trip of trips" class="bg-white border-b">
+          <td class="py-4 px-6">{{ trip.tripBookingId }}</td>
+          <td class="py-4 px-6">{{ trip.customer.name }}</td>
+          <td class="py-4 px-6">{{ trip.driver.name }}</td>
+          <td class="py-4 px-6">{{ trip.fromLocation }}</td>
+          <td class="py-4 px-6">{{ trip.toLocation }}</td>
+          <td class="py-4 px-6">{{ trip.status }}</td>
+          <td class="py-4 px-6">₹{{ trip.bill }}</td>
+        </tr>
+         <tr *ngIf="trips.length === 0">
+            <td colspan="7" class="text-center py-4">No trips found for the selected criteria.</td>
+          </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

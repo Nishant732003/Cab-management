@@ -6,6 +6,8 @@ import { OverviewComponent } from './pages/overview/overview.component';
 import { UserComponent } from './pages/user/user.component';
 // import { UsersManagementComponent } from './pages/users-management/users-management.component';
 import { DriverComponent } from './pages/driver/driver.component';
+import { AdminVerificationComponent } from './pages/admin-verification/admin-verification.component'; // Import new component
+import { TripsComponent } from './pages/trips/trips.component'; // Import new component
 
 const routes: Routes = [
   {
@@ -16,7 +18,10 @@ const routes: Routes = [
       { path: 'overview', component: OverviewComponent },
       { path: 'users', component: UserComponent },
       { path: 'drivers', component: DriverComponent },
-      { path: '**', redirectTo: 'overview' } 
+      { path: '**', redirectTo: 'overview' },
+      // --- NEW ROUTES ADDED BELOW ---
+      { path: 'admin-verification', component: AdminVerificationComponent }, // Missing comma was here
+      { path: 'trips', component: TripsComponent } // Add this route
     ]
   }
 ];

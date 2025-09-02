@@ -1,6 +1,5 @@
 <div class="h-full bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 shadow-xl">
   <div class="flex flex-col h-full">
-    <!-- Logo Section -->
     <div class="p-6 border-b border-slate-700/50">
       <a [routerLink]="['/']" class="flex items-center group">
         <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl mr-3 shadow-lg">
@@ -17,7 +16,6 @@
       </a>
     </div>
 
-    <!-- Navigation -->
     <div class="flex-1 px-4 py-6">
       <nav class="space-y-2">
         @for (route of routes; track route.href) {
@@ -49,6 +47,12 @@
                 @case ('Users') {
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                 }
+                @case ('ShieldCheck') {
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 20.944a11.955 11.955 0 0118 0 12.02 12.02 0 00-2.382-8.984z"></path>
+                }
+                @case ('Route') {
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                }
                 @case ('Settings') {
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
                 }
@@ -73,7 +77,6 @@
               </svg>
             }
             
-            <!-- Active indicator -->
             @if (isActive(route.href)) {
               <div class="absolute left-0 top-0 bottom-0 w-1 bg-emerald-400 rounded-r-full"></div>
             }
@@ -82,7 +85,6 @@
       </nav>
     </div>
 
-    <!-- Footer -->
     <div class="p-4 border-t border-slate-700/50">
       <div class="text-center">
         <p class="text-xs text-slate-400">

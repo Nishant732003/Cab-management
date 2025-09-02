@@ -1,10 +1,12 @@
 package com.cabbooking.controller;
 
+import java.time.LocalDate; // <-- IMPORT THIS
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat; // <-- IMPORT THIS
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,14 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.cabbooking.dto.UserSummaryDTO;
 import com.cabbooking.model.Admin;
 import com.cabbooking.model.Driver;
+import com.cabbooking.model.TripBooking; // <-- IMPORT THIS
 import com.cabbooking.service.IAdminService;
 import com.cabbooking.service.IAdminVerificationService;
 import com.cabbooking.service.IDriverService;
+import com.cabbooking.service.ITripBookingService;
 
-/**
- * REST controller for handling admin-specific operations.
- * (Your existing comments are preserved)
- */
 @RestController
 @RequestMapping("/api/admin")
 @Validated
@@ -40,20 +40,15 @@ public class AdminController {
     @Autowired
     private IDriverService driverService;
 
-    /**
-     * Constructor for AdminController.
-     * (Your existing comments are preserved)
-     */
+    @Autowired
+    private ITripBookingService tripBookingService;
+
     public AdminController() {
         logger.info("**************************************************");
         logger.info("********** AdminController is being created **********");
         logger.info("**************************************************");
     }
 
-    /**
-     * Endpoint to retrieve a summary of all customer accounts.
-     * (Your existing comments are preserved)
-     */
     @GetMapping("/customers")
     public ResponseEntity<List<UserSummaryDTO>> getAllCustomers() {
         logger.info("Admin requested list of all customers");
@@ -61,12 +56,6 @@ public class AdminController {
         return ResponseEntity.ok(customers);
     }
 
-    // --- FIX: ADD THE MISSING ENDPOINT TO GET ALL DRIVERS ---
-    /**
-     * Endpoint to retrieve a summary of all driver accounts.
-     * * GET /api/admin/drivers
-     * @return HTTP 200 with a List of UserSummaryDTOs for all drivers.
-     */
     @GetMapping("/drivers")
     public ResponseEntity<List<UserSummaryDTO>> getAllDrivers() {
         logger.info("Admin requested list of all drivers");
@@ -74,10 +63,6 @@ public class AdminController {
         return ResponseEntity.ok(drivers);
     }
 
-    /**
-     * Endpoint to retrieve all unverified admin accounts.
-     * (Your existing methods and comments are preserved)
-     */
     @GetMapping("/unverified/admins")
     public ResponseEntity<List<Admin>> getUnverifiedAdmins() {
         logger.info("Superadmin requested list of unverified admins");
@@ -85,10 +70,6 @@ public class AdminController {
         return ResponseEntity.ok(unverifiedAdmins);
     }
 
-    /**
-     * Endpoint to verify an admin account by its unique ID.
-     * (Your existing methods and comments are preserved)
-     */
     @PostMapping("/verify/admins/{adminId}")
     public ResponseEntity<String> verifyAdmin(@PathVariable Integer adminId) {
         logger.info("Superadmin trying to verify admin with id: {}", adminId);
@@ -104,23 +85,30 @@ public class AdminController {
         }
     }
 
-    /**
-     * Endpoint to retrieve a list of all drivers awaiting verification.
-     * (Your existing methods and comments are preserved)
-     */
     @GetMapping("/unverified/drivers")
     public ResponseEntity<List<Driver>> getUnverifiedDrivers() {
         List<Driver> unverifiedDrivers = driverService.viewUnverifiedDrivers();
         return ResponseEntity.ok(unverifiedDrivers);
     }
 
-    /**
-     * Endpoint to verify a specific driver by their ID.
-     * (Your existing methods and comments are preserved)
-     */
     @PostMapping("/verify/drivers/{driverId}")
     public ResponseEntity<Driver> verifyDriver(@PathVariable int driverId) {
         Driver verifiedDriver = driverService.verifyDriver(driverId);
         return ResponseEntity.ok(verifiedDriver);
+    }
+
+    @GetMapping("/trips/driver/{driverId}")
+    public ResponseEntity<List<TripBooking>> getTripsByDriver(@PathVariable int driverId) {
+        logger.info("Admin requested trips for driver with ID: {}", driverId);
+        List<TripBooking> trips = tripBookingService.viewAllTripsDriver(driverId);
+        return ResponseEntity.ok(trips);
+    }
+
+    @GetMapping("/trips/date/{date}")
+    public ResponseEntity<List<TripBooking>> getTripsByDate(
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        logger.info("Admin requested trips for date: {}", date);
+        List<TripBooking> trips = tripBookingService.getTripsDatewise(date);
+        return ResponseEntity.ok(trips);
     }
 }

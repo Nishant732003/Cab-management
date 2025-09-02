@@ -23,6 +23,32 @@ export interface Driver {
   verified: boolean;
   vehicle?: string; // Vehicle might come from a different source, so optional
 }
+// NEW: INTERFACE FOR ADMIN
+export interface Admin {
+  userId: number;
+  username: string;
+  name: string;
+  email: string;
+  mobileNumber: string;
+  verified: boolean;
+}
+// NEW: INTERFACE FOR TRIP
+export interface TripBooking {
+  tripBookingId: number;
+  customer: Customer;
+  driver: Driver;
+  fromLocation: string;
+  toLocation: string;
+  fromDateTime: string;
+  toDateTime: string | null;
+  status: string;
+  distanceInKm: number;
+  bill: number;
+  customerRating: number | null;
+}
+
+  // Add other relevant trip properties
+
 
 @Injectable({
   providedIn: 'root'
@@ -59,6 +85,39 @@ export class AdminService {
    */
   verifyDriver(driverId: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/verify/drivers/${driverId}`, {});
+ 
+  }
+   // New methods to add:
+
+  /**
+   * Fetches all unverified admin accounts.
+   */
+  getUnverifiedAdmins(): Observable<Admin[]> {
+    return this.http.get<Admin[]>(`${this.apiUrl}/unverified/admins`);
+  }
+
+  /**
+   * Verifies an admin by their ID.
+   * @param adminId The ID of the admin to verify.
+   */
+  verifyAdmin(adminId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/verify/admins/${adminId}`, {});
+  }
+
+  /**
+   * Gets all trips for a specific driver.
+   * @param driverId The ID of the driver.
+   */
+  getTripsByDriver(driverId: number): Observable<TripBooking[]> {
+    return this.http.get<TripBooking[]>(`${this.apiUrl}/trips/driver/${driverId}`);
+  }
+
+  /**
+   * Gets all trips for a specific date.
+   * @param date The date in YYYY-MM-DD format.
+   */
+  getTripsByDate(date: string): Observable<TripBooking[]> {
+    return this.http.get<TripBooking[]>(`${this.apiUrl}/trips/date/${date}`);
   }
 }
 
