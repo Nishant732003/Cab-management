@@ -40,5 +40,28 @@ export class AdminService {
   getAllDrivers(): Observable<Driver[]> {
     return this.http.get<Driver[]>(`${this.apiUrl}/drivers`);
   }
+  // --- FIX: ADD METHODS FOR DRIVER VERIFICATION ---
+
+  /**
+   * Fetches a list of all drivers who are not yet verified.
+   * This corresponds to GET /api/admin/unverified/drivers
+   * @returns An Observable array of Driver objects.
+   */
+  getUnverifiedDrivers(): Observable<Driver[]> {
+    return this.http.get<Driver[]>(`${this.apiUrl}/unverified/drivers`);
+  }
+
+  /**
+   * Sends a request to verify a specific driver.
+   * This corresponds to POST /api/admin/verify/drivers/{driverId}
+   * @param driverId The unique ID of the driver to verify.
+   * @returns An Observable with the response from the server.
+   */
+  verifyDriver(driverId: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/verify/drivers/${driverId}`, {});
+  }
 }
+
+
+
 
