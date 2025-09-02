@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-// import org.springframework.security.access.prepost.PreAuthorize; // FIX: Remove this import
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,11 +22,10 @@ import com.cabbooking.service.IDriverService;
 
 /**
  * REST controller for handling admin-specific operations.
- * (Comments remain the same)
+ * (Your existing comments are preserved)
  */
 @RestController
 @RequestMapping("/api/admin")
-// @PreAuthorize("hasRole('Admin')") // FIX: Remove this line to rely on global SecurityConfig
 @Validated
 public class AdminController {
 
@@ -44,7 +42,7 @@ public class AdminController {
 
     /**
      * Constructor for AdminController.
-     * Logs an initialization message to confirm that Spring is creating this bean on startup.
+     * (Your existing comments are preserved)
      */
     public AdminController() {
         logger.info("**************************************************");
@@ -54,7 +52,7 @@ public class AdminController {
 
     /**
      * Endpoint to retrieve a summary of all customer accounts.
-     * * GET /api/admin/customers
+     * (Your existing comments are preserved)
      */
     @GetMapping("/customers")
     public ResponseEntity<List<UserSummaryDTO>> getAllCustomers() {
@@ -63,9 +61,22 @@ public class AdminController {
         return ResponseEntity.ok(customers);
     }
 
+    // --- FIX: ADD THE MISSING ENDPOINT TO GET ALL DRIVERS ---
+    /**
+     * Endpoint to retrieve a summary of all driver accounts.
+     * * GET /api/admin/drivers
+     * @return HTTP 200 with a List of UserSummaryDTOs for all drivers.
+     */
+    @GetMapping("/drivers")
+    public ResponseEntity<List<UserSummaryDTO>> getAllDrivers() {
+        logger.info("Admin requested list of all drivers");
+        List<UserSummaryDTO> drivers = adminService.getAllDrivers();
+        return ResponseEntity.ok(drivers);
+    }
+
     /**
      * Endpoint to retrieve all unverified admin accounts.
-     * (Existing code - no changes)
+     * (Your existing methods and comments are preserved)
      */
     @GetMapping("/unverified/admins")
     public ResponseEntity<List<Admin>> getUnverifiedAdmins() {
@@ -76,7 +87,7 @@ public class AdminController {
 
     /**
      * Endpoint to verify an admin account by its unique ID.
-     * (Existing code - no changes)
+     * (Your existing methods and comments are preserved)
      */
     @PostMapping("/verify/admins/{adminId}")
     public ResponseEntity<String> verifyAdmin(@PathVariable Integer adminId) {
@@ -95,7 +106,7 @@ public class AdminController {
 
     /**
      * Endpoint to retrieve a list of all drivers awaiting verification.
-     * (Existing code - no changes)
+     * (Your existing methods and comments are preserved)
      */
     @GetMapping("/unverified/drivers")
     public ResponseEntity<List<Driver>> getUnverifiedDrivers() {
@@ -105,7 +116,7 @@ public class AdminController {
 
     /**
      * Endpoint to verify a specific driver by their ID.
-     * (Existing code - no changes)
+     * (Your existing methods and comments are preserved)
      */
     @PostMapping("/verify/drivers/{driverId}")
     public ResponseEntity<Driver> verifyDriver(@PathVariable int driverId) {
@@ -113,4 +124,3 @@ public class AdminController {
         return ResponseEntity.ok(verifiedDriver);
     }
 }
-

@@ -3,13 +3,25 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
-// Define an interface for the customer data we expect from the API
 export interface Customer {
   userId: number;
   username: string;
   name: string;
   email: string;
   mobileNumber: string;
+}
+
+// FIX: Add a new interface for Driver data to match the DTO
+export interface Driver {
+  userId: number;
+  username: string;
+  name: string;
+  email: string;
+  mobileNumber: string;
+  rating: number;
+  licenceNo: string;
+  verified: boolean;
+  vehicle?: string; // Vehicle might come from a different source, so optional
 }
 
 @Injectable({
@@ -20,11 +32,13 @@ export class AdminService {
 
   constructor(private http: HttpClient) { }
 
-  /**
-   * Fetches a list of all customers.
-   * @returns An Observable array of Customer objects.
-   */
   getAllCustomers(): Observable<Customer[]> {
     return this.http.get<Customer[]>(`${this.apiUrl}/customers`);
   }
+
+  // FIX: Add the new method to get all drivers
+  getAllDrivers(): Observable<Driver[]> {
+    return this.http.get<Driver[]>(`${this.apiUrl}/drivers`);
+  }
 }
+

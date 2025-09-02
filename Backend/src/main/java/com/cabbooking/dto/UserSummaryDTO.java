@@ -6,37 +6,32 @@ import lombok.NoArgsConstructor;
 
 /**
  * A Data Transfer Object for sending a summary of user information to the client.
- * This is used by the admin dashboard to display lists of users without sending sensitive data like passwords.
+ * This is used by the admin dashboard to display lists of users without sending sensitive data.
  */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserSummaryDTO {
     
-    /**
-     * The unique identifier for the user.
-     * Renamed from 'id' to 'userId' to align with the frontend's data model.
-     */
+    // Common fields for all users
     private Integer userId; 
-    
-    /**
-     * The user's unique username.
-     */
     private String username;
-    
-    /**
-     * The user's email address.
-     */
     private String email;
-    
-    /**
-     * The full name of the user.
-     */
     private String name;
-    
-    /**
-     * The user's mobile phone number.
-     */
     private String mobileNumber; 
+    
+    // Driver-specific fields (will be null for customers)
+    private Double rating;
+    private String licenceNo;
+    private Boolean verified;
+
+    // Constructor for Customer
+    public UserSummaryDTO(Integer userId, String username, String email, String name, String mobileNumber) {
+        this.userId = userId;
+        this.username = username;
+        this.email = email;
+        this.name = name;
+        this.mobileNumber = mobileNumber;
+    }
 }
 
