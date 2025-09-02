@@ -1,10 +1,10 @@
-// user-registration.component.ts - Final Version with API Call
-import { Component, Inject, PLATFORM_ID } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
-import { finalize } from 'rxjs/operators';
+import { finalize, debounceTime, distinctUntilChanged, switchMap, map, catchError } from 'rxjs/operators';
+import { of, Observable } from 'rxjs';
 
 @Component({
   selector: 'app-user-registration',
@@ -13,12 +13,14 @@ import { finalize } from 'rxjs/operators';
   templateUrl: './registration.component.html',
   styleUrls: ['./registration.component.css']
 })
-export class UserRegistrationComponent {
+export class UserRegistrationComponent implements OnInit {
   registrationForm;
   errorMessage = '';
   isLoading = false;
   passwordFieldType = 'password';
   confirmPasswordFieldType = 'password';
+  usernameStatus: 'CHECKING' | 'AVAILABLE' | 'TAKEN' | 'INVALID' | null = null;
+  usernameMessage = '';
 
   constructor(
     private fb: FormBuilder,
@@ -28,12 +30,47 @@ export class UserRegistrationComponent {
     this.registrationForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       lastName: ['', [Validators.required, Validators.minLength(2)]],
+      username: ['', [Validators.required, Validators.pattern(/^[a-zA-Z0-9_]{3,20}$/)]],
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [Validators.required, Validators.pattern(/^[0-9]{10,15}$/)]],
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', Validators.required],
       agreeToTerms: [false, Validators.requiredTrue]
     }, { validators: this.passwordMatchValidator });
+  }
+
+  ngOnInit(): void {
+      this.registrationForm.get('username')?.valueChanges.pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        switchMap(username => {
+            if (!username || (this.registrationForm.get('username')?.invalid)) {
+                this.usernameStatus = 'INVALID';
+                this.usernameMessage = 'Username must be 3-20 characters long and contain only letters, numbers, or underscores.';
+                return of(null);
+            }
+            this.usernameStatus = 'CHECKING';
+            this.usernameMessage = '';
+            return this.authService.checkUsername(username).pipe(
+                map(isTaken => {
+                    if (isTaken) {
+                        this.usernameStatus = 'TAKEN';
+                        this.usernameMessage = 'This username is already taken.';
+                        this.registrationForm.get('username')?.setErrors({ usernameTaken: true });
+                    } else {
+                        this.usernameStatus = 'AVAILABLE';
+                        this.usernameMessage = 'Username is available!';
+                    }
+                    return null;
+                }),
+                catchError(() => {
+                    this.usernameStatus = null; // Clear status on API error
+                    this.usernameMessage = '';
+                    return of(null);
+                })
+            );
+        })
+      ).subscribe();
   }
 
   passwordMatchValidator(form: any) {
@@ -56,31 +93,30 @@ export class UserRegistrationComponent {
   }
 
   onSubmit() {
-    if (this.registrationForm.invalid) {
-        this.registrationForm.markAllAsTouched(); // Show validation errors on all fields
+    if (this.registrationForm.invalid || this.usernameStatus === 'TAKEN' || this.usernameStatus === 'CHECKING') {
+        this.registrationForm.markAllAsTouched(); 
+        if (this.usernameStatus === 'TAKEN') {
+            this.errorMessage = 'Please choose a different username.';
+        }
         return;
     }
 
     this.isLoading = true;
     this.errorMessage = '';
 
-    // Prepare the data to send to the API
     const { confirmPassword, agreeToTerms, ...userData } = this.registrationForm.value;
 
-    // Call the AuthService to register the user
     this.authService.registerUser(userData).pipe(
       finalize(() => {
-        this.isLoading = false; // Stop the loading spinner
+        this.isLoading = false; 
       })
     ).subscribe({
       next: (response) => {
-        // On success, navigate to the login page with a success message
         this.router.navigate(['/login'], {
           queryParams: { message: 'Registration successful! Please login to continue.' }
         });
       },
       error: (error) => {
-        // On failure, display the error message from the backend
         this.errorMessage = error.error?.message || 'Registration failed. Please try again.';
       }
     });

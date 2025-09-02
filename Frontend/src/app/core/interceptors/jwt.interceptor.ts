@@ -1,35 +1,27 @@
 import { Injectable } from '@angular/core';
-import {
-  HttpRequest,
-  HttpHandler,
-  HttpEvent,
-  HttpInterceptor
-} from '@angular/common/http';
+import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { AuthService } from '../services/auth.service';
 
 @Injectable()
 export class JwtInterceptor implements HttpInterceptor {
+  constructor(private authService: AuthService) {}
 
-  constructor() {}
+  intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
+    // Get the auth token from the service.
+    const authToken = this.authService.getToken();
 
-  intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-    // Get the token from local storage
-    const token = localStorage.getItem('jwt_token');
-    
-    // Check if the request is going to our API URL
-    const isApiUrl = request.url.startsWith(environment.apiUrl);
-
-    // If a token exists and it's an API request, clone the request to add the new header.
-    if (token && isApiUrl) {
+    // If a token exists, clone the request and add the authorization header.
+    if (authToken) {
       request = request.clone({
         setHeaders: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${authToken}`
+        },
+        // FIX: Add this line to handle credentials with CORS
+        withCredentials: true 
       });
     }
 
-    // Pass the cloned or original request to the next handler
     return next.handle(request);
   }
 }

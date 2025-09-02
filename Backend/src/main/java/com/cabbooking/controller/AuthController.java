@@ -19,6 +19,9 @@ import com.cabbooking.dto.DriverRegistrationRequest;
 import com.cabbooking.dto.EmailVerificationRequest;
 import com.cabbooking.dto.LoginRequest;
 import com.cabbooking.dto.LoginResponse;
+import com.cabbooking.repository.AdminRepository;
+import com.cabbooking.repository.CustomerRepository;
+import com.cabbooking.repository.DriverRepository;
 import com.cabbooking.service.IAdminRegistrationService;
 import com.cabbooking.service.ICustomerRegistrationService;
 import com.cabbooking.service.IDriverRegistrationService;
@@ -69,6 +72,15 @@ public class AuthController {
 
     @Autowired
     private IVerificationService verificationService;
+
+    @Autowired
+    private AdminRepository adminRepository;
+
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    @Autowired
+    private DriverRepository driverRepository;
 
     /**
      * Handles POST requests to register a new admin.
@@ -250,5 +262,20 @@ public class AuthController {
             // On failure, return a 400 Bad Request
             return ResponseEntity.badRequest().body("The verification link is invalid or has expired.");
         }
+    }
+    
+    /**
+     * Checks if a username already exists across all user types.
+     * * Endpoint: GET /api/auth/check/username/{username}
+     *
+     * @param username The username to check.
+     * @return ResponseEntity<Boolean> true if the username exists, false otherwise.
+     */
+    @GetMapping("/check/username/{username}")
+    public ResponseEntity<Boolean> checkUsername(@PathVariable String username) {
+        boolean exists = adminRepository.existsByUsername(username) || 
+                         customerRepository.existsByUsername(username) || 
+                         driverRepository.existsByUsername(username);
+        return ResponseEntity.ok(exists);
     }
 }

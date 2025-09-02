@@ -53,10 +53,6 @@ export class AuthService {
       ? { email: identifier, password }
       : { username: identifier, password };
     
-    //
-    // THIS IS THE CORRECTED LINE:
-    // The URL must match the backend's @RequestMapping and SecurityConfig
-    //
     const loginUrl = `${environment.apiUrl}/api/auth/login`;
     console.log('Attempting to POST to:', loginUrl);
 
@@ -66,8 +62,8 @@ export class AuthService {
           if (response.userId && response.token) {
             const user: User = {
               id: response.userId,
-              email: isEmail ? identifier : '',
-              username: !isEmail ? identifier : '',
+              email: isEmail ? identifier : '', // This logic might need profile fetching post-login
+              username: !isEmail ? identifier : '', // to be fully accurate
               role: this.mapUserTypeToRole(response.userType),
               name: this.extractNameFromIdentifier(identifier),
               token: response.token,
@@ -83,14 +79,17 @@ export class AuthService {
       );
   }
 
-  // --- The rest of your file is correct and remains the same ---
-  
   registerUser(userData: any): Observable<RegistrationResponse> {
     return this.http.post<RegistrationResponse>(`${environment.apiUrl}/api/auth/register/customer`, userData);
   }
 
   registerDriver(driverData: any): Observable<RegistrationResponse> {
     return this.http.post<RegistrationResponse>(`${environment.apiUrl}/api/auth/register/driver`, driverData);
+  }
+  
+  // New method to check username availability
+  checkUsername(username: string): Observable<boolean> {
+    return this.http.get<boolean>(`${environment.apiUrl}/api/auth/check/username/${username}`);
   }
 
   private isEmail(input: string): boolean {
@@ -104,7 +103,6 @@ export class AuthService {
   }
 
   logout(): Observable<any> {
-    // This URL needs to be correct too
     return this.http.post(`${environment.apiUrl}/api/auth/logout`, {}).pipe(
       tap(() => {
         this.clearAuthData();
