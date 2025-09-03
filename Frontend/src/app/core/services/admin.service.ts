@@ -25,7 +25,7 @@ export interface Driver {
 }
 // NEW: INTERFACE FOR ADMIN
 export interface Admin {
-  userId: number;
+  id: number; // <-- FIX: Changed from userId to id as backend uses 'id'
   username: string;
   name: string;
   email: string;
@@ -110,7 +110,10 @@ export class AdminService {
    * @param adminId The ID of the admin to verify.
    */
   verifyAdmin(adminId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/verify/admins/${adminId}`, {});
+    // --- FIX: Added { responseType: 'text' } ---
+    // This tells Angular to expect a plain text string as the response,
+    // which prevents the JSON parsing error. as backend returns a simple string message.
+    return this.http.post(`${this.apiUrl}/verify/admins/${adminId}`, {}, { responseType: 'text' });
   }
 
   /**

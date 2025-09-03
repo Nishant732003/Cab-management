@@ -16,12 +16,12 @@
         </thead>
         <tbody>
           <tr *ngFor="let admin of unverifiedAdmins" class="bg-white border-b">
-            <td class="py-4 px-6">{{ admin.userId }}</td>
+            <td class="py-4 px-6">{{ admin.id }}</td>
             <td class="py-4 px-6">{{ admin.username }}</td>
             <td class="py-4 px-6">{{ admin.name }}</td>
             <td class="py-4 px-6">{{ admin.email }}</td>
             <td class="py-4 px-6">
-              <button (click)="verifyAdmin(admin.userId)"
+              <button (click)="verifyAdmin(admin.id)"
                 class="px-4 py-2 font-medium text-white bg-blue-600 rounded-md hover:bg-blue-500 focus:outline-none focus:shadow-outline-blue active:bg-blue-600 transition duration-150 ease-in-out">
                 Verify
               </button>
