@@ -38,24 +38,38 @@ public class TripSchedulerService {
     @Autowired
     private CabRepository cabRepository;
 
+    /*
+     * Constant for nearby radius in kilometers
+     */
+    private static final double NEARBY_RADIUS_KM = 5.0;
+
+
     /**
-     * This method is the core of the scheduler. It runs automatically at a fixed interval
-     * to find and process scheduled trips that are due soon.
-     * * The @Scheduled(fixedRate = 60000) annotation tells Spring to execute this method
-     * every 60,000 milliseconds (i.e., every 1 minute).
-     * * The @Transactional annotation ensures that all database operations within this method
-     * are part of a single transaction. If any part fails, all changes are rolled back.
+     * This method is the core of the scheduler. It runs automatically at a
+     * fixed interval to find and process scheduled trips that are due soon. *
+     * The @Scheduled(fixedRate = 60000) annotation tells Spring to execute this
+     * method every 60,000 milliseconds (i.e., every 1 minute). * The
+     *
+     * @Transactional annotation ensures that all database operations within
+     * this method are part of a single transaction. If any part fails, all
+     * changes are rolled back.
+     *
+     * Workflow:
+     * - This method is scheduled to run every 1 minute.
+     * - It checks for scheduled trips that are due to start within the next 15 minutes.
+     * - If a trip is due, it attempts to find an best available nearby driver and assign them to the trip.
+     * - If driver is found, the trip status is updated to 'IN_PROGRESS'.
      */
     @Scheduled(fixedRate = 60000) // Runs every 1 minute
     @Transactional
     public void assignDriversToScheduledTrips() {
         logger.info("Scheduler running: Checking for scheduled trips...");
 
-        // 1. Find all trips that are currently in the 'SCHEDULED' state and are due to start
-        //    within the next 15 minutes. This gives the system a small buffer to find a driver.
+        // Find all trips that are currently in the 'SCHEDULED' state and are due to start
+        // within the next 15 minutes. This gives the system a small buffer to find a driver.
         List<TripBooking> dueTrips = tripBookingRepository.findAll().stream()
-                .filter(trip -> trip.getStatus() == TripStatus.SCHEDULED &&
-                               trip.getFromDateTime().isBefore(LocalDateTime.now().plusMinutes(15)))
+                .filter(trip -> trip.getStatus() == TripStatus.SCHEDULED
+                && trip.getFromDateTime().isBefore(LocalDateTime.now().plusMinutes(15)))
                 .collect(Collectors.toList());
 
         // If no trips are due, log it and exit the method to save resources.
@@ -64,46 +78,71 @@ public class TripSchedulerService {
             return;
         }
 
-        // 2. Iterate through each due trip and attempt to assign a driver and cab.
+        // Find all available drivers once to avoid multiple DB calls
+        List<Driver> allAvailableDrivers = driverRepository.findAll().stream()
+                .filter(d -> d.getVerified() && d.getIsAvailable() && d.getCab() != null &&
+                              d.getLatitude() != null && d.getLongitude() != null)
+                .toList();
+
+        // Iterate through each due trip and attempt to assign a driver and cab.
         for (TripBooking trip : dueTrips) {
+
+            if (trip.getFromLatitude() == null || trip.getFromLongitude() == null) {
+                logger.warn("Scheduled trip ID: {} is missing starting coordinates. Skipping.", trip.getTripBookingId());
+                continue;
+            }
+
             logger.info("Attempting to assign driver to scheduled trip ID: {}", trip.getTripBookingId());
+
             try {
-                // 3. Find the best available driver (verified, available, and highest rating).
-                Driver bestAvailableDriver = driverRepository.findAll().stream()
-                        .filter(d -> d.getVerified() && d.getIsAvailable())
+                // Find best driver who is nearby the trip's STARTING location
+                Driver bestAvailableDriver = allAvailableDrivers.stream()
+                        .filter(d -> d.getCab().getCarType().equalsIgnoreCase(trip.getCarType()))
+                        .filter(d -> calculateDistance(
+                                trip.getFromLatitude(),
+                                trip.getFromLongitude(),
+                                d.getLatitude(),
+                                d.getLongitude()) <= NEARBY_RADIUS_KM)
                         .max(Comparator.comparing(Driver::getRating))
-                        .orElse(null); // Return null if no driver is found
+                        .orElse(null);
 
-                // 4. Find any available cab.
-                Cab availableCab = cabRepository.findAll().stream()
-                        .filter(Cab::getIsAvailable)
-                        .findFirst()
-                        .orElse(null); // Return null if no cab is found
+                // If a driver was found, assign them and their cab to the trip.
+                if (bestAvailableDriver != null) {
+                    Cab assignedCab = bestAvailableDriver.getCab();
 
-                // 5. If both a driver and a cab were found, assign them to the trip.
-                if (bestAvailableDriver != null && availableCab != null) {
-                    // Mark the driver and cab as unavailable for other trips.
+                    // Mark the driver and their cab as unavailable
                     bestAvailableDriver.setIsAvailable(false);
-                    availableCab.setIsAvailable(false);
+                    assignedCab.setIsAvailable(false);
                     driverRepository.save(bestAvailableDriver);
-                    cabRepository.save(availableCab);
 
-                    // Update the trip with the assigned driver and cab.
+                    // Update the trip details
                     trip.setDriver(bestAvailableDriver);
-                    trip.setCab(availableCab);
-                    // Change the trip status from SCHEDULED to CONFIRMED.
+                    trip.setCab(assignedCab);
                     trip.setStatus(TripStatus.CONFIRMED);
                     tripBookingRepository.save(trip);
                     
-                    logger.info("Successfully assigned Driver {} and Cab {} to Trip {}", bestAvailableDriver.getId(), availableCab.getCabId(), trip.getTripBookingId());
+                    logger.info("Successfully assigned Driver {} and Cab {} to Trip {}", bestAvailableDriver.getId(), assignedCab.getCabId(), trip.getTripBookingId());
                 } else {
-                    // Log a warning if no resources are available. The trip will be re-checked on the next run.
-                    logger.warn("Could not find available driver or cab for scheduled trip ID: {}", trip.getTripBookingId());
+                    logger.warn("Could not find an available driver for scheduled trip ID: {}", trip.getTripBookingId());
                 }
             } catch (Exception e) {
                 // Log any unexpected errors to prevent the scheduler from crashing.
                 logger.error("Error while assigning driver to scheduled trip ID: {}", trip.getTripBookingId(), e);
             }
         }
+    }
+
+    /*
+     * Helper method to calculate distance between two coordinates
+     */
+    private double calculateDistance(double lat1, double lng1, double lat2, double lng2) {
+        final int R = 6371; // Radius of the earth in km
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lng2 - lng1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
     }
 }

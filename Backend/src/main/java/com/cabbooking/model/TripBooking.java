@@ -4,13 +4,13 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 /**
- * Represents a single trip booking record in the system.
- * This entity is the core of the booking module, linking a customer to a driver and a cab for a specific journey.
+ * Represents a single trip booking record in the system. This entity is the
+ * core of the booking module, linking a customer to a driver and a cab for a
+ * specific journey.
  *
- * Workflow:
- * 1. A Customer initiates a request, which creates a TripBooking record with a 'CONFIRMED' status.
- * 2. A Driver is assigned to the trip.
- * 3. The trip status is updated as it progresses (e.g., 'IN_PROGRESS', 'COMPLETED').
+ * Workflow: 1. A Customer initiates a request, which creates a TripBooking
+ * record with a 'CONFIRMED' status. 2. A Driver is assigned to the trip. 3. The
+ * trip status is updated as it progresses (e.g., 'IN_PROGRESS', 'COMPLETED').
  * 4. Upon completion, the final bill is calculated and stored.
  */
 @Entity
@@ -24,26 +24,25 @@ public class TripBooking {
     private Integer tripBookingId;
 
     /**
-     * The customer who booked the trip.
-     * This establishes a Many-to-One relationship with the Customer entity.
-     * A customer can have many trip bookings.
+     * The customer who booked the trip. This establishes a Many-to-One
+     * relationship with the Customer entity. A customer can have many trip
+     * bookings.
      */
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
     /**
-     * The driver assigned to the trip.
-     * This is a Many-to-One relationship, as a driver can handle multiple trips over time.
+     * The driver assigned to the trip. This is a Many-to-One relationship, as a
+     * driver can handle multiple trips over time.
      */
     @ManyToOne
     @JoinColumn(name = "driver_id")
     private Driver driver;
-    
+
     /**
-     * The cab used for the trip.
-     * Establishes a Many-to-One relationship with the Cab entity.
-     * This will be integrated with the Cab Management module.
+     * The cab used for the trip. Establishes a Many-to-One relationship with
+     * the Cab entity. This will be integrated with the Cab Management module.
      */
     @ManyToOne
     @JoinColumn(name = "cab_id")
@@ -70,8 +69,8 @@ public class TripBooking {
     private LocalDateTime toDateTime;
 
     /**
-     * The current status of the trip (e.g., CONFIRMED, COMPLETED).
-     * Uses an Enum for type-safety and clarity.
+     * The current status of the trip (e.g., CONFIRMED, COMPLETED). Uses an Enum
+     * for type-safety and clarity.
      */
     @Enumerated(EnumType.STRING)
     private TripStatus status;
@@ -89,8 +88,23 @@ public class TripBooking {
     // ==> ADD THIS NEW FIELD <==
     private Integer customerRating;
 
-    // Getters and Setters
+    /**
+     * The type of car requested by the customer for the trip (e.g., "Sedan", "SUV").
+     * This is crucial for the scheduler to assign the correct type of cab.
+     */
+    private String carType;
 
+    /*
+     * From Location's latitude
+     */
+    private Double fromLatitude;
+
+    /*
+     * From Location's longitude
+     */
+    private Double fromLongitude;
+
+    // Getters and Setters
     public Integer getTripBookingId() {
         return tripBookingId;
     }
@@ -114,7 +128,7 @@ public class TripBooking {
     public void setDriver(Driver driver) {
         this.driver = driver;
     }
-    
+
     public Cab getCab() {
         return cab;
     }
@@ -185,5 +199,29 @@ public class TripBooking {
 
     public void setCustomerRating(Integer customerRating) {
         this.customerRating = customerRating;
+    }
+
+    public String getCarType() {
+        return carType;
+    }
+
+    public void setCarType(String carType) {
+        this.carType = carType;
+    }
+
+    public Double getFromLatitude() {
+        return fromLatitude;
+    }
+
+    public void setFromLatitude(Double fromLatitude) {
+        this.fromLatitude = fromLatitude;
+    }
+
+    public Double getFromLongitude() {
+        return fromLongitude;
+    }
+
+    public void setFromLongitude(Double fromLongitude) {
+        this.fromLongitude = fromLongitude;
     }
 }

@@ -68,13 +68,13 @@ public class AdminServiceImpl implements IAdminService {
             ? customer.getUsername().substring(0, 1).toUpperCase() + customer.getUsername().substring(1)
             : "N/A";
 
-        return new UserSummaryDTO(
-            customer.getId(),
-            customer.getUsername(),
-            customer.getEmail(),
-            displayName,
-            customer.getMobileNumber()
-        );
+        UserSummaryDTO userSummary = new UserSummaryDTO();
+        userSummary.setUserId(customer.getId());
+        userSummary.setUsername(customer.getUsername());
+        userSummary.setEmail(customer.getEmail());
+        userSummary.setName(displayName);
+        userSummary.setMobileNumber(customer.getMobileNumber());
+        return userSummary;
     }
     
     /**

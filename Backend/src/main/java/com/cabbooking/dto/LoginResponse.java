@@ -1,16 +1,5 @@
 package com.cabbooking.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-/**
- * DTO for login responses.
- * Contains user info, a JWT token, and a success flag.
- */
-@Data // Generates all getters, setters, toString(), etc. automatically
-@NoArgsConstructor // Generates a no-argument constructor
-@AllArgsConstructor // Generates a constructor with all fields (message, userId, userType, token, success)
 public class LoginResponse {
 
     private String message;
@@ -18,5 +7,55 @@ public class LoginResponse {
     private String userType;
     private String token;
     private boolean success;
+
+    public LoginResponse(String message, Integer userId, String userType, String token, boolean success) {
+        this.message = message;
+        this.success = success;
+        this.token = token;
+        this.userId = userId;
+        this.userType = userType;
+    }
+
+    // Getters and Setters
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public Integer getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Integer userId) {
+        this.userId = userId;
+    }
+
+    public String getUserType() {
+        return userType;
+    }
+
+    public void setUserType(String userType) {
+        this.userType = userType;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public boolean getSuccess() {
+        return success;
+    }
+
+    public void setSuccess(boolean success) {
+        this.success = success;
+    }
 
 }

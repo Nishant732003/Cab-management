@@ -2,6 +2,7 @@ package com.cabbooking.service;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,37 +37,44 @@ public class PasswordResetServiceImpl implements IPasswordResetService {
     /*
      * Provides access to the profile service for user lookup.
      */
-    @Autowired private IProfileService profileService; // Reuse the profile service to find users
+    @Autowired
+    private IProfileService profileService; // Reuse the profile service to find users
 
     /*
      * Provides access to the password reset token repository.
      */
-    @Autowired private PasswordResetTokenRepository tokenRepository;
+    @Autowired
+    private PasswordResetTokenRepository tokenRepository;
 
     /*
      * Provides access to the admin repository.
      */
-    @Autowired private AdminRepository adminRepository;
+    @Autowired
+    private AdminRepository adminRepository;
 
     /*
      * Provides access to the customer repository.
      */
-    @Autowired private CustomerRepository customerRepository;
+    @Autowired
+    private CustomerRepository customerRepository;
 
     /*
      * Provides access to the driver repository.
      */
-    @Autowired private DriverRepository driverRepository;
+    @Autowired
+    private DriverRepository driverRepository;
 
     /*
      * Provides access to the email service.
      */
-    @Autowired private IEmailService emailService;
+    @Autowired
+    private IEmailService emailService;
 
     /*
      * Provides access to the password encoder.
      */
-    @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     /*
      * Creates a password reset token and sends an email to the user with a link to reset their password.
@@ -83,8 +91,8 @@ public class PasswordResetServiceImpl implements IPasswordResetService {
     @Override
     @Transactional
     public void createAndSendPasswordResetToken(String email) {
-        AbstractUser user = profileService.getUserProfileByUsername(email) // Assuming username is email for this flow
-                .orElseThrow(() -> new IllegalArgumentException("No user found with email: " + email));
+        AbstractUser user = findUserByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("User associated with token not found."));
 
         String token = UUID.randomUUID().toString();
         PasswordResetToken resetToken = new PasswordResetToken(token, LocalDateTime.now().plusHours(1), user.getEmail());
@@ -93,7 +101,7 @@ public class PasswordResetServiceImpl implements IPasswordResetService {
         String subject = "Your Password Reset Request";
         String resetUrl = "http://your-frontend-url/reset-password?token=" + token;
         String message = "To reset your password, click the link below:\n" + resetUrl;
-        
+
         emailService.sendSimpleEmail(user.getEmail(), subject, message);
     }
 
@@ -119,7 +127,7 @@ public class PasswordResetServiceImpl implements IPasswordResetService {
             return false; // Token is invalid or expired
         }
 
-        AbstractUser user = profileService.getUserProfileByUsername(resetToken.getUserEmail())
+        AbstractUser user = findUserByEmail(resetToken.getUserEmail())
                 .orElseThrow(() -> new IllegalStateException("User associated with token not found."));
 
         user.setPassword(passwordEncoder.encode(newPassword));
@@ -129,8 +137,39 @@ public class PasswordResetServiceImpl implements IPasswordResetService {
         return true;
     }
 
+    /*
+     * Helper method to find a user by email address.
+     * 
+     * @param email The email address of the user to find.
+     * @return An Optional containing the user if found, empty otherwise.
+     */
+    private Optional<AbstractUser> findUserByEmail(String email) {
+        // Check Admin repository first
+        Admin admin = adminRepository.findByEmail(email);
+        if (admin != null) {
+            return Optional.of(admin);
+        }
+
+        // If not found, check Customer repository
+        Customer customer = customerRepository.findByEmail(email);
+        if (customer != null) {
+            return Optional.of(customer);
+        }
+
+        // If still not found, check Driver repository
+        Driver driver = driverRepository.findByEmail(email);
+        if (driver != null) {
+            return Optional.of(driver);
+        }
+
+        // If no user was found in any repository, return an empty Optional
+        return Optional.empty();
+    }
+
     /**
-     * Helper method to save a user to the correct repository based on their type.
+     * Helper method to save a user to the correct repository based on their
+     * type.
+     *
      * @param user The user object to save.
      */
     private void saveUser(AbstractUser user) {
