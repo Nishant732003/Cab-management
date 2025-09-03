@@ -6,11 +6,9 @@ import jakarta.persistence.*;
  * AbstractUser is a base class representing common properties and structure
  * shared by all user entities in the Cab Booking Platform, such as Admin,
  * Customer, and Driver.
- * 
- * This is annotated with @MappedSuperclass, allowing subclasses to inherit
+ * * This is annotated with @MappedSuperclass, allowing subclasses to inherit
  * its fields and JPA mapping without being a table on its own.
- * 
- * Usage:
+ * * Usage:
  * - Extend this class in concrete user entities (e.g., Admin, Customer, Driver).
  * - Ensures a consistent user model across modules.
  */
@@ -56,6 +54,24 @@ public abstract class AbstractUser {
     private String email;
 
     private Boolean emailVerified = false;
+
+    // --- ADDED: No-argument constructor (good practice and required by JPA) ---
+    public AbstractUser() {
+    }
+
+    /**
+     * --- ADDED: Constructor to initialize common fields ---
+     * This is the constructor that the Admin, Customer, and Driver subclasses
+     * will call to set their inherited properties. This resolves the compilation error.
+     */
+    public AbstractUser(String username, String password, String address, String mobileNumber, String email) {
+        this.username = username;
+        this.password = password;
+        this.address = address;
+        this.mobileNumber = mobileNumber;
+        this.email = email;
+    }
+
 
     // ====== Getters and Setters =======
 

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import com.cabbooking.model.Admin; 
 
 import com.cabbooking.dto.AdminRegistrationRequest;
 import com.cabbooking.dto.CustomerRegistrationRequest;
@@ -92,13 +93,16 @@ public class AuthController {
      * message.
      */
     @PostMapping("/register/admin")
-    public ResponseEntity<String> registerAdmin(@Valid @RequestBody AdminRegistrationRequest request) {
+    public ResponseEntity<?> registerAdmin(@Valid @RequestBody AdminRegistrationRequest request) {
         logger.info("Admin registration attempt for username: {}", request.getUsername());
         try {
-            // Delegate to service layer for registration business logic
-            adminRegistrationService.registerAdmin(request);
+            // Delegate to service layer, which now returns the created Admin object
+            Admin newAdmin = adminRegistrationService.registerAdmin(request);
             logger.info("Admin registered successfully (unverified) for username: {}", request.getUsername());
-            return ResponseEntity.ok("Admin registered successfully, pending superadmin verification.");
+            
+            // --- MODIFIED: Return the complete 'newAdmin' object with a 200 OK status ---
+            return ResponseEntity.ok(newAdmin);
+            
         } catch (IllegalArgumentException e) {
             // Handle known validation or duplicate data errors
             logger.error("Admin registration failed: {}", e.getMessage());
