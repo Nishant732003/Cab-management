@@ -1,10 +1,10 @@
 <div class="book-ride-container">
   <div class="header">
     <h2>🚗 Book a Ride</h2>
-    <p>Enter your trip details to find available drivers</p>
+    <p>Enter your trip details to find available cars</p>
   </div>
 
-  <!-- Location Selection Step -->
+  <!-- Step 1: Location -->
   <div class="booking-step" *ngIf="currentStep === 'location'">
     <div class="step-indicator">
       <div class="step active">1. Location</div>
@@ -15,36 +15,22 @@
     <div class="booking-form">
       <div class="form-group">
         <label for="pickup">📍 Pickup Location</label>
-        <input 
-          id="pickup"
-          type="text" 
-          [(ngModel)]="pickupLocation" 
-          placeholder="Enter pickup location"
-          class="form-input">
+        <input id="pickup" type="text" [(ngModel)]="pickupLocation" placeholder="Enter pickup location" class="form-input">
         <div class="suggestions" *ngIf="pickupLocation">
-          <div *ngFor="let location of locationSuggestions" 
-               class="suggestion-item"
-               (click)="selectLocationSuggestion(location, 'pickup')">
-            <div class="suggestion-name">{{location.name}}</div>
-            <div class="suggestion-address">{{location.address}}</div>
+          <div *ngFor="let s of locationSuggestions" class="suggestion-item" (click)="selectLocationSuggestion(s, 'pickup')">
+            <div class="suggestion-name">{{s.name}}</div>
+            <div class="suggestion-address">{{s.address}}</div>
           </div>
         </div>
       </div>
 
       <div class="form-group">
         <label for="destination">🎯 Destination</label>
-        <input 
-          id="destination"
-          type="text" 
-          [(ngModel)]="destinationLocation" 
-          placeholder="Enter destination"
-          class="form-input">
+        <input id="destination" type="text" [(ngModel)]="destinationLocation" placeholder="Enter destination" class="form-input">
         <div class="suggestions" *ngIf="destinationLocation">
-          <div *ngFor="let location of locationSuggestions" 
-               class="suggestion-item"
-               (click)="selectLocationSuggestion(location, 'destination')">
-            <div class="suggestion-name">{{location.name}}</div>
-            <div class="suggestion-address">{{location.address}}</div>
+          <div *ngFor="let s of locationSuggestions" class="suggestion-item" (click)="selectLocationSuggestion(s, 'destination')">
+            <div class="suggestion-name">{{s.name}}</div>
+            <div class="suggestion-address">{{s.address}}</div>
           </div>
         </div>
       </div>
@@ -52,7 +38,7 @@
       <div class="form-row">
         <div class="form-group">
           <label>
-            <input type="checkbox" [(ngModel)]="isScheduled"> Schedule for later
+            <input type="checkbox" [(ngModel)]="isScheduled" (change)="toggleScheduled()"> Schedule for later
           </label>
         </div>
       </div>
@@ -60,33 +46,21 @@
       <div class="form-row" *ngIf="isScheduled">
         <div class="form-group">
           <label for="date">📅 Date</label>
-          <input 
-            id="date"
-            type="date" 
-            [(ngModel)]="selectedDate" 
-            class="form-input">
+          <input id="date" type="date" [(ngModel)]="selectedDate" class="form-input">
         </div>
-
         <div class="form-group">
           <label for="time">🕐 Time</label>
-          <input 
-            id="time"
-            type="time" 
-            [(ngModel)]="selectedTime" 
-            class="form-input">
+          <input id="time" type="time" [(ngModel)]="selectedTime" class="form-input">
         </div>
       </div>
 
-      <button 
-        class="primary-btn" 
-        (click)="proceedToVehicleSelection()"
-        [disabled]="!pickupLocation || !destinationLocation">
+      <button class="primary-btn" (click)="proceedToVehicleSelection()" [disabled]="!pickupLocation || !destinationLocation || isLoading">
         Continue to Vehicle Selection
       </button>
     </div>
   </div>
 
-  <!-- Vehicle Selection Step -->
+  <!-- Step 2: Vehicle -->
   <div class="booking-step" *ngIf="currentStep === 'vehicle'">
     <div class="step-indicator">
       <div class="step completed">1. Location</div>
@@ -98,23 +72,20 @@
       <h3>Trip Summary</h3>
       <p><strong>From:</strong> {{pickupLocation}}</p>
       <p><strong>To:</strong> {{destinationLocation}}</p>
-      <p><strong>Distance:</strong> {{estimatedDistance}}</p>
-      <p><strong>Duration:</strong> {{estimatedDuration}}</p>
+      <p><strong>Distance:</strong> {{estimatedDistanceText}}</p>
+      <p><strong>Duration:</strong> {{estimatedDurationText}}</p>
     </div>
 
     <div class="vehicle-selection">
-      <h3>Select Vehicle Type</h3>
+      <h3>Select Car</h3>
       <div class="vehicle-options">
-        <div *ngFor="let vehicle of vehicleTypes" 
-             class="vehicle-card" 
-             [class.selected]="selectedVehicleType === vehicle.id"
-             (click)="selectVehicleType(vehicle)">
-          <div class="vehicle-icon">{{vehicle.icon}}</div>
+        <div *ngFor="let cab of availableCabs" class="vehicle-card" [class.selected]="selectedCab?.cabId === cab.cabId" (click)="selectCab(cab)">
+          <div class="vehicle-icon">🚗</div>
           <div class="vehicle-details">
-            <h4>{{vehicle.name}}</h4>
-            <p>Capacity: {{vehicle.capacity}} people</p>
-            <p>ETA: {{vehicle.estimatedTime}}</p>
-          <p class="fare-estimate">{{formatCurrency(calculateVehicleFare(vehicle))}}</p>
+            <h4>{{cab.carType}}</h4>
+            <p>Per Km: {{formatCurrency(cab.perKmRate)}}</p>
+            <p>Availability: {{cab.isAvailable ? 'Available' : 'Unavailable'}}</p>
+            <p class="fare-estimate">{{formatCurrency(baseFare + (estimatedDistanceKm * cab.perKmRate))}}</p>
           </div>
         </div>
       </div>
@@ -122,16 +93,11 @@
 
     <div class="action-buttons">
       <button class="secondary-btn" (click)="goBack()">Back</button>
-      <button 
-        class="primary-btn" 
-        (click)="proceedToConfirmation()"
-        [disabled]="!selectedVehicleType">
-        Continue to Confirmation
-      </button>
+      <button class="primary-btn" (click)="proceedToConfirmation()" [disabled]="!selectedCab">Continue to Confirmation</button>
     </div>
   </div>
 
-  <!-- Confirmation Step -->
+  <!-- Step 3: Confirmation -->
   <div class="booking-step" *ngIf="currentStep === 'confirmation'">
     <div class="step-indicator">
       <div class="step completed">1. Location</div>
@@ -141,50 +107,22 @@
 
     <div class="confirmation-details">
       <h3>Confirm Your Ride</h3>
-      
       <div class="trip-details">
-        <div class="detail-row">
-          <span class="label">From:</span>
-          <span class="value">{{pickupLocation}}</span>
-        </div>
-        <div class="detail-row">
-          <span class="label">To:</span>
-          <span class="value">{{destinationLocation}}</span>
-        </div>
-        <div class="detail-row">
-          <span class="label">Vehicle:</span>
-          <span class="value">{{getVehicleTypeById(selectedVehicleType)?.name}}</span>
-        </div>
-        <div class="detail-row">
-          <span class="label">Distance:</span>
-          <span class="value">{{estimatedDistance}}</span>
-        </div>
-        <div class="detail-row">
-          <span class="label">Estimated Fare:</span>
-          <span class="value fare">{{formatCurrency(estimatedFare)}}</span>
-        </div>
-        <div *ngIf="isScheduled && scheduledTime" class="detail-row">
+        <div class="detail-row"><span class="label">From:</span><span class="value">{{pickupLocation}}</span></div>
+        <div class="detail-row"><span class="label">To:</span><span class="value">{{destinationLocation}}</span></div>
+        <div class="detail-row"><span class="label">Vehicle:</span><span class="value">{{selectedCab?.carType}}</span></div>
+        <div class="detail-row"><span class="label">Distance:</span><span class="value">{{estimatedDistanceText}}</span></div>
+        <div class="detail-row"><span class="label">Estimated Fare:</span><span class="value fare">{{formatCurrency(estimatedFare)}}</span></div>
+        <div class="detail-row" *ngIf="isScheduled && selectedDate && selectedTime">
           <span class="label">Scheduled Time:</span>
-          <span class="value">{{scheduledTime}}</span>
+          <span class="value">{{selectedDate}} {{selectedTime}}</span>
         </div>
-      </div>
-
-      <div class="notes-section">
-        <label for="rideNotes">Special Instructions (optional):</label>
-        <textarea 
-          id="rideNotes"
-          [(ngModel)]="rideNotes" 
-          placeholder="Any special instructions for the driver..."
-          class="form-textarea"></textarea>
       </div>
     </div>
 
     <div class="action-buttons">
       <button class="secondary-btn" (click)="goBack()">Back</button>
-      <button 
-        class="primary-btn" 
-        (click)="confirmBooking()"
-        [disabled]="isLoading">
+      <button class="primary-btn" (click)="confirmBooking()" [disabled]="isLoading">
         <span *ngIf="!isLoading">Confirm Booking</span>
         <span *ngIf="isLoading">Processing...</span>
       </button>
