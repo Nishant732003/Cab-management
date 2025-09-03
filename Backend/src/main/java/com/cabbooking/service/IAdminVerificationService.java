@@ -20,8 +20,8 @@ public interface IAdminVerificationService {
      * Verifies an admin account by setting verified = true.
      *
      * @param adminId ID of the admin to verify
-     * @return the updated Admin entity
+     * @return A message of successful verification
      * @throws IllegalArgumentException if admin does not exist
      */
-    Admin verifyAdmin(Integer adminId);
+    String verifyAdmin(Integer adminId);
 }

@@ -1,5 +1,8 @@
 package com.cabbooking.service;
 
+/*
+ * Service interface for managing email verification.
+ */
 public interface IVerificationService {
 
     /**

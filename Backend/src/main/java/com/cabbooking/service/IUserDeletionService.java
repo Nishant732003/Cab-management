@@ -1,5 +1,7 @@
 package com.cabbooking.service;
 
+import java.io.IOException;
+
 /**
  * Service interface for user account deletion operations.
  */
@@ -11,5 +13,5 @@ public interface IUserDeletionService {
      * @param username The unique username of the user to be deleted.
      * @throws IllegalArgumentException if no user with the given username is found.
      */
-    void deleteUser(String username);
+    void deleteUser(String username) throws IOException;
 }

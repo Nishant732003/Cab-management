@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { RideService,BookRideResponse } from '../../../../core/services/user/ride.service';
+import { RideService, BookRideResponse } from '../../../../core/services/user/ride.service';
 
 interface Trip {
   tripBookingId: number;
@@ -22,7 +22,7 @@ interface Trip {
   cab: {
     cabId: number;
     carType: string;
-    numberPlate: string;
+    numberPlate: string | ' ';
     imageUrl: string | null;
   };
 }
@@ -37,12 +37,15 @@ export class TripHistoryComponent implements OnInit {
   tripHistory: Trip[] = [];
   filteredTrips: Trip[] = [];
   selectedTrip: Trip | null = null;
+
   filterStatus: string = 'all';
   sortBy: string = 'date';
   searchTerm: string = '';
+
   showRatingModal: boolean = false;
   currentRating: number = 0;
   ratingTrip: Trip | null = null;
+
   isLoading: boolean = true;
   errorMessage: string = '';
 
@@ -52,74 +55,114 @@ export class TripHistoryComponent implements OnInit {
     this.loadTripHistory();
   }
 
+  private getCurrentUserId(): number | null {
+    try {
+      const raw = localStorage.getItem('currentUser'); // {"id":2,"email":"","username":"Nishant","role":"user","name":""}
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return typeof parsed?.id === 'number' ? parsed.id : null;
+    } catch {
+      return null;
+    }
+  }
+
   loadTripHistory(): void {
     this.isLoading = true;
-    const customerId = 1;
-    
+    const customerId = this.getCurrentUserId();
+    if (!customerId) {
+      this.errorMessage = 'Missing current user. Please sign in again.';
+      this.isLoading = false;
+      return;
+    }
+
     this.rideService.getCustomerTrips(customerId).subscribe({
       next: (trips: BookRideResponse[]) => {
-        this.tripHistory = trips.map(trip => this.mapApiResponseToTrip(trip));
+        this.tripHistory = (trips || []).map(trip => this.mapApiResponseToTrip(trip));
         this.applyFilters();
         this.isLoading = false;
       },
-      error: (error:any) => {
+      error: (error: any) => {
         console.error('Error loading trip history:', error);
         this.errorMessage = 'Failed to load trip history. Please try again later.';
         this.isLoading = false;
-        
-        // Fallback to mock data if API fails
         this.initializeMockTripHistory();
       }
     });
   }
 
-  // Add this method to your RideService or create a new method if it doesn't exist
- 
-  mapApiResponseToTrip(apiResponse: BookRideResponse): Trip {
-    return {
-      tripBookingId: apiResponse.tripBookingId,
-      fromLocation: apiResponse.fromLocation,
-      toLocation: apiResponse.toLocation,
-      fromDateTime: apiResponse.fromDateTime,
-      toDateTime: apiResponse.toDateTime,
-      status: apiResponse.status as 'CONFIRMED' | 'COMPLETED' | 'CANCELLED' | 'IN_PROGRESS',
-      distanceInKm: apiResponse.distanceInKm,
-      bill: apiResponse.bill,
-      customerRating: apiResponse.customerRating,
-      driver: {
-        id: apiResponse.driver.id,
-        username: apiResponse.driver.username,
-        mobileNumber: apiResponse.driver.mobileNumber,
-        rating: apiResponse.driver.rating,
-        profilePhotoUrl: apiResponse.driver.profilePhotoUrl,
-        licenceNo: apiResponse.driver.licenceNo
-      },
-      cab: {
-        cabId: apiResponse.cab.cabId,
-        carType: apiResponse.cab.carType,
-        numberPlate: apiResponse.cab.numberPlate,
-        imageUrl: apiResponse.cab.imageUrl
+  mapApiResponseToTrip(api: BookRideResponse): Trip {
+    const safeDriver = api?.driver ?? {
+      id: 0,
+      username: 'Assigned Soon',
+      mobileNumber: null,
+      rating: 0,
+      profilePhotoUrl: null,
+      licenceNo: 'N/A'
+    };
+
+    const safeCab = api?.cab
+      ? {
+          cabId: api.cab.cabId,
+          carType: api.cab.carType ?? 'Vehicle',
+          numberPlate: api.cab.numberPlate ?? ' ',
+          imageUrl: api.cab.imageUrl ?? null
+        }
+      : {
+          cabId: 0,
+          carType: 'Vehicle',
+          numberPlate: ' ',
+          imageUrl: null
+        };
+
+    const normalizeStatus = (s: string): Trip['status'] => {
+      switch ((s || '').toUpperCase()) {
+        case 'COMPLETED': return 'COMPLETED';
+        case 'CANCELLED': return 'CANCELLED';
+        case 'IN_PROGRESS': return 'IN_PROGRESS';
+        case 'CONFIRMED': return 'CONFIRMED';
+        case 'SCHEDULED': return 'CONFIRMED'; // treat scheduled as confirmed/upcoming in UI
+        default: return 'CONFIRMED';
       }
+    };
+
+    return {
+      tripBookingId: api.tripBookingId,
+      fromLocation: api.fromLocation,
+      toLocation: api.toLocation,
+      fromDateTime: api.fromDateTime,
+      toDateTime: api.toDateTime ?? null,
+      status: normalizeStatus(api.status),
+      distanceInKm: api.distanceInKm,
+      bill: api.bill,
+      customerRating: api.customerRating ?? null,
+      driver: {
+        id: safeDriver.id,
+        username: safeDriver.username,
+        mobileNumber: safeDriver.mobileNumber ?? null,
+        rating: safeDriver.rating ?? 0,
+        profilePhotoUrl: safeDriver.profilePhotoUrl ?? null,
+        licenceNo: safeDriver.licenceNo ?? 'N/A'
+      },
+      cab: safeCab
     };
   }
 
   initializeMockTripHistory(): void {
-    // Fallback mock data based on the API response structure
     this.tripHistory = [
       {
-        tripBookingId: 1,
-        fromLocation: 'Mumbai',
-        toLocation: 'Pune',
-        fromDateTime: '2025-08-31T22:31:32.5751',
-        toDateTime: null,
-        status: 'CONFIRMED',
-        distanceInKm: 150.0,
-        bill: 0.0,
+        tripBookingId: 2,
+        fromLocation: 'Maharashtra',
+        toLocation: 'Gujarat',
+        fromDateTime: '2025-08-22T14:52:57.233009',
+        toDateTime: '2025-08-22T14:57:13.276115',
+        status: 'COMPLETED',
+        distanceInKm: 700,
+        bill: 10500,
         customerRating: null,
         driver: {
           id: 1,
-          username: 'Driver',
-          mobileNumber: '+1-555-0101',
+          username: 'driver',
+          mobileNumber: null,
           rating: 4.5,
           profilePhotoUrl: null,
           licenceNo: 'LIC123'
@@ -132,27 +175,27 @@ export class TripHistoryComponent implements OnInit {
         }
       },
       {
-        tripBookingId: 2,
-        fromLocation: 'Downtown Mall',
-        toLocation: 'Airport Terminal 1',
-        fromDateTime: '2024-01-15T14:30:00',
-        toDateTime: '2024-01-15T15:00:00',
-        status: 'COMPLETED',
-        distanceInKm: 12.3,
-        bill: 25.50,
-        customerRating: 5,
+        tripBookingId: 1,
+        fromLocation: 'Maharashtra',
+        toLocation: 'Gujarat',
+        fromDateTime: '2025-08-24T10:15:30',
+        toDateTime: null,
+        status: 'CONFIRMED',
+        distanceInKm: 700,
+        bill: 0,
+        customerRating: null,
         driver: {
-          id: 2,
-          username: 'John Smith',
-          mobileNumber: '+1-555-0101',
-          rating: 4.8,
+          id: 0,
+          username: 'Assigned Soon',
+          mobileNumber: null,
+          rating: 0,
           profilePhotoUrl: null,
-          licenceNo: 'ABC-123'
+          licenceNo: 'N/A'
         },
         cab: {
-          cabId: 2,
-          carType: 'Toyota Camry',
-          numberPlate: 'ABC-123',
+          cabId: 0,
+          carType: 'Vehicle',
+          numberPlate: ' ',
           imageUrl: null
         }
       }
@@ -163,29 +206,26 @@ export class TripHistoryComponent implements OnInit {
   applyFilters(): void {
     let filtered = [...this.tripHistory];
 
-    // Filter by status
     if (this.filterStatus !== 'all') {
-      const statusMap: {[key: string]: string} = {
+      const statusMap: { [key: string]: string } = {
         'completed': 'COMPLETED',
         'ongoing': 'IN_PROGRESS',
-        'cancelled': 'CANCELLED'
+        'cancelled': 'CANCELLED',
+        'confirmed': 'CONFIRMED'
       };
-      
       const targetStatus = statusMap[this.filterStatus] || this.filterStatus;
       filtered = filtered.filter(trip => trip.status === targetStatus);
     }
 
-    // Filter by search term
     if (this.searchTerm.trim()) {
       const term = this.searchTerm.toLowerCase();
-      filtered = filtered.filter(trip => 
+      filtered = filtered.filter(trip =>
         trip.fromLocation.toLowerCase().includes(term) ||
         trip.toLocation.toLowerCase().includes(term) ||
         trip.driver.username.toLowerCase().includes(term)
       );
     }
 
-    // Sort trips
     filtered.sort((a, b) => {
       switch (this.sortBy) {
         case 'date':
@@ -202,22 +242,13 @@ export class TripHistoryComponent implements OnInit {
     this.filteredTrips = filtered;
   }
 
-  onFilterChange(): void {
-    this.applyFilters();
-  }
-
-  onSortChange(): void {
-    this.applyFilters();
-  }
-
-  onSearchChange(): void {
-    this.applyFilters();
-  }
+  onFilterChange(): void { this.applyFilters(); }
+  onSortChange(): void { this.applyFilters(); }
+  onSearchChange(): void { this.applyFilters(); }
 
   viewTripDetails(trip: Trip): void {
     this.selectedTrip = trip;
   }
-
   closeTripDetails(): void {
     this.selectedTrip = null;
   }
@@ -227,27 +258,21 @@ export class TripHistoryComponent implements OnInit {
     this.currentRating = trip.customerRating || 0;
     this.showRatingModal = true;
   }
-
   closeRatingModal(): void {
     this.showRatingModal = false;
     this.ratingTrip = null;
     this.currentRating = 0;
   }
-
-  setRating(rating: number): void {
-    this.currentRating = rating;
-  }
+  setRating(rating: number): void { this.currentRating = rating; }
 
   submitRating(): void {
     if (this.ratingTrip) {
-      // Call the API to submit the rating
       this.rideService.rateRide(this.ratingTrip.tripBookingId, this.currentRating).subscribe({
         next: () => {
-          // Update local data on success
           this.ratingTrip!.customerRating = this.currentRating;
           alert(`Rating submitted: ${this.currentRating} stars for ${this.ratingTrip!.driver.username}`);
           this.closeRatingModal();
-          this.applyFilters(); // Refresh the list
+          this.applyFilters();
         },
         error: (error) => {
           console.error('Error submitting rating:', error);
@@ -261,14 +286,12 @@ export class TripHistoryComponent implements OnInit {
     const confirmed = confirm(`Rebook trip from ${trip.fromLocation} to ${trip.toLocation}?`);
     if (confirmed) {
       alert('Redirecting to booking page with pre-filled details...');
-      // You would typically navigate to booking page with pre-filled data
     }
   }
 
   callDriver(trip: Trip): void {
     if (trip.driver.mobileNumber) {
       alert(`Calling ${trip.driver.username} at ${trip.driver.mobileNumber}`);
-      // In a real app, you might use: window.open(`tel:${trip.driver.mobileNumber}`);
     } else {
       alert('Driver phone number not available');
     }
@@ -305,38 +328,21 @@ export class TripHistoryComponent implements OnInit {
   }
 
   getStarArray(rating: number): boolean[] {
-    const stars = [];
-    for (let i = 1; i <= 5; i++) {
-      stars.push(i <= rating);
-    }
+    const stars: boolean[] = [];
+    for (let i = 1; i <= 5; i++) stars.push(i <= rating);
     return stars;
   }
 
   formatDate(dateString: string): string {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   }
-
   formatTime(dateString: string): string {
     const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   }
-
   formatDateTime(dateString: string): string {
     const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
+    return date.toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
   }
 }

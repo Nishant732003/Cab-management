@@ -10,14 +10,25 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.UUID;
 
+/*
+ * Service class for handling file uploads and deletions.
+ */
 @Service
 public class FileUploadServiceImpl implements IFileUploadService {
 
-    @Value("${upload.path}")
+    /*
+     * The path where uploaded files will be stored.
+     */
+@Value("${upload.path:./target/test-uploads}")
     private String uploadPath;
 
     /**
      * Saves the uploaded file to the local filesystem.
+     * 
+     * Workflow:
+     * - Create the upload directory if it doesn't exist.
+     * - Generate a unique file name.
+     * - Save the file to the target path.
      *
      * @param file The file to save.
      * @return The unique filename generated for the stored file.
@@ -42,6 +53,11 @@ public class FileUploadServiceImpl implements IFileUploadService {
 
     /**
      * Deletes a file from the local upload directory.
+     * 
+     * Workflow:
+     * - If the file name is null or empty, do nothing.
+     * - Construct the full path to the file.
+     * - Delete the file only if it actually exists.
      *
      * @param fileName The name of the file to delete.
      * @throws IOException If there's an error deleting the file.

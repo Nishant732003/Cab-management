@@ -16,15 +16,14 @@ import io.jsonwebtoken.security.Keys;
 /**
  * A utility component for handling JSON Web Tokens (JWTs).
  *
- * Main Responsibilities:
- * - Generating new JWTs for authenticated users.
- * - Parsing and validating incoming JWTs.
- * - Extracting claims (like username and role) from tokens.
+ * Main Responsibilities: - Generating new JWTs for authenticated users. -
+ * Parsing and validating incoming JWTs. - Extracting claims (like username and
+ * role) from tokens.
  *
- * Workflow:
- * - After a user successfully logs in, the `LoginService` calls `generateToken` to create a JWT.
- * - For every subsequent request to a protected endpoint, the `JwtAuthenticationFilter` uses this utility
- * to validate the token and extract user details.
+ * Workflow: - After a user successfully logs in, the `LoginService` calls
+ * `generateToken` to create a JWT. - For every subsequent request to a
+ * protected endpoint, the `JwtAuthenticationFilter` uses this utility to
+ * validate the token and extract user details.
  */
 @Component
 public class JwtUtil {
@@ -40,7 +39,8 @@ public class JwtUtil {
      * Generates a new JWT for a given user.
      *
      * @param username The username of the user for whom the token is generated.
-     * @param role The role of the user (e.g., "Admin", "Customer"), which is added as a custom claim.
+     * @param role The role of the user (e.g., "Admin", "Customer"), which is
+     * added as a custom claim.
      * @return A compact, URL-safe JWT string.
      */
     public String generateToken(String username, String role) {
@@ -64,15 +64,16 @@ public class JwtUtil {
      */
     public String getUsernameFromJWT(String token) {
         Claims claims = Jwts.parserBuilder()
-                            .setSigningKey(jwtSecret)
-                            .build()
-                            .parseClaimsJws(token)
-                            .getBody();
+                .setSigningKey(jwtSecret)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
         return claims.getSubject();
     }
 
     /**
-     * Validates a JWT to ensure it has not been tampered with and has not expired.
+     * Validates a JWT to ensure it has not been tampered with and has not
+     * expired.
      *
      * @param token The JWT string to validate.
      * @return True if the token is valid, false otherwise.
@@ -88,16 +89,16 @@ public class JwtUtil {
     }
 
     /**
-     * Parses the JWT and returns the full set of claims.
-     * This is used to extract custom data like the user's role.
+     * Parses the JWT and returns the full set of claims. This is used to
+     * extract custom data like the user's role.
      *
      * @param token The JWT string to parse.
      * @return A Jws object containing all the token's claims.
      */
     public Jws<Claims> getClaimsFromJWT(String token) {
         return Jwts.parserBuilder()
-                   .setSigningKey(jwtSecret)
-                   .build()
-                   .parseClaimsJws(token);
+                .setSigningKey(jwtSecret)
+                .build()
+                .parseClaimsJws(token);
     }
 }

@@ -1,8 +1,11 @@
 HELP.md
 target/
+resources/
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+!**/src/main/**/resources/
+!**/src/test/**/resources/
 
 ### STS ###
 .apt_generated
@@ -32,5 +35,6 @@ build/
 ### VS Code ###
 .vscode/
 
-Backend\src\main\resources\application.properties
+# application.properties containing project configuration
 src/main/resources/application.properties
+src/main/resources/application.local.properties

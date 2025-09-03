@@ -1,5 +1,6 @@
 package com.cabbooking.service;
 
+import java.util.Optional;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -10,13 +11,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.cabbooking.model.AbstractUser;
 import com.cabbooking.model.Admin;
-import com.cabbooking.model.Driver;
 import com.cabbooking.model.Customer;
+import com.cabbooking.model.Driver;
 import com.cabbooking.model.PasswordResetToken;
-import com.cabbooking.repository.PasswordResetTokenRepository;
 import com.cabbooking.repository.AdminRepository;
 import com.cabbooking.repository.CustomerRepository;
 import com.cabbooking.repository.DriverRepository;
+import com.cabbooking.repository.PasswordResetTokenRepository;
 
 /*
  * Service class for password reset functionality.
@@ -26,9 +27,12 @@ import com.cabbooking.repository.DriverRepository;
  * - Create and send password reset tokens to users.
  * - Reset passwords for users based on password reset tokens.
  * 
- * Security:
- * - Password reset tokens are stored in a database and are only valid for a certain amount of time.
- * - Password reset tokens are sent to users via email.
+ * Dependencies:
+ * - IProfileService for user lookup.
+ * - PasswordResetTokenRepository for storing and retrieving password reset tokens.
+ * - IEmailService for sending emails.
+ * - PasswordEncoder for encoding and decoding passwords.
+ * - AdminRepository, CustomerRepository, and DriverRepository for user type-specific operations.
  */
 @Service
 public class PasswordResetServiceImpl implements IPasswordResetService {
@@ -36,55 +40,61 @@ public class PasswordResetServiceImpl implements IPasswordResetService {
     /*
      * Provides access to the profile service for user lookup.
      */
-    @Autowired private IProfileService profileService; // Reuse the profile service to find users
+    @Autowired
+    private IProfileService profileService; // Reuse the profile service to find users
 
     /*
      * Provides access to the password reset token repository.
      */
-    @Autowired private PasswordResetTokenRepository tokenRepository;
+    @Autowired
+    private PasswordResetTokenRepository tokenRepository;
 
     /*
      * Provides access to the admin repository.
      */
-    @Autowired private AdminRepository adminRepository;
+    @Autowired
+    private AdminRepository adminRepository;
 
     /*
      * Provides access to the customer repository.
      */
-    @Autowired private CustomerRepository customerRepository;
+    @Autowired
+    private CustomerRepository customerRepository;
 
     /*
      * Provides access to the driver repository.
      */
-    @Autowired private DriverRepository driverRepository;
+    @Autowired
+    private DriverRepository driverRepository;
 
     /*
      * Provides access to the email service.
      */
-    @Autowired private IEmailService emailService;
+    @Autowired
+    private IEmailService emailService;
 
     /*
      * Provides access to the password encoder.
      */
-    @Autowired private PasswordEncoder passwordEncoder;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     /*
      * Creates a password reset token and sends an email to the user with a link to reset their password.
      * 
      * Workflow:
-     * - User sends a request with their email address.
-     * - Validates the email format.
-     * - Calls the service layer to create and send a password reset link.
-     * - Returns a success message if the email was sent.
-     * - Returns an error response if the email is invalid or sending fails.
+     * - Email is received from the user
+     * - A user is searched for by email
+     * - A password reset token is created and saved to the database
+     * - An email is sent to the user with a link to reset their password
      * 
      * @param email The email address of the user to send the password reset link to.
      */
     @Override
     @Transactional
     public void createAndSendPasswordResetToken(String email) {
-        AbstractUser user = profileService.getUserProfileByUsername(email) // Assuming username is email for this flow
-                .orElseThrow(() -> new IllegalArgumentException("No user found with email: " + email));
+        AbstractUser user = findUserByEmail(email)
+                .orElseThrow(() -> new IllegalStateException("User associated with token not found."));
 
         String token = UUID.randomUUID().toString();
         PasswordResetToken resetToken = new PasswordResetToken(token, LocalDateTime.now().plusHours(1), user.getEmail());
@@ -101,11 +111,12 @@ public class PasswordResetServiceImpl implements IPasswordResetService {
      * Resets the password for a user based on a password reset token.
      * 
      * Workflow:
-     * - User sends a request with the reset token and new password.
-     * - Validates the request data.
-     * - Calls the service layer to reset the password.
-     * - Returns a success message if the password was reset.
-     * - Returns an error response if the token is invalid or expired.
+     * - Token and new password are received from the user
+     * - Token is validated
+     * - User associated with the token is found
+     * - Password is updated for the user
+     * - Token is invalidated
+     * - True is returned
      * 
      * @param token The password reset token.
      * @param newPassword The new password to set for the user.
@@ -119,7 +130,7 @@ public class PasswordResetServiceImpl implements IPasswordResetService {
             return false; // Token is invalid or expired
         }
 
-        AbstractUser user = profileService.getUserProfileByUsername(resetToken.getUserEmail())
+        AbstractUser user = findUserByEmail(resetToken.getUserEmail())
                 .orElseThrow(() -> new IllegalStateException("User associated with token not found."));
 
         user.setPassword(passwordEncoder.encode(newPassword));
@@ -129,8 +140,22 @@ public class PasswordResetServiceImpl implements IPasswordResetService {
         return true;
     }
 
+    /*
+     * Helper method to find a user by email address.
+     * 
+     * @param email The email address of the user to find.
+     * @return An Optional containing the user if found, empty otherwise.
+     */
+    private Optional<AbstractUser> findUserByEmail(String email) {
+        return adminRepository.findByEmail(email)
+                .<AbstractUser>map(admin -> admin)
+                .or(() -> customerRepository.findByEmail(email).map(customer -> customer))
+                .or(() -> driverRepository.findByEmail(email).map(driver -> driver));
+    }
+
     /**
      * Helper method to save a user to the correct repository based on their type.
+     * 
      * @param user The user object to save.
      */
     private void saveUser(AbstractUser user) {

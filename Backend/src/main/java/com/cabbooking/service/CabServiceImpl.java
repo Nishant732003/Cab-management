@@ -1,5 +1,6 @@
 package com.cabbooking.service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -7,151 +8,147 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.cabbooking.dto.CabUpdateRequest;
 import com.cabbooking.dto.FareEstimateResponse;
 import com.cabbooking.model.Cab;
+import com.cabbooking.model.Driver;
 import com.cabbooking.repository.CabRepository;
+import com.cabbooking.repository.DriverRepository;
 
 /**
  * Implementation of the ICabService interface.
  *
- * Main Responsibilities: - Provides the business logic for all cab management
- * operations (CRUD). - Interacts with the CabRepository to perform database
- * operations. - Handles validation such as checking for the existence of a cab
+ * Main Responsibilities: 
+ * - Provides the business logic for all cab management
+ * operations (CRUD). 
+ * - Interacts with the CabRepository to perform database
+ * operations. 
+ * - Handles validation such as checking for the existence of a cab
  * before an update or delete operation.
  *
- * Workflow: - This service is injected into controllers (like AdminController)
- * that need to manage the cab fleet. - It uses the autowired CabRepository to
- * abstract away the database interaction details.
+ * Dependencies:
+ * - CabRepository for accessing cab data in the database.
+ * - DriverRepository for accessing driver data in the database.
+ * - IFileUploadService for handling file uploads.
  */
 @Service
 public class CabServiceImpl implements ICabService {
 
-    // Repository for handling database operations for Cab entities.
+    private static final double NEARBY_RADIUS_KM = 5.0; // 5km radius for nearby drivers
+
+    /*
+     * Repository to interact with the database
+     * Provides methods for CRUD operations
+     */
     @Autowired
     private CabRepository cabRepository;
 
-    /**
-     * Inserts a new cab into the database and sets its availability to true by
-     * default.
-     *
-     * @param cab The Cab object to be saved.
-     * @return The saved Cab entity, including its auto-generated ID and default
-     * availability.
+    /*
+     * Repository to interact with the database
+     * Provides methods for CRUD operations
+     */
+    @Autowired
+    private DriverRepository driverRepository;
+
+    /*
+     * Service to handle file uploads
+     * Provides methods for file uploads
+     */
+    @Autowired
+    private IFileUploadService fileUploadService;
+
+    /*
+     * Updates the details of a cab associated with a driver.
+     * 
+     * Workflow: 
+     * - Finds the driver by their ID to ensure they exist. 
+     * - Gets the cab associated with this driver. 
+     * - Updates the cab's details from the request. 
+     * - Saves the updated cab to the database.
+     * 
+     * @param driverId The ID of the driver whose cab is to be updated.
+     * @param request The request object containing the new cab details.
+     * @return The updated Cab object
      */
     @Override
-    public Cab insertCab(Cab cab) {
-        // Ensure that any new cab is marked as available upon creation.
-        cab.setIsAvailable(true);
-        return cabRepository.save(cab);
-    }
+    @Transactional
+    public Cab updateCabDetails(int driverId, CabUpdateRequest request) {
+        // Find the driver to ensure they exist
+        Driver driver = driverRepository.findById(driverId)
+                .orElseThrow(() -> new IllegalArgumentException("Driver with id " + driverId + " not found"));
 
-    /**
-     * Updates an existing cab with only the provided fields, but only if the
-     * cab is currently available.
-     *
-     * Workflow: - Finds the existing cab by its ID. - Throws an exception if
-     * the cab is not found. - **Checks if the cab is available. If it's on a
-     * trip (isAvailable=false), it throws an exception.** - If available, it
-     * updates only the non-null fields from the incoming request. - Saves the
-     * modified cab object back to the database.
-     *
-     * @param cabRequest The Cab object with the fields to be updated.
-     * @return The updated and saved Cab entity.
-     * @throws IllegalArgumentException if no cab with the given ID exists.
-     * @throws IllegalStateException if the cab is currently in use and cannot
-     * be updated.
-     */
-    @Override
-    public Cab updateCab(Cab cabRequest) {
-        // Find the existing cab from the database
-        Cab existingCab = cabRepository.findById(cabRequest.getCabId())
-                .orElseThrow(() -> new IllegalArgumentException("Cab with id " + cabRequest.getCabId() + " not found"));
-
-        // Ensure the cab is not on an active trip
-        if (!existingCab.getIsAvailable()) {
-            throw new IllegalStateException("Cannot update a cab that is currently on a trip.");
+        // Get the cab associated with this driver
+        Cab cabToUpdate = driver.getCab();
+        if (cabToUpdate == null) {
+            throw new IllegalStateException("No cab is associated with this driver.");
         }
 
-        // Update only the fields that are provided in the request
-        if (cabRequest.getCarType() != null) {
-            existingCab.setCarType(cabRequest.getCarType());
-        }
-        if (cabRequest.getPerKmRate() != null) {
-            existingCab.setPerKmRate(cabRequest.getPerKmRate());
-        }
+        // Update the cab's details from the request
+        cabToUpdate.setNumberPlate(request.getNumberPlate());
+        cabToUpdate.setCarType(request.getCarType());
+        cabToUpdate.setPerKmRate(request.getPerKmRate());
+        cabToUpdate.setIsAvailable(true); // When details are added, make the cab available
 
-        // Note: It's generally good practice not to allow changing availability directly via this endpoint.
-        // Availability should be managed by the trip booking and completion logic.
-        // However, if an admin needs a manual override, you can keep this line.
-        if (cabRequest.getIsAvailable() != null) {
-            existingCab.setIsAvailable(cabRequest.getIsAvailable());
-        }
-
-        // Save the updated entity
-        return cabRepository.save(existingCab);
-    }
-
-    /**
-     * Deletes a cab from the database by its ID.
-     *
-     * Workflow: - It finds the cab by its ID to ensure it exists. - If the cab
-     * is in use, it throws an exception. - If found and available, the cab is
-     * deleted.
-     *
-     * @param cabId The unique ID of the cab to delete.
-     * @return The Cab object that was deleted.
-     * @throws IllegalArgumentException if no cab with the given ID exists.
-     * @throws IllegalStateException if the cab is currently in use and cannot
-     * be deleted.
-     */
-    @Override
-    public Cab deleteCab(int cabId) {
-        Cab cab = cabRepository.findById(cabId)
-                .orElseThrow(() -> new IllegalArgumentException("Cab with id " + cabId + " not found"));
-
-        if (!cab.getIsAvailable()) {
-            throw new IllegalStateException("Cannot delete a cab that is currently on a trip.");
-        }
-
-        cabRepository.delete(cab);
-        return cab;
+        // Save the updated cab
+        return cabRepository.save(cabToUpdate);
     }
 
     /**
      * Retrieves a list of all cabs that match a specific car type.
+     * 
+     * Workflow: 
+     * - Find all drivers who are available and have a location
+     * - Filter the list to include only drivers who are nearby
+     * - Group the nearby drivers' cabs by car type
+     * - For each car type, calculate the minimum and maximum possible fares for a given distance
+     * - Return a list of FareEstimateResponse DTOs, one for each available and nearby car type
      *
      * @param carType The car type to filter by (e.g., "Sedan", "SUV").
      * @return A list of Cab entities matching the specified type.
      */
     @Override
-    public List<Cab> viewCabsOfType(String carType) {
+    public List<Cab> getCabsOfType(String carType) {
         return cabRepository.findByCarType(carType);
     }
 
-    /**
-     * Counts the number of cabs that match a specific car type.
+    /*
+     * Retrieves a list of all cabs that match a specific car type.
+     * 
+     * Workflow: 
+     * - Find all drivers who are available and have a location
+     * - Filter the list to include only drivers who are nearby
+     * - Group the nearby drivers' cabs by car type
+     * - For each car type, calculate the minimum and maximum possible fares for a given distance
+     * - Return a list of FareEstimateResponse DTOs, one for each available and nearby car type
      *
-     * @param carType The car type to count.
-     * @return The total number of cabs of the specified type.
+     * @param distance The distance of the trip in kilometers.
+     * @param fromLocationLat The from location's latitude.
+     * @param fromLocationLng The from location's longitude.
+     * @return A list of FareEstimateResponse DTOs, one for each available and nearby car type
      */
     @Override
-    public int countCabsOfType(String carType) {
-        return cabRepository.findByCarType(carType).size();
-    }
+    public List<FareEstimateResponse> getAllFareEstimates(float distance, double fromLocationLat, double fromLocationLng) {
+        // Find all drivers who are available and have a location
+        List<Driver> availableDrivers = driverRepository.findAll().stream()
+                .filter(driver -> driver.getIsAvailable() && driver.getVerified() &&
+                                  driver.getLatitude() != null && driver.getLongitude() != null &&
+                                  driver.getCab() != null)
+                .toList();
 
-    @Override
-    public List<FareEstimateResponse> getAllFareEstimates(float distance) {
-        // 1. Find all available cabs
-        List<Cab> availableCabs = cabRepository.findAll().stream()
-                .filter(Cab::getIsAvailable)
-                .collect(Collectors.toList());
-
-        // 2. Group the cabs by their car type
-        Map<String, List<Cab>> cabsByType = availableCabs.stream()
+        // Filter the list to include only drivers who are nearby
+        List<Driver> nearbyDrivers = availableDrivers.stream()
+                .filter(driver -> calculateDistance(fromLocationLat, fromLocationLng, driver.getLatitude(), driver.getLongitude()) <= NEARBY_RADIUS_KM)
+                .toList();
+        
+        // Group the nearby drivers' cabs by car type
+        Map<String, List<Cab>> cabsByType = nearbyDrivers.stream()
+                .map(Driver::getCab)
                 .collect(Collectors.groupingBy(Cab::getCarType));
 
-        // 3. For each car type, calculate the min/max fare and create a response object
+        // For each car type, calculate the min/max fare and create a response object
         return cabsByType.entrySet().stream()
                 .map(entry -> {
                     String carType = entry.getKey();
@@ -173,30 +170,144 @@ public class CabServiceImpl implements ICabService {
     }
 
     /**
+     * Calculates the distance between two points on Earth using the Haversine formula.
+     * @return Distance in kilometers.
+     */
+    private double calculateDistance(double lat1, double lng1, double lat2, double lng2) {
+        final int R = 6371; // Radius of the earth in km
+
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lng2 - lng1);
+
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return R * c;
+    }
+
+    /**
      * Finds and returns a cab by its unique identifier.
+     * 
+     * Workflow: 
+     * - Calls the repository to find the cab by its ID.
+     * - Returns the Optional containing the cab if found, otherwise empty.
      *
      * @param cabId The ID of the cab to find.
      * @return An Optional<Cab> which contains the cab if it exists.
      */
     @Override
-    public Optional<Cab> viewCab(int cabId) {
+    public Optional<Cab> getCabById(int cabId) {
         return cabRepository.findById(cabId);
     }
 
     /**
      * Retrieves a list of all cabs in the system.
+     * 
+     * Workflow: 
+     * - Calls the repository to find all cabs.
+     * - Returns the list of cabs.
      *
      * @return A list of all Cab entities.
      */
     @Override
-    public List<Cab> viewAllCabs() {
+    public List<Cab> getAllCabs() {
         return cabRepository.findAll();
     }
     
+    /**
+     * Retrieves a list of all available cabs in the system.
+     * 
+     * Workflow: 
+     * - Calls the repository to find all cabs.
+     * - Filters the list to include only available cabs.
+     * - Returns the list of available cabs.
+     *
+     * @return A list of all available Cab entities.
+     */
     @Override
-    public List<Cab> viewAllAvailableCabs() {
+    public List<Cab> getAllAvailableCabs() {
         return cabRepository.findAll().stream()
                 .filter(Cab::getIsAvailable)
                 .collect(Collectors.toList());
+    }
+
+    /*
+     * Uploads an image file for a cab and updates its URL in the database.
+     * 
+     * Workflow:
+     * - Finds the cab by its ID.
+     * - If an old image exists, deletes it.
+     * - Uploads the new image file.
+     * - Sets the new image URL on the cab and saves it.
+     * - Returns the updated cab.
+     * 
+     * @param cabId The ID of the cab.
+     * @param file The image file to upload.
+     * @return The updated Cab object with the new image URL.
+     * @throws IOException if the file upload fails.
+     */
+    @Override
+    @Transactional
+    public Cab uploadImage(int cabId, MultipartFile file) throws IOException {
+        // Find the cab
+        Cab cab = cabRepository.findById(cabId)
+                .orElseThrow(() -> new IllegalArgumentException("Cab with id " + cabId + " not found"));
+
+        // If an old image exists, delete it first before uploading the new one
+        if (cab.getImageUrl() != null && !cab.getImageUrl().isEmpty()) {
+            removeImageFile(cab.getImageUrl());
+        }
+
+        // Upload the new file and get its unique filename
+        String fileName = fileUploadService.uploadFile(file);
+        String fileApiUrl = "/api/files/" + fileName;
+
+        // Set the new URL on the cab and save
+        cab.setImageUrl(fileApiUrl);
+        return cabRepository.save(cab);
+    }
+
+    /*
+     * Removes the image file for a cab and clears its URL in the database.
+     * 
+     * Workflow:
+     * - Finds the cab by its ID.
+     * - Deletes the old image file if it exists.
+     * - Clears the image URL on the cab and saves it.
+     * - Returns the updated cab.
+     * 
+     * @param cabId The ID of the cab.
+     * @return The updated Cab object with the image URL removed.
+     * @throws IOException if the file deletion fails.
+     */
+    @Override
+    @Transactional
+    public Cab removeImage(int cabId) throws IOException {
+        // Find the cab
+        Cab cab = cabRepository.findById(cabId)
+                .orElseThrow(() -> new IllegalArgumentException("Cab with id " + cabId + " not found"));
+
+        // Delete the physical file
+        removeImageFile(cab.getImageUrl());
+
+        // Clear the URL from the cab's record and save
+        cab.setImageUrl(null);
+        return cabRepository.save(cab);
+    }
+
+    /**
+     * Helper method to safely delete an image file.
+     * 
+     * @param imageUrl The URL of the image file to delete.
+     * @throws IOException if the file deletion fails.
+     */
+    private void removeImageFile(String imageUrl) throws IOException {
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            String fileName = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
+            fileUploadService.deleteFile(fileName);
+        }
     }
 }

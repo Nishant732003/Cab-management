@@ -4,7 +4,6 @@
     <p>View and manage your completed rides</p>
   </div>
 
-  <!-- Loading and Error States -->
   <div class="loading-spinner" *ngIf="isLoading">
     <p>Loading your trips...</p>
   </div>
@@ -14,18 +13,17 @@
     <button (click)="loadTripHistory()">Try Again</button>
   </div>
 
-  <!-- Filters and Search -->
   <div class="controls-section" *ngIf="!isLoading">
     <div class="search-box">
-      <input 
-        type="text" 
-        [(ngModel)]="searchTerm" 
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
         (input)="onSearchChange()"
         placeholder="Search trips, locations, or drivers..."
         class="search-input">
       <span class="search-icon">🔍</span>
     </div>
-    
+
     <div class="filters">
       <select [(ngModel)]="filterStatus" (change)="onFilterChange()" class="filter-select">
         <option value="all">All Status</option>
@@ -34,7 +32,7 @@
         <option value="confirmed">Confirmed</option>
         <option value="cancelled">Cancelled</option>
       </select>
-      
+
       <select [(ngModel)]="sortBy" (change)="onSortChange()" class="filter-select">
         <option value="date">Sort by Date</option>
         <option value="fare">Sort by Fare</option>
@@ -43,10 +41,9 @@
     </div>
   </div>
 
-  <!-- Trip List -->
   <div class="trips-list" *ngIf="filteredTrips.length > 0 && !isLoading">
-    <div class="trip-card" 
-         *ngFor="let trip of filteredTrips" 
+    <div class="trip-card"
+         *ngFor="let trip of filteredTrips"
          (click)="viewTripDetails(trip)">
       <div class="trip-header">
         <div class="trip-id">Trip #{{trip.tripBookingId}}</div>
@@ -55,7 +52,7 @@
           <span class="status-text">{{getStatusDisplayText(trip.status)}}</span>
         </div>
       </div>
-      
+
       <div class="trip-route">
         <div class="route-point pickup">
           <span class="route-icon">🟢</span>
@@ -67,7 +64,7 @@
           <span class="route-text">{{trip.toLocation}}</span>
         </div>
       </div>
-      
+
       <div class="trip-details">
         <div class="detail-item">
           <span class="detail-label">Date</span>
@@ -88,15 +85,14 @@
           </span>
         </div>
       </div>
-      
+
       <div class="trip-rating" *ngIf="trip.status === 'COMPLETED'">
         <div class="rating" *ngIf="trip.customerRating">
-          <span *ngFor="let star of getStarArray(trip.customerRating)" 
-                class="star filled">★</span>
+          <span *ngFor="let star of getStarArray(trip.customerRating)" class="star filled">★</span>
           <span class="rating-text">{{trip.customerRating}}/5</span>
         </div>
-        <button class="rate-btn" 
-                *ngIf="!trip.customerRating" 
+        <button class="rate-btn"
+                *ngIf="!trip.customerRating"
                 (click)="openRatingModal(trip); $event.stopPropagation()">
           Rate Trip
         </button>
@@ -104,21 +100,19 @@
     </div>
   </div>
 
-  <!-- No Results -->
   <div class="no-results" *ngIf="filteredTrips.length === 0 && !isLoading">
     <div class="no-results-icon">🚗💭</div>
     <h3>No trips found</h3>
     <p>Try adjusting your search or filter criteria</p>
   </div>
 
-  <!-- Trip Details Modal -->
   <div class="modal-overlay" *ngIf="selectedTrip" (click)="closeTripDetails()">
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>Trip Details</h3>
         <button class="close-btn" (click)="closeTripDetails()">✕</button>
       </div>
-      
+
       <div class="modal-body">
         <div class="trip-info-section">
           <h4>📍 Route Information</h4>
@@ -130,19 +124,18 @@
             <p *ngIf="selectedTrip.toDateTime"><strong>Completed at:</strong> {{formatDateTime(selectedTrip.toDateTime)}}</p>
           </div>
         </div>
-        
+
         <div class="trip-info-section">
           <h4>👨‍💼 Driver Information</h4>
           <div class="driver-details">
             <div class="driver-avatar">
-              <img [src]="rideService.getDriverImage(selectedTrip.driver)" [alt]="selectedTrip.driver.username" 
+              <img [src]="rideService.getDriverImage(selectedTrip.driver)" [alt]="selectedTrip.driver.username"
                    onerror="this.src='assets/images/driver.avif'">
             </div>
             <div class="driver-info">
               <p><strong>{{selectedTrip.driver.username}}</strong></p>
               <div class="rating">
-                <span *ngFor="let star of getStarArray(selectedTrip.driver.rating)" 
-                      class="star filled">★</span>
+                <span *ngFor="let star of getStarArray(selectedTrip.driver.rating)" class="star filled">★</span>
                 <span class="rating-text">{{selectedTrip.driver.rating}}</span>
               </div>
               <p>{{selectedTrip.cab.carType}} • {{selectedTrip.cab.numberPlate}}</p>
@@ -150,11 +143,11 @@
             </div>
           </div>
         </div>
-        
+
         <div class="trip-info-section">
           <h4>💰 Payment Information</h4>
           <div class="payment-details">
-            <p><strong>Fare:</strong> 
+            <p><strong>Fare:</strong>
               <span [class.cancelled-fare]="selectedTrip.status === 'CANCELLED'">
                 {{selectedTrip.status === 'CANCELLED' ? 'N/A' : '$' + selectedTrip.bill}}
               </span>
@@ -164,12 +157,12 @@
           </div>
         </div>
       </div>
-      
+
       <div class="modal-actions">
-        <button class="action-btn secondary" (click)="rebookTrip(selectedTrip)">
+        <button class="action-btn secondary" (click)="rebookTrip(selectedTrip); $event.stopPropagation()">
           🔄 Rebook
         </button>
-        <button class="action-btn primary" (click)="callDriver(selectedTrip)" 
+        <button class="action-btn primary" (click)="callDriver(selectedTrip); $event.stopPropagation()"
                 [disabled]="!selectedTrip.driver.mobileNumber">
           📞 Call Driver
         </button>
@@ -177,14 +170,13 @@
     </div>
   </div>
 
-  <!-- Rating Modal -->
   <div class="modal-overlay" *ngIf="showRatingModal" (click)="closeRatingModal()">
     <div class="modal-content rating-modal" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>Rate Your Trip</h3>
         <button class="close-btn" (click)="closeRatingModal()">✕</button>
       </div>
-      
+
       <div class="modal-body" *ngIf="ratingTrip">
         <div class="rating-driver">
           <div class="driver-avatar">
@@ -194,14 +186,14 @@
           <h4>{{ratingTrip.driver.username}}</h4>
           <p>{{ratingTrip.cab.carType}}</p>
         </div>
-        
+
         <div class="rating-stars">
           <span *ngFor="let star of [1,2,3,4,5]; let i = index"
                 class="rating-star"
                 [class.active]="i < currentRating"
                 (click)="setRating(i + 1)">★</span>
         </div>
-        
+
         <div class="rating-text">
           <span *ngIf="currentRating === 0">Tap stars to rate</span>
           <span *ngIf="currentRating === 1">Poor</span>
@@ -211,10 +203,10 @@
           <span *ngIf="currentRating === 5">Excellent</span>
         </div>
       </div>
-      
+
       <div class="modal-actions">
         <button class="action-btn secondary" (click)="closeRatingModal()">Cancel</button>
-        <button class="action-btn primary" 
+        <button class="action-btn primary"
                 [disabled]="currentRating === 0"
                 (click)="submitRating()">
           Submit Rating

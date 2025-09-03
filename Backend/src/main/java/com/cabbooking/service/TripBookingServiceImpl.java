@@ -5,6 +5,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,96 +26,161 @@ import com.cabbooking.repository.TripBookingRepository;
  * Implementation of the {@link ITripBookingService} interface. This class
  * contains the core business logic for managing trip bookings. It coordinates
  * between different repositories to create and manage trip data.
+ *
+ * Main Responsibilities: - Handles the logic for booking a new trip. - Updates
+ * the status of a trip. - Marks a trip as completed and calculates the final
+ * bill. - Retrieves all trips for a specific customer. - Handles security using
+ * method-level security.
+ *
+ * Security: - All endpoints are secured using method-level security. - Only
+ * users with the 'Customer' role can access these endpoints. - Users can only
+ * update their own trip status. - Admins can update any user's trip status. -
+ * Drivers can only update their own trip status.
  */
 @Service
 public class TripBookingServiceImpl implements ITripBookingService {
 
+    /*
+     * Repository for TripBooking entity.
+     * Provides CRUD operations for TripBooking entity.
+     */
     @Autowired
     private TripBookingRepository tripBookingRepository;
 
+    /*
+     * Repository for Customer entity.
+     * Provides CRUD operations for Customer entity.
+     */
     @Autowired
     private CustomerRepository customerRepository;
 
+    /*
+     * Repository for Driver entity.
+     * Provides CRUD operations for Driver entity.
+     */
     @Autowired
     private DriverRepository driverRepository;
 
+    /*
+     * Repository for Cab entity.
+     * Provides CRUD operations for Cab entity.
+     */
     @Autowired
     private CabRepository cabRepository;
 
+    /*
+     * Constant for nearby radius in kilometers.
+     */
+    private static final double NEARBY_RADIUS_KM = 5.0;
+
     /**
-     * Handles the logic for booking a new trip. This method now supports both
-     * immediate and scheduled bookings.
+     * Handles the logic for booking a new trip. This method now supports both immediate and scheduled bookings.
      *
-     * @param tripBookingRequest The request from the customer containing trip details.
-     * @return The saved {@link TripBooking} object.
+     * Workflow: 
+     * - Validate that the customer exists. 
+     * - Check if a future scheduledTime is provided in the request. 
+     * - Set the status to SCHEDULED if a future scheduledTime is provided in the request. 
+     * - Else find the best available driver that is nearby the pickup location (highest rating). 
+     * - Create a new TripBooking entity. 
+     * - Assign the driver to the trip. 
+     * - Save the trip to the database. 
+     * - Return the saved trip.
+     *
+     * @param tripBookingRequest The request from the customer containing trip
+     * details.
+     * @return The saved TripBooking object.
      * @throws AuthenticationException if the customer ID is invalid.
-     * @throws RuntimeException if no drivers or cabs are available for an immediate booking.
+     * @throws RuntimeException if no drivers are available for an immediate booking.
      */
     @Override
     @Transactional
     public TripBooking bookTrip(TripBookingRequest tripBookingRequest) {
-        // 1. Validate that the customer exists. This is common for both booking types.
         Customer customer = customerRepository.findById(tripBookingRequest.getCustomerId())
                 .orElseThrow(() -> new AuthenticationException("Customer not found..."));
 
-        // 2. Check if a future scheduledTime is provided in the request.
         if (tripBookingRequest.getScheduledTime() != null && tripBookingRequest.getScheduledTime().isAfter(LocalDateTime.now())) {
-            // --- LOGIC FOR A SCHEDULED TRIP ---
-            
-            // Create a new TripBooking entity.
+            // --- LOGIC FOR SCHEDULED TRIP ---
             TripBooking scheduledTrip = new TripBooking();
             scheduledTrip.setCustomer(customer);
             scheduledTrip.setFromLocation(tripBookingRequest.getFromLocation());
             scheduledTrip.setToLocation(tripBookingRequest.getToLocation());
             scheduledTrip.setDistanceInKm(tripBookingRequest.getDistanceInKm());
-            
-            // Set the status to SCHEDULED. No driver or cab is assigned at this point.
+            scheduledTrip.setCarType(tripBookingRequest.getCarType());
             scheduledTrip.setStatus(TripStatus.SCHEDULED);
-            
-            // The start time of the trip is the future time provided by the user.
             scheduledTrip.setFromDateTime(tripBookingRequest.getScheduledTime());
-            
-            // Save the scheduled trip to the database. The background scheduler will handle the rest.
+
+            // Store the starting coordinates for the scheduler to use later
+            scheduledTrip.setFromLatitude(tripBookingRequest.getFromLatitude());
+            scheduledTrip.setFromLongitude(tripBookingRequest.getFromLongitude());
+
             return tripBookingRepository.save(scheduledTrip);
-            
         } else {
-            // --- LOGIC FOR AN IMMEDIATE TRIP (SAME AS BEFORE) ---
-            
-            // 3. Find the best available driver (highest rating).
-            Driver bestAvailableDriver = driverRepository.findAll().stream()
-                    .filter(d -> d.getVerified() && d.getIsAvailable()) // Find verified AND available drivers
-                    .max(Comparator.comparing(Driver::getRating)) // Find the one with the highest rating
-                    .orElseThrow(() -> new RuntimeException("No drivers are available at the moment."));
+            // --- LOGIC FOR IMMEDIATE TRIP ---
+            // Find all available drivers of the correct car type
+            List<Driver> availableDrivers = driverRepository.findAll().stream()
+                    .filter(driver ->
+                            driver.getVerified() &&
+                            driver.getIsAvailable() &&
+                            driver.getCab() != null &&
+                            driver.getCab().getCarType().equalsIgnoreCase(tripBookingRequest.getCarType()) &&
+                            driver.getLatitude() != null && driver.getLongitude() != null
+                    ).toList();
 
-            // 4. Find any available cab.
-            Cab availableCab = cabRepository.findAll().stream()
-                    .filter(Cab::getIsAvailable)
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("No cabs are available..."));
+            // Filter for nearby drivers and find the best one by rating
+            Driver bestNearbyDriver = availableDrivers.stream()
+                    .filter(driver -> calculateDistance(
+                            tripBookingRequest.getFromLatitude(),
+                            tripBookingRequest.getFromLongitude(),
+                            driver.getLatitude(),
+                            driver.getLongitude()) <= NEARBY_RADIUS_KM)
+                    .max(Comparator.comparing(Driver::getRating))
+                    .orElseThrow(() -> new RuntimeException("No '" + tripBookingRequest.getCarType() + "' drivers are available nearby at the moment."));
 
-            // 5. Set the assigned driver and cab to unavailable for other bookings.
-            bestAvailableDriver.setIsAvailable(false);
-            availableCab.setIsAvailable(false);
-            driverRepository.save(bestAvailableDriver);
-            cabRepository.save(availableCab);
+            // Assign driver and book trip (existing logic)
+            Cab assignedCab = bestNearbyDriver.getCab();
+            bestNearbyDriver.setIsAvailable(false);
+            assignedCab.setIsAvailable(false);
+            driverRepository.save(bestNearbyDriver);
 
-            // 6. Create and save the trip with a CONFIRMED status.
             TripBooking newTrip = new TripBooking();
             newTrip.setCustomer(customer);
-            newTrip.setDriver(bestAvailableDriver);
-            newTrip.setCab(availableCab);
+            newTrip.setDriver(bestNearbyDriver);
+            newTrip.setCab(assignedCab);
             newTrip.setFromLocation(tripBookingRequest.getFromLocation());
             newTrip.setToLocation(tripBookingRequest.getToLocation());
             newTrip.setDistanceInKm(tripBookingRequest.getDistanceInKm());
+            newTrip.setCarType(tripBookingRequest.getCarType());
             newTrip.setStatus(TripStatus.CONFIRMED);
             newTrip.setFromDateTime(LocalDateTime.now());
-
+            // Store starting coordinates for the trip record
+            newTrip.setFromLatitude(tripBookingRequest.getFromLatitude());
+            newTrip.setFromLongitude(tripBookingRequest.getFromLongitude());
+            
             return tripBookingRepository.save(newTrip);
         }
     }
 
+    /*
+     * Helper method to calculate distance between two coordinates
+     */
+    private double calculateDistance(double lat1, double lng1, double lat2, double lng2) {
+        final int R = 6371; // Radius of the earth in km
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lng2 - lng1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+
     /**
      * Updates the status of a trip according to predefined business rules.
+     *
+     * Main Responsibilities:
+     * - Handles the logic for updating the status of a trip.
+     * - Applies business rules for status transitions.
+     * - Throws an exception if the status transition is not allowed.
      *
      * @param tripId The ID of the trip.
      * @param newStatusStr The new status as a string (e.g., "IN_PROGRESS", "CANCELLED").
@@ -123,49 +189,53 @@ public class TripBookingServiceImpl implements ITripBookingService {
      */
     @Override
     @Transactional
-    public TripBooking updateTripStatus(Integer tripId, String newStatusStr) {
-        // 1. Find the trip or throw an exception if it doesn't exist.
+    public TripBooking updateTripStatus(Integer tripId, String newStatusStr, String driverUsername) {
+        // Find the trip or throw an exception if it doesn't exist.
         TripBooking trip = tripBookingRepository.findById(tripId)
                 .orElseThrow(() -> new RuntimeException("Trip not found with ID: " + tripId));
 
+        // Ensure the trip has an assigned driver before checking authorization.
+        if (trip.getDriver() == null || !trip.getDriver().getUsername().equals(driverUsername)) {
+            throw new AccessDeniedException("You are not authorized to update this trip.");
+        }
+
+        // (Existing logic for updating status)
         TripStatus newStatus = TripStatus.valueOf(newStatusStr.toUpperCase());
+
         TripStatus currentStatus = trip.getStatus();
 
-        // 2. Apply the business rules for status transitions.
+        // Apply the business rules for status transitions.
         switch (currentStatus) {
-            // ==> ADDED NEW RULE FOR SCHEDULED TRIPS <==
-            // A trip that is scheduled but not yet confirmed can only be cancelled.
-            case SCHEDULED:
+            case SCHEDULED -> {
                 if (newStatus == TripStatus.CANCELLED) {
                     trip.setStatus(newStatus);
                 } else {
                     throw new IllegalStateException("A scheduled trip can only be CANCELLED.");
                 }
-                break;
-                
-            case CONFIRMED:
+            }
+
+            case CONFIRMED -> {
                 if (newStatus == TripStatus.IN_PROGRESS || newStatus == TripStatus.CANCELLED) {
                     trip.setStatus(newStatus);
                 } else {
                     throw new IllegalStateException("A confirmed trip can only be moved to IN_PROGRESS or CANCELLED.");
                 }
-                break;
+            }
 
-            case IN_PROGRESS:
+            case IN_PROGRESS -> {
                 if (newStatus == TripStatus.CANCELLED) {
                     trip.setStatus(newStatus);
                 } else {
                     throw new IllegalStateException("An in-progress trip can only be CANCELLED.");
                 }
-                break;
+            }
 
-            case COMPLETED:
-            case CANCELLED:
-                // If the trip is already completed or cancelled, no further status changes are allowed.
+            case COMPLETED, CANCELLED -> // If the trip is already completed or cancelled, no further status changes are allowed.
                 throw new IllegalStateException("A " + currentStatus.toString().toLowerCase() + " trip cannot be changed.");
         }
+        // A trip that is scheduled but not yet confirmed can only be cancelled.
 
-        // 3. If the trip is cancelled, make the assigned driver and cab available again.
+        // If the trip is cancelled, make the assigned driver and cab available again.
         // This check is safe for scheduled trips because their driver and cab will be null.
         if (newStatus == TripStatus.CANCELLED) {
             Driver driver = trip.getDriver();
@@ -187,21 +257,35 @@ public class TripBookingServiceImpl implements ITripBookingService {
     /**
      * Completes a trip, calculates the bill, and sets the end time.
      *
+     * Workflow:
+     * - Completes the trip.
+     * - Calculates the final bill.
+     * - Sets the end time.
+     * - Sets the driver and cab to available.
+     * - Returns the completed trip.
+     *
      * @param tripId The ID of the trip to complete.
      * @return The completed trip with the final bill.
      */
     @Override
     @Transactional
-    public TripBooking completeTrip(Integer tripId) {
+    public TripBooking completeTrip(Integer tripId, String driverUsername) {
         TripBooking trip = tripBookingRepository.findById(tripId)
                 .orElseThrow(() -> new RuntimeException("Trip not found..."));
 
+        if (trip.getDriver() == null || !trip.getDriver().getUsername().equals(driverUsername)) {
+            throw new AccessDeniedException("You are not authorized to complete this trip.");
+        }
+
+        // Complete the trip
         trip.setToDateTime(LocalDateTime.now());
         trip.setStatus(TripStatus.COMPLETED);
 
+        // Calculate the final bill
         float bill = trip.getDistanceInKm() * trip.getCab().getPerKmRate();
         trip.setBill(bill);
 
+        // Set the driver and cab to available
         Driver driver = trip.getDriver();
         if (driver != null) {
             driver.setIsAvailable(true);
@@ -220,16 +304,28 @@ public class TripBookingServiceImpl implements ITripBookingService {
     /**
      * Retrieves the trip history for a given customer.
      *
+     * Workflow:
+     * - Retrieves all trips for the customer.
+     * - Returns the list of trips.
+     *
      * @param customerId The customer's ID.
      * @return A list of trips.
      */
     @Override
-    public List<TripBooking> viewAllTripsCustomer(Integer customerId) {
+    public List<TripBooking> getAllTripsCustomer(Integer customerId) {
         return tripBookingRepository.findByCustomer_Id(customerId);
     }
 
     /**
      * Applies a customer's rating to a completed trip and updates the driver's average rating.
+     *
+     * Workflow:
+     * - Finds the trip.
+     * - Validates the request.
+     * - Gets the driver and the new rating.
+     * - Calculates the new average rating.
+     * - Updates the trip with the customer's rating.
+     * - Returns the updated trip.
      *
      * @param tripId The ID of the trip to rate.
      * @param ratingRequest The DTO containing the rating value.
@@ -237,12 +333,16 @@ public class TripBookingServiceImpl implements ITripBookingService {
      */
     @Override
     @Transactional
-    public TripBooking rateTrip(Integer tripId, RatingRequest ratingRequest) {
-        // 1. Find the trip
+    public TripBooking rateTrip(Integer tripId, RatingRequest ratingRequest, String customerUsername) {
+        // Find the trip
         TripBooking trip = tripBookingRepository.findById(tripId)
                 .orElseThrow(() -> new RuntimeException("Trip not found with ID: " + tripId));
+        
+        if (trip.getCustomer() == null || !trip.getCustomer().getUsername().equals(customerUsername)) {
+            throw new AccessDeniedException("You are not authorized to rate this trip.");
+        }
 
-        // 2. Validate the request
+        // Validate the request
         if (trip.getStatus() != TripStatus.COMPLETED) {
             throw new IllegalStateException("Trip must be completed before it can be rated.");
         }
@@ -250,21 +350,21 @@ public class TripBookingServiceImpl implements ITripBookingService {
             throw new IllegalStateException("This trip has already been rated.");
         }
 
-        // 3. Get the driver and the new rating
+        // Get the driver and the new rating
         Driver driver = trip.getDriver();
         Integer newRating = ratingRequest.getRating();
 
-        // 4. Calculate the new average rating
+        // Calculate the new average rating
         float currentTotalPoints = driver.getRating() * driver.getTotalRatings();
         int newTotalRatings = driver.getTotalRatings() + 1;
         float newAverageRating = (currentTotalPoints + newRating) / newTotalRatings;
 
-        // 5. Update and save the driver
+        // Update and save the driver
         driver.setRating(newAverageRating);
         driver.setTotalRatings(newTotalRatings);
         driverRepository.save(driver);
 
-        // 6. Update and save the trip with the customer's rating
+        // Update and save the trip with the customer's rating
         trip.setCustomerRating(newRating);
         return tripBookingRepository.save(trip);
     }

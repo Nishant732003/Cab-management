@@ -1,41 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-// import { RideService, BookRideRequest, BookRideResponse, Driver as ApiDriver, Cab } from '../../services/ride.service';
-import { RideService ,BookRideRequest,BookRideResponse,Driver as ApiDriver,Cab} from '../../../../core/services/user/ride.service';
+import { RideService, BookRideRequest, BookRideResponse, Cab } from '../../../../core/services/user/ride.service';
 
-interface Location {
+interface LocationSuggestion {
   name: string;
   address: string;
   lat: number;
   lng: number;
-}
-
-interface VehicleType {
-  id: string;
-  name: string;
-  capacity: number;
-  baseFare: number;
-  perKmRate: number;
-  icon: string;
-  estimatedTime: string;
-  features: string[];
-}
-
-interface Driver {
-  id: string;
-  name: string;
-  rating: number;
-  vehicleNumber: string;
-  vehicleType: string;
-  estimatedArrival: string;
-  photo: string;
-  carModel: string;
-  licensePlate: string;
-  eta: string;
-  fare: number;
-  apiDriver?: ApiDriver; // Reference to the actual API driver object
-  // apiCab?: Cab; // Reference to the actual API cab object
 }
 
 @Component({
@@ -45,34 +15,35 @@ interface Driver {
   styleUrls: ['./bookRide.component.css']
 })
 export class BookRideComponent implements OnInit {
-  // Properties matching the template
-  pickup: string = '';
-  destination: string = '';
-  selectedDate: string = '';
-  selectedTime: string = '';
-  
-  // Booking form data
-  pickupLocation: string = '';
-  destinationLocation: string = '';
-  selectedVehicleType: string = '';
-  scheduledTime: string = '';
-  isScheduled: boolean = false;
-  rideNotes: string = '';
-
-  // Component state
+  // Step control
   currentStep: 'location' | 'vehicle' | 'confirmation' = 'location';
-  isLoading: boolean = false;
-  availableDrivers: Driver[] = [];
-  estimatedFare: number = 0;
-  estimatedDistance: string = '';
-  estimatedDuration: string = '';
-  
-  // Properties required by template
-  searchingDrivers: boolean = false;
-  showDrivers: boolean = false;
+  isLoading = false;
 
-  // Location suggestions
-  locationSuggestions: Location[] = [
+  // Inputs
+  pickupLocation = '';
+  destinationLocation = '';
+  isScheduled = false;
+  selectedDate = '';
+  selectedTime = '';
+
+  // Coordinates and distance
+  pickupCoords: { lat: number, lng: number } | null = null;
+  destinationCoords: { lat: number, lng: number } | null = null;
+  estimatedDistanceKm = 0;
+  estimatedDistanceText = '';
+  estimatedDurationText = '';
+
+  // Cabs list and selection
+  allCabs: Cab[] = [];
+  availableCabs: Cab[] = [];
+  selectedCab: Cab | null = null;
+
+  // Fare
+  baseFare = 50; // configurable
+  estimatedFare = 0;
+
+  // Suggestions (static demo)
+  locationSuggestions: LocationSuggestion[] = [
     { name: 'Mumbai Airport T1', address: 'Terminal 1, Andheri East, Mumbai', lat: 19.0896, lng: 72.8656 },
     { name: 'Mumbai Airport T2', address: 'Terminal 2, Andheri East, Mumbai', lat: 19.0896, lng: 72.8656 },
     { name: 'Chhatrapati Shivaji Terminus', address: 'CST, Fort, Mumbai', lat: 18.9398, lng: 72.8355 },
@@ -81,369 +52,189 @@ export class BookRideComponent implements OnInit {
     { name: 'Gateway of India', address: 'Apollo Bandar, Colaba, Mumbai', lat: 18.9220, lng: 72.8347 }
   ];
 
-  // Vehicle types
-  vehicleTypes: VehicleType[] = [
-    {
-      id: 'Sedan',
-      name: 'Economy',
-      capacity: 4,
-      baseFare: 50,
-      perKmRate: 8,
-      icon: '🚗',
-      estimatedTime: '5-8 min',
-      features: ['Air Conditioning', 'Music System']
-    },
-    {
-      id: 'Premium',
-      name: 'Comfort',
-      capacity: 4,
-      baseFare: 80,
-      perKmRate: 12,
-      icon: '🚙',
-      estimatedTime: '3-6 min',
-      features: ['Premium Interior', 'WiFi', 'Phone Charger']
-    },
-    {
-      id: 'Luxury',
-      name: 'Luxury',
-      capacity: 4,
-      baseFare: 150,
-      perKmRate: 20,
-      icon: '🚕',
-      estimatedTime: '2-5 min',
-      features: ['Leather Seats', 'Premium Sound', 'Complimentary Water']
-    },
-    {
-      id: 'SUV',
-      name: 'SUV',
-      capacity: 6,
-      baseFare: 100,
-      perKmRate: 15,
-      icon: '🚐',
-      estimatedTime: '4-7 min',
-      features: ['Spacious', 'Large Boot Space', 'Group Travel']
-    }
-  ];
-
-  // Store the selected driver for booking
-  private selectedDriver: Driver | null = null;
-
   constructor(private rideService: RideService) {}
 
   ngOnInit(): void {
-    this.setCurrentLocationAsPickup();
+    // Optional: prefill pickup from current location label
+    this.pickupLocation = 'Current Location (Andheri West)';
   }
 
-  setCurrentLocationAsPickup(): void {
-    // Simulate getting current location
-    this.pickup = 'Current Location (Andheri West)';
-    this.pickupLocation = this.pickup;
+  // Select from suggestions
+  selectLocationSuggestion(s: LocationSuggestion, type: 'pickup' | 'destination'): void {
+    if (type === 'pickup') this.pickupLocation = s.name;
+    else this.destinationLocation = s.name;
   }
 
-  // Methods required by template
-  searchDrivers(): void {
-    if (!this.pickup.trim() || !this.destination.trim()) {
-      alert('Please enter both pickup and destination locations.');
-      return;
-    }
-
-    this.searchingDrivers = true;
-    this.showDrivers = false;
-
-    // Sync with existing properties
-    this.pickupLocation = this.pickup;
-    this.destinationLocation = this.destination;
-
-    // Get available drivers from API
-    this.rideService.getAvailableDrivers(this.pickupLocation, this.destinationLocation)
-      .subscribe({
-        next: (apiDrivers) => {
-          this.transformApiDriversToUiDrivers(apiDrivers);
-          this.searchingDrivers = false;
-          this.showDrivers = true;
-        },
-        error: (error) => {
-          console.error('Error fetching drivers:', error);
-          alert('Failed to find available drivers. Please try again.');
-          this.searchingDrivers = false;
-        }
-      });
-  }
-
-  // Transform API drivers to UI drivers
-  private transformApiDriversToUiDrivers(apiDrivers: ApiDriver[]): void {
-    this.availableDrivers = apiDrivers.map((apiDriver, index) => {
-      // In a real app, you would get this from the API or match with available cabs
-      const vehicleType = this.vehicleTypes[index % this.vehicleTypes.length];
-      const distance = parseFloat(this.estimatedDistance) || 10; // Default to 10km if not calculated
-      const fare = this.rideService.calculateFare(distance, vehicleType.perKmRate, vehicleType.baseFare);
-      
-      return {
-        id: `D${apiDriver.id}`,
-        name: apiDriver.username,
-        rating: apiDriver.rating,
-        vehicleNumber: apiDriver.licenceNo,
-        vehicleType: vehicleType.id,
-        estimatedArrival: `${5 + index} min`,
-        photo: '👨‍💼', // Default emoji
-        carModel: vehicleType.name,
-        licensePlate: apiDriver.licenceNo,
-        eta: `${5 + index} min`,
-        fare: fare,
-        apiDriver: apiDriver
-      };
-    });
-  }
-
-  callDriver(driver: Driver): void {
-    alert(`Calling ${driver.name} at ${driver.vehicleNumber}`);
-  }
-
-  messageDriver(driver: Driver): void {
-    alert(`Messaging ${driver.name}`);
-  }
-
-  bookRide(driver: Driver): void {
-    this.selectedDriver = driver;
-    const confirmation = confirm(`Book ride with ${driver.name} for ${this.formatCurrency(driver.fare)}?`);
-    
-    if (confirmation) {
-      this.confirmBookingWithDriver();
-    }
-  }
-
-  // Actually book the ride with the selected driver
-  private confirmBookingWithDriver(): void {
-    if (!this.selectedDriver) {
-      alert('No driver selected');
-      return;
-    }
-
-    this.isLoading = true;
-    
-    // Prepare the request payload
-    const request: BookRideRequest = {
-      customerId: this.getCurrentCustomerId(), // You need to implement this based on your auth system
-      fromLocation: this.pickupLocation,
-      toLocation: this.destinationLocation,
-      distanceInKm: parseFloat(this.estimatedDistance) || 10, // Default to 10km if not calculated
-      carType: this.selectedDriver.vehicleType,
-      scheduledTime: this.isScheduled && this.scheduledTime ? this.scheduledTime : null
-    };
-
-    // Call the API to book the ride
-    this.rideService.bookRide(request).subscribe({
-      next: (response: BookRideResponse) => {
-        this.isLoading = false;
-        alert(`Ride booked successfully with ${response.driver.username}! Your booking ID is ${response.tripBookingId}.`);
-        this.resetBooking();
-      },
-      error: (error) => {
-        this.isLoading = false;
-        console.error('Error booking ride:', error);
-        alert('Failed to book ride. Please try again.');
-      }
-    });
-  }
-
-  // Get current customer ID from authentication (you'll need to implement based on your auth system)
-  private getCurrentCustomerId(): number {
-    // This is a placeholder - you should replace with actual authentication logic
-    const userData = localStorage.getItem('currentUser');
-    if (userData) {
-      const user = JSON.parse(userData);
-      return user.id;
-    }
-    
-    // Fallback - in a real app, you would redirect to login
-    alert('Please log in to book a ride');
-    throw new Error('User not authenticated');
-  }
-
-  selectLocationSuggestion(location: Location, type: 'pickup' | 'destination'): void {
-    if (type === 'pickup') {
-      this.pickup = location.name;
-      this.pickupLocation = location.name;
-    } else {
-      this.destination = location.name;
-      this.destinationLocation = location.name;
-    }
-  }
-
+  // First step: geocode and distance
   proceedToVehicleSelection(): void {
     if (!this.pickupLocation.trim() || !this.destinationLocation.trim()) {
       alert('Please enter both pickup and destination locations.');
       return;
     }
+    this.isLoading = true;
 
-    this.currentStep = 'vehicle';
-    this.calculateEstimates();
-  }
+    this.rideService.geocodeAddress(this.pickupLocation).subscribe({
+      next: (p) => {
+        this.pickupCoords = p;
+        this.rideService.geocodeAddress(this.destinationLocation).subscribe({
+          next: (d) => {
+            this.destinationCoords = d;
+            this.rideService.getDistance(p.lat, p.lng, d.lat, d.lng).subscribe({
+              next: (km) => {
+                this.estimatedDistanceKm = parseFloat(km.toFixed(1));
+                this.estimatedDistanceText = `${this.estimatedDistanceKm} km`;
+                // Fake duration estimate (simple heuristic)
+                const minFrom = Math.floor(this.estimatedDistanceKm * 2 + 10);
+                const minTo = Math.floor(this.estimatedDistanceKm * 3 + 15);
+                this.estimatedDurationText = `${minFrom}-${minTo} min`;
 
-  calculateEstimates(): void {
-    // Simulate distance calculation based on locations
-    const baseDistance = Math.random() * 20 + 5; // 5-25 km
-    this.estimatedDistance = `${baseDistance.toFixed(1)} km`;
-    this.estimatedDuration = `${Math.floor(baseDistance * 2 + 10)}-${Math.floor(baseDistance * 3 + 15)} min`;
+                // Load available cabs now
+                this.loadCabsForSelection();
+              },
+              error: () => this.fail('Failed to calculate distance.')
+            });
+          },
+          error: () => this.fail('Failed to get destination coordinates.')
+        });
+      },
+      error: () => this.fail('Failed to get pickup coordinates.')
+    });
   }
+private loadCabsForSelection(): void {
+  this.rideService.listCabs().subscribe({
+    next: (cabs) => {
+      // Normalize to array, then filter availability
+      this.allCabs = Array.isArray(cabs) ? cabs : [];
+      this.availableCabs = this.allCabs.filter(c => c.isAvailable);
 
-  selectVehicleType(vehicleType: VehicleType): void {
-    this.selectedVehicleType = vehicleType.id;
-    
-    // Calculate fare based on vehicle type
-    const distance = parseFloat(this.estimatedDistance);
-    this.estimatedFare = vehicleType.baseFare + (distance * vehicleType.perKmRate);
-    
-    this.findAvailableDrivers(vehicleType.id);
-  }
-calculateVehicleFare(vehicle: VehicleType): number {
-  const distance = parseFloat(this.estimatedDistance) || 0;
-  return vehicle.baseFare + (distance * vehicle.perKmRate);
+      // Pick the first available cab, or null if none
+      this.selectedCab = this.availableCabs.length > 0 ? this.availableCabs[0] : null;
+
+      // Update fare based on current selection
+      this.recomputeFare();
+
+      // Move to vehicle step
+      this.isLoading = false;
+      this.currentStep = 'vehicle';
+    },
+    error: (e) => {
+      console.error('Error fetching cabs', e);
+      this.fail('Failed to load available cars.');
+    }
+  });
 }
 
-  findAvailableDrivers(vehicleTypeId: string): void {
-    this.isLoading = true;
-    
-    // Get available drivers for the selected vehicle type
-    this.rideService.getAvailableDrivers(this.pickupLocation, this.destinationLocation)
-      .subscribe({
-        next: (apiDrivers) => {
-          // Filter drivers by vehicle type and transform to UI format
-          this.availableDrivers = apiDrivers
-            .filter((driver, index) => {
-              // In a real app, you would check the driver's actual vehicle type
-              // This is a simplified filter for demonstration
-              const availableTypes = ['Sedan', 'Premium', 'Luxury', 'SUV'];
-              const driverType = availableTypes[index % availableTypes.length];
-              return driverType === vehicleTypeId;
-            })
-            .map((apiDriver, index) => {
-              const vehicleType = this.getVehicleTypeById(vehicleTypeId);
-              const distance = parseFloat(this.estimatedDistance);
-              const fare = vehicleType ? 
-                vehicleType.baseFare + (distance * vehicleType.perKmRate) : 
-                0;
-              
-              return {
-                id: `D${apiDriver.id}`,
-                name: apiDriver.username,
-                rating: apiDriver.rating,
-                vehicleNumber: apiDriver.licenceNo,
-                vehicleType: vehicleTypeId,
-                estimatedArrival: `${5 + index} min`,
-                photo: '👨‍💼',
-                carModel: vehicleType?.name || 'Car',
-                licensePlate: apiDriver.licenceNo,
-                eta: `${5 + index} min`,
-                fare: fare,
-                apiDriver: apiDriver
-              };
-            });
-          
-          this.isLoading = false;
-        },
-        error: (error) => {
-          console.error('Error fetching drivers:', error);
-          alert('Failed to find available drivers. Please try again.');
-          this.isLoading = false;
-        }
-      });
+
+
+  private fail(msg: string) {
+    this.isLoading = false;
+    alert(msg);
+  }
+
+  // Toggle schedule
+  toggleScheduled(): void {
+    this.isScheduled = !this.isScheduled;
+    if (!this.isScheduled) {
+      this.selectedDate = '';
+      this.selectedTime = '';
+    }
+  }
+
+  // Select cab card
+  selectCab(cab: Cab): void {
+    this.selectedCab = cab;
+    this.recomputeFare();
+  }
+
+  private recomputeFare(): void {
+    if (!this.selectedCab) {
+      this.estimatedFare = 0;
+      return;
+    }
+    // Fare = base + distance * perKmRate
+    this.estimatedFare = Math.round(this.baseFare + this.estimatedDistanceKm * this.selectedCab.perKmRate);
   }
 
   proceedToConfirmation(): void {
-    if (!this.selectedVehicleType) {
-      alert('Please select a vehicle type.');
+    if (!this.selectedCab) {
+      alert('Please select a car.');
       return;
     }
     this.currentStep = 'confirmation';
   }
 
+  // Confirm booking
   confirmBooking(): void {
+    if (!this.pickupCoords || !this.destinationCoords || !this.selectedCab) {
+      alert('Missing trip details.');
+      return;
+    }
     this.isLoading = true;
-    
-    // Prepare the request payload
-    const request: BookRideRequest = {
+
+    const scheduledTime = this.isScheduled && this.selectedDate && this.selectedTime
+      ? `${this.selectedDate}T${this.selectedTime}:00`
+      : null;
+
+    const payload: BookRideRequest = {
       customerId: this.getCurrentCustomerId(),
       fromLocation: this.pickupLocation,
       toLocation: this.destinationLocation,
-      distanceInKm: parseFloat(this.estimatedDistance),
-      carType: this.selectedVehicleType,
-      scheduledTime: this.isScheduled && this.scheduledTime ? this.scheduledTime : null
+      distanceInKm: this.estimatedDistanceKm,
+      carType: this.selectedCab.carType,
+      fromLatitude: this.pickupCoords.lat,
+      fromLongitude: this.pickupCoords.lng,
+      scheduledTime
     };
 
-    // Call the API to book the ride
-    this.rideService.bookRide(request).subscribe({
-      next: (response: BookRideResponse) => {
+    this.rideService.bookRide(payload).subscribe({
+      next: (res: BookRideResponse) => {
         this.isLoading = false;
-        alert(`Ride booked successfully! Your booking ID is ${response.tripBookingId}.`);
+        alert(`Ride booked successfully! Booking ID: ${res.tripBookingId}`);
         this.resetBooking();
       },
-      error: (error) => {
+      error: (err) => {
+        console.error('Error booking ride', err);
         this.isLoading = false;
-        console.error('Error booking ride:', error);
         alert('Failed to book ride. Please try again.');
       }
     });
   }
 
+  // Demo auth retrieval
+  private getCurrentCustomerId(): number {
+    const userStr = localStorage.getItem('currentUser');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        return user?.id;
+      } catch {}
+    }
+    alert('Please log in to book a ride');
+    throw new Error('User not authenticated');
+  }
+
+  // UI helpers
+  goBack(): void {
+    if (this.currentStep === 'vehicle') this.currentStep = 'location';
+    else if (this.currentStep === 'confirmation') this.currentStep = 'vehicle';
+  }
+
   resetBooking(): void {
     this.currentStep = 'location';
-    this.pickup = '';
-    this.destination = '';
-    this.selectedDate = '';
-    this.selectedTime = '';
     this.pickupLocation = '';
     this.destinationLocation = '';
-    this.selectedVehicleType = '';
-    this.scheduledTime = '';
     this.isScheduled = false;
-    this.rideNotes = '';
-    this.availableDrivers = [];
+    this.selectedDate = '';
+    this.selectedTime = '';
+    this.pickupCoords = null;
+    this.destinationCoords = null;
+    this.estimatedDistanceKm = 0;
+    this.estimatedDistanceText = '';
+    this.estimatedDurationText = '';
+    this.allCabs = [];
+    this.availableCabs = [];
+    this.selectedCab = null;
     this.estimatedFare = 0;
-    this.estimatedDistance = '';
-    this.estimatedDuration = '';
-    this.searchingDrivers = false;
-    this.showDrivers = false;
-    this.selectedDriver = null;
-  }
-
-  goBack(): void {
-    if (this.currentStep === 'vehicle') {
-      this.currentStep = 'location';
-    } else if (this.currentStep === 'confirmation') {
-      this.currentStep = 'vehicle';
-    }
-  }
-
-  swapLocations(): void {
-    const temp = this.pickup;
-    this.pickup = this.destination;
-    this.destination = temp;
-    
-    // Also swap the existing properties
-    const tempLocation = this.pickupLocation;
-    this.pickupLocation = this.destinationLocation;
-    this.destinationLocation = tempLocation;
-  }
-
-  toggleScheduled(): void {
-    this.isScheduled = !this.isScheduled;
-    if (!this.isScheduled) {
-      this.scheduledTime = '';
-      this.selectedTime = '';
-    }
-  }
-
-  getVehicleTypeById(id: string): VehicleType | undefined {
-    return this.vehicleTypes.find(v => v.id === id);
-  }
-
-  getStarArray(rating: number): boolean[] {
-    const stars = [];
-    for (let i = 1; i <= 5; i++) {
-      stars.push(i <= Math.floor(rating));
-    }
-    return stars;
   }
 
   formatCurrency(amount: number): string {

@@ -40,11 +40,4 @@ public interface TripBookingRepository extends JpaRepository<TripBooking, Intege
      * @return A list of trips that started on that day.
      */
     List<TripBooking> findByFromDateTimeBetween(LocalDateTime startOfDay, LocalDateTime endOfDay);
-    
-    /**
-     * Finds all trips associated with a specific cab.
-     * @param cabId The ID of the cab.
-     * @return A list of trips for that cab.
-     */
-    List<TripBooking> findByCab_CabId(Integer cabId);
 }
