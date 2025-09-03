@@ -51,7 +51,8 @@ export class SidebarComponent implements OnInit {
     {
       label: "Trip Management",
       icon: "Route", 
-      href: "/admin/trips",
+      // --- FIX: This now matches the path in the routing module ---
+      href: "/admin/trip-management", 
       color: "text-purple-600",
       bgColor: "bg-purple-50",
     },

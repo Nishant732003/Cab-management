@@ -14,16 +14,22 @@ const routes: Routes = [
     path: '', 
     component: AdminComponent,
     children: [
+      // --- Default route redirects to the overview page ---
       { path: '', redirectTo: 'overview', pathMatch: 'full' },
+      // --- Route for the main overview/dashboard page ---
       { path: 'overview', component: OverviewComponent },
+      // --- Route for managing users ---
       { path: 'users', component: UserComponent },
+      // --- Route for managing drivers ---
       { path: 'drivers', component: DriverComponent },
-      { path: '**', redirectTo: 'overview' },
-      // --- NEW ROUTES ADDED BELOW ---
-      { path: 'admin-verification', component: AdminVerificationComponent }, // Missing comma was here
-      { path: 'trips', component: TripsComponent } // Add this route
-    ]
-  }
+      // --- CORRECTED ROUTE for trip management ---
+      { path: 'trip-management', component: TripsComponent },
+      // --- CORRECTED ROUTE for admin verification ---
+      { path: 'admin-verification', component: AdminVerificationComponent },
+      // --- CRITICAL FIX: The wildcard route MUST be last ---
+      { path: '**', redirectTo: 'overview' } ,
+    ],
+  },
 ];
 
 @NgModule({

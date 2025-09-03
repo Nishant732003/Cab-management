@@ -8,6 +8,8 @@ import com.cabbooking.repository.CustomerRepository;
 import com.cabbooking.repository.DriverRepository;
 import com.cabbooking.repository.TripBookingRepository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,29 +21,27 @@ import java.util.stream.Collectors;
 
 /**
  * Implementation of the IAdminService for admin data operations.
- * (Your existing comments are preserved)
  */
 @Service
 public class AdminServiceImpl implements IAdminService {
 
-    /* (Your existing comments are preserved) */
+    private static final Logger logger = LoggerFactory.getLogger(AdminServiceImpl.class);
+
     @Autowired
     private CustomerRepository customerRepository;
 
-    /* (Your existing comments are preserved) */
     @Autowired
     private DriverRepository driverRepository;
 
-    /* (Your existing comments are preserved) */
     @Autowired
     private TripBookingRepository tripBookingRepository;
 
     /**
      * Retrieves a list of customer summaries for the admin dashboard.
-     * (Your existing comments are preserved)
      */
     @Override
     public List<UserSummaryDTO> getAllCustomers() {
+        logger.info("Fetching all customers for admin.");
         return customerRepository.findAll()
                 .stream()
                 .map(this::mapCustomerToUserSummaryDTO)
@@ -50,10 +50,10 @@ public class AdminServiceImpl implements IAdminService {
 
     /**
      * Retrieves a list of driver summaries for the admin dashboard.
-     * (Your existing comments are preserved)
      */
     @Override
     public List<UserSummaryDTO> getAllDrivers() {
+        logger.info("Fetching all drivers for admin.");
         return driverRepository.findAll()
                 .stream()
                 .map(this::mapDriverToUserSummaryDTO)
@@ -62,7 +62,6 @@ public class AdminServiceImpl implements IAdminService {
     
     /**
      * Converts a Customer entity into a UserSummaryDTO.
-     * (Your existing comments are preserved)
      */
     private UserSummaryDTO mapCustomerToUserSummaryDTO(Customer customer) {
         String displayName = customer.getUsername() != null 
@@ -80,14 +79,12 @@ public class AdminServiceImpl implements IAdminService {
     
     /**
      * Converts a Driver entity into a UserSummaryDTO.
-     * (Your existing comments are preserved)
      */
     private UserSummaryDTO mapDriverToUserSummaryDTO(Driver driver) {
         String displayName = driver.getUsername() != null 
             ? driver.getUsername().substring(0, 1).toUpperCase() + driver.getUsername().substring(1)
             : "N/A";
         
-        // FIX: Convert the Float rating to a Double before passing it to the DTO constructor.
         Double ratingAsDouble = (driver.getRating() != null) ? driver.getRating().doubleValue() : 0.0;
 
         return new UserSummaryDTO(
@@ -96,21 +93,32 @@ public class AdminServiceImpl implements IAdminService {
             driver.getEmail(),
             displayName,
             driver.getMobileNumber(),
-            ratingAsDouble, // Pass the converted Double value
+            ratingAsDouble, 
             driver.getLicenceNo(),
             driver.getVerified()
         );
     }
 
-    /* (Your existing methods and comments are preserved) */
     @Override
     public List<TripBooking> getTripsByCab(Integer cabId) {
+        logger.info("Fetching trips for cab with ID: {}", cabId);
         return tripBookingRepository.findByCab_CabId(cabId);
     }
+    
+    /**
+     * Retrieves all trips for a given driver.
+     * @param driverId The ID of the driver.
+     * @return A list of trips for that driver.
+     */
+    @Override
+    public List<TripBooking> getTripsByDriver(Integer driverId) {
+        logger.info("Fetching trips for driver with ID: {}", driverId);
+        return tripBookingRepository.findByDriver_Id(driverId);
+    }
 
-    /* (Your existing methods and comments are preserved) */
     @Override
     public List<TripBooking> getTripsByDate(LocalDate date) {
+        logger.info("Fetching trips for date: {}", date);
         LocalDateTime startOfDay = date.atStartOfDay();
         LocalDateTime endOfDay = date.atTime(LocalTime.MAX);
         return tripBookingRepository.findByFromDateTimeBetween(startOfDay, endOfDay);

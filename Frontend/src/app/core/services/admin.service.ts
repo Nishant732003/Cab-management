@@ -32,11 +32,20 @@ export interface Admin {
   mobileNumber: string;
   verified: boolean;
 }
+
+/**
+ * FIX: The 'export' keyword was missing.
+ * This interface is for a user (Customer or Driver) within a trip record.
+ */
+export interface TripUser {
+  id: number;
+  username: string;
+}
 // NEW: INTERFACE FOR TRIP
 export interface TripBooking {
   tripBookingId: number;
-  customer: Customer;
-  driver: Driver;
+  customer: TripUser; // FIX: Uses an interface that has an 'id'
+  driver: TripUser;   // FIX: Uses an interface that has an 'id'
   fromLocation: string;
   toLocation: string;
   fromDateTime: string;
@@ -108,13 +117,18 @@ export class AdminService {
    * Gets all trips for a specific driver.
    * @param driverId The ID of the driver.
    */
+// --- FIX: Correctly typed the return value and the http.get call ---
+ /**
+   * FIX: The return type is now explicitly Observable<TripBooking[]>.
+   * This tells TypeScript what kind of data to expect from the API,
+   * fixing the "Type 'unknown' is not assignable" error.
+   */
   getTripsByDriver(driverId: number): Observable<TripBooking[]> {
     return this.http.get<TripBooking[]>(`${this.apiUrl}/trips/driver/${driverId}`);
   }
 
   /**
-   * Gets all trips for a specific date.
-   * @param date The date in YYYY-MM-DD format.
+   * FIX: The return type is also explicitly Observable<TripBooking[]>.
    */
   getTripsByDate(date: string): Observable<TripBooking[]> {
     return this.http.get<TripBooking[]>(`${this.apiUrl}/trips/date/${date}`);

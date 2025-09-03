@@ -1,12 +1,13 @@
 package com.cabbooking.controller;
 
-import java.time.LocalDate; // <-- IMPORT THIS
+import java.time.LocalDate;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat; // <-- IMPORT THIS
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,11 +19,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.cabbooking.dto.UserSummaryDTO;
 import com.cabbooking.model.Admin;
 import com.cabbooking.model.Driver;
-import com.cabbooking.model.TripBooking; // <-- IMPORT THIS
+import com.cabbooking.model.TripBooking;
 import com.cabbooking.service.IAdminService;
 import com.cabbooking.service.IAdminVerificationService;
 import com.cabbooking.service.IDriverService;
-import com.cabbooking.service.ITripBookingService;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -39,9 +39,6 @@ public class AdminController {
 
     @Autowired
     private IDriverService driverService;
-
-    @Autowired
-    private ITripBookingService tripBookingService;
 
     public AdminController() {
         logger.info("**************************************************");
@@ -97,18 +94,40 @@ public class AdminController {
         return ResponseEntity.ok(verifiedDriver);
     }
 
+    /**
+     * Handles the GET request to retrieve all trips for a specific driver.
+     *
+     * @param driverId The ID of the driver.
+     * @return A ResponseEntity containing a list of trips and an HTTP status code.
+     */
     @GetMapping("/trips/driver/{driverId}")
     public ResponseEntity<List<TripBooking>> getTripsByDriver(@PathVariable int driverId) {
         logger.info("Admin requested trips for driver with ID: {}", driverId);
-        List<TripBooking> trips = tripBookingService.viewAllTripsDriver(driverId);
-        return ResponseEntity.ok(trips);
+        try {
+            List<TripBooking> trips = adminService.getTripsByDriver(driverId);
+            return ResponseEntity.ok(trips);
+        } catch (Exception e) {
+            logger.error("An error occurred while fetching trips for driver with ID {}: {}", driverId, e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
+    /**
+     * Handles the GET request to retrieve all trips for a specific date.
+     *
+     * @param date The date for which to retrieve trips.
+     * @return A ResponseEntity containing a list of trips and an HTTP status code.
+     */
     @GetMapping("/trips/date/{date}")
     public ResponseEntity<List<TripBooking>> getTripsByDate(
             @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         logger.info("Admin requested trips for date: {}", date);
-        List<TripBooking> trips = tripBookingService.getTripsDatewise(date);
-        return ResponseEntity.ok(trips);
+        try {
+            List<TripBooking> trips = adminService.getTripsByDate(date);
+            return ResponseEntity.ok(trips);
+        } catch (Exception e) {
+            logger.error("An error occurred while fetching trips for date {}: {}", date, e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
