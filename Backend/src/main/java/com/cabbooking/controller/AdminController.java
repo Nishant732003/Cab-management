@@ -46,27 +46,53 @@ public class AdminController {
         logger.info("**************************************************");
     }
 
+    /**
+     * Get all customers.
+     */
     @GetMapping("/customers")
     public ResponseEntity<List<UserSummaryDTO>> getAllCustomers() {
-        logger.info("Admin requested list of all customers");
-        List<UserSummaryDTO> customers = adminService.getAllCustomers();
-        return ResponseEntity.ok(customers);
+        logger.info("Fetching list of all customers");
+        try {
+            List<UserSummaryDTO> customers = adminService.getAllCustomers();
+            return ResponseEntity.ok(customers);
+        } catch (Exception e) {
+            logger.error("Error while fetching customers: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
-
+    /**
+     * Get all drivers.
+     */
     @GetMapping("/drivers")
     public ResponseEntity<List<UserSummaryDTO>> getAllDrivers() {
-        logger.info("Admin requested list of all drivers");
-        List<UserSummaryDTO> drivers = adminService.getAllDrivers();
-        return ResponseEntity.ok(drivers);
+        logger.info("Fetching list of all drivers");
+        try {
+            List<UserSummaryDTO> drivers = adminService.getAllDrivers();
+            return ResponseEntity.ok(drivers);
+        } catch (Exception e) {
+            logger.error("Error while fetching drivers: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
+    /**
+     * Get all unverified admins.
+     */
     @GetMapping("/unverified/admins")
     public ResponseEntity<List<Admin>> getUnverifiedAdmins() {
         logger.info("Superadmin requested list of unverified admins");
-        List<Admin> unverifiedAdmins = verificationService.getUnverifiedAdmins();
-        return ResponseEntity.ok(unverifiedAdmins);
+        try {
+            List<Admin> unverifiedAdmins = verificationService.getUnverifiedAdmins();
+            return ResponseEntity.ok(unverifiedAdmins);
+        } catch (Exception e) {
+            logger.error("Error while fetching unverified admins: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
+    /**
+     * Verify and admin by ID.
+     */
     @PostMapping("/verify/admins/{adminId}")
     public ResponseEntity<String> verifyAdmin(@PathVariable Integer adminId) {
         logger.info("Superadmin trying to verify admin with id: {}", adminId);
@@ -82,16 +108,36 @@ public class AdminController {
         }
     }
 
+    /**
+     * Get all unverified drivers.
+     */
     @GetMapping("/unverified/drivers")
     public ResponseEntity<List<Driver>> getUnverifiedDrivers() {
-        List<Driver> unverifiedDrivers = driverService.viewUnverifiedDrivers();
-        return ResponseEntity.ok(unverifiedDrivers);
+        logger.info("Fetching list of unverified drivers");
+        try {
+            List<Driver> unverifiedDrivers = driverService.viewUnverifiedDrivers();
+            return ResponseEntity.ok(unverifiedDrivers);
+        } catch (Exception e) {
+            logger.error("Error while fetching unverified drivers: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     @PostMapping("/verify/drivers/{driverId}")
-    public ResponseEntity<Driver> verifyDriver(@PathVariable int driverId) {
-        Driver verifiedDriver = driverService.verifyDriver(driverId);
-        return ResponseEntity.ok(verifiedDriver);
+    public ResponseEntity<?> verifyDriver(@PathVariable int driverId) {
+        logger.info("Attempting to verify driver with ID: {}", driverId);
+        try {
+            Driver verifiedDriver = driverService.verifyDriver(driverId);
+            logger.info("Driver with ID {} verified successfully", driverId);
+            return ResponseEntity.ok(verifiedDriver);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Verification failed for driver ID {}: {}", driverId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (Exception e) {
+            logger.error("Error verifying driver ID {}: {}", driverId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                 .body("An unexpected error occurred while verifying driver");
+        }
     }
 
     /**
