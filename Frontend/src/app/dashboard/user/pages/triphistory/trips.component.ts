@@ -120,7 +120,7 @@ export class TripHistoryComponent implements OnInit {
         case 'CANCELLED': return 'CANCELLED';
         case 'IN_PROGRESS': return 'IN_PROGRESS';
         case 'CONFIRMED': return 'CONFIRMED';
-        case 'SCHEDULED': return 'CONFIRMED'; // treat scheduled as confirmed/upcoming in UI
+        case 'SCHEDULED': return 'CONFIRMED'; 
         default: return 'CONFIRMED';
       }
     };

@@ -1,55 +1,295 @@
-<!-- role-selection.component.html -->
-<div class="role-selection-container">
-  <div class="header">
-    <h1>Cab Management System</h1>
-    <p>Select your role to continue</p>
-  </div>
+<!DOCTYPE html>
+<html lang="en">
 
-  <div class="role-cards">
-    <!-- Admin Card -->
-    <div class="role-card admin-card" (click)="selectRole('admin')">
-      <div class="role-icon">
-        <i class="fas fa-user-shield"></i>
-      </div>
-      <h3>Admin</h3>
-      <p>Manage the entire system</p>
-      <div class="role-features">
-        <span>• System Management</span>
-        <span>• User Control</span>
-        <span>• Analytics</span>
-      </div>
+<body>
+    <!-- Background Decorative Elements -->
+    <div class="bg-decorations">
+        <div class="bg-circle bg-circle-1"></div>
+        <div class="bg-circle bg-circle-2"></div>
+        <div class="bg-circle bg-circle-3"></div>
     </div>
 
-    <!-- User Card -->
-    <div class="role-card user-card" (click)="selectRole('user')">
-      <div class="role-icon">
-        <i class="fas fa-user"></i>
-      </div>
-      <h3>User</h3>
-      <p>Book and manage rides</p>
-      <div class="role-features">
-        <span>• Book Rides</span>
-        <span>• Track Trips</span>
-        <span>• Payment</span>
-      </div>
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Header Section -->
+        <header class="header-section">
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99z"/>
+                        <circle cx="6.5" cy="14.5" r="1.5"/>
+                        <circle cx="17.5" cy="14.5" r="1.5"/>
+                    </svg>
+                </div>
+                <h1 class="brand-title">
+                    Cab<span class="brand-accent">Flow</span>
+                </h1>
+            </div>
+            <p class="brand-subtitle">Professional Transportation Management System</p>
+        </header>
+
+        <!-- Content Section -->
+        <main class="content-section">
+            <div class="intro-text">
+                <h2 class="section-title">Choose Your Dashboard</h2>
+                <p class="section-description">
+                    Select your role to access your personalized workspace with tailored features and controls.
+                </p>
+            </div>
+
+            <!-- Role Cards Grid -->
+            <div class="role-cards-grid">
+                <!-- Administrator Card -->
+                <div class="role-card admin-card" (click)="selectRole('admin')">
+                    <div class="card-header">
+                        <div class="role-icon-wrapper admin-icon">
+                            <svg class="role-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"/>
+                                <path d="M12 14c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                                <path d="M18 8l-2-2h-3l-1 1-1-1H8L6 8v8l2 2h3l1-1 1 1h3l2-2V8z" opacity="0.3"/>
+                            </svg>
+                            <div class="icon-glow"></div>
+                        </div>
+                        <div class="role-badge admin-badge">Administrator</div>
+                    </div>
+                    
+                    <div class="card-content">
+                        <h3 class="card-title">System Administrator</h3>
+                        <p class="card-description">
+                            Complete system oversight with advanced analytics, user management, and operational control for enterprise-level transportation management.
+                        </p>
+                    </div>
+
+                    <div class="card-features">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <svg viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <span>Advanced System Analytics</span>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <svg viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <span>User & Driver Management</span>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <svg viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <span>Financial Reporting & Control</span>
+                        </div>
+                    </div>
+
+                    <button class="card-action-btn admin-btn" (click)="selectRole('admin')">
+                        <span>Access Admin Panel</span>
+                        <svg class="btn-arrow" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Customer Card -->
+                <div class="role-card customer-card" (click)="selectRole('user')">
+                    <div class="card-header">
+                        <div class="role-icon-wrapper customer-icon">
+                            <svg class="role-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z"/>
+                                <path d="M12 14c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                            </svg>
+                            <div class="icon-glow"></div>
+                        </div>
+                        <div class="role-badge customer-badge">Customer</div>
+                    </div>
+                    
+                    <div class="card-content">
+                        <h3 class="card-title">Premium Customer</h3>
+                        <p class="card-description">
+                            Effortless ride booking with real-time tracking, secure payments, and personalized travel preferences for a superior experience.
+                        </p>
+                    </div>
+
+                    <div class="card-features">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <svg viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <span>Instant Ride Booking</span>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <svg viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <span>Live Trip Tracking</span>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <svg viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <span>Secure Payment Integration</span>
+                        </div>
+                    </div>
+
+                    <button class="card-action-btn customer-btn" (click)="selectRole('user')">
+                        <span>Book Your Ride</span>
+                        <svg class="btn-arrow" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Driver Card -->
+                <div class="role-card driver-card" (click)="selectRole('driver')">
+                    <div class="card-header">
+                        <div class="role-icon-wrapper driver-icon">
+                            <svg class="role-icon" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99z"/>
+                                <circle cx="6.5" cy="14.5" r="1.5"/>
+                                <circle cx="17.5" cy="14.5" r="1.5"/>
+                                <path d="M5 11l1.5-4.5h11L19 11H5z"/>
+                            </svg>
+                            <div class="icon-glow"></div>
+                        </div>
+                        <div class="role-badge driver-badge">Driver</div>
+                    </div>
+                    
+                    <div class="card-content">
+                        <h3 class="card-title">Professional Driver</h3>
+                        <p class="card-description">
+                            Smart ride matching with GPS navigation, earnings tracking, and professional tools to maximize your driving efficiency and income.
+                        </p>
+                    </div>
+
+                    <div class="card-features">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <svg viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <span>Intelligent Ride Matching</span>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <svg viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <span>Advanced GPS Navigation</span>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <svg viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <span>Earnings & Performance Analytics</span>
+                        </div>
+                    </div>
+
+                    <button class="card-action-btn driver-btn" (click)="selectRole('driver')">
+                        <span>Start Driving</span>
+                        <svg class="btn-arrow" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer-section">
+            <p class="footer-text">
+                © 2024 CabFlow. Professional Transportation Management System. 
+                <span class="footer-link">Privacy Policy</span> • 
+                <span class="footer-link">Terms of Service</span>
+            </p>
+        </footer>
     </div>
 
-    <!-- Driver Card -->
-    <div class="role-card driver-card" (click)="selectRole('driver')">
-      <div class="role-icon">
-        <i class="fas fa-car"></i>
-      </div>
-      <h3>Driver</h3>
-      <p>Accept and complete rides</p>
-      <div class="role-features">
-        <span>• Accept Rides</span>
-        <span>• Navigate</span>
-        <span>• Earnings</span>
-      </div>
-    </div>
-  </div>
+    <script>
+        // Role selection functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const roleCards = document.querySelectorAll('.role-card');
+            const actionButtons = document.querySelectorAll('.card-action-btn');
 
-  <div class="footer">
-    <p>Choose your role to access the appropriate features</p>
-  </div>
-</div>
+            // Add hover effects and click handlers
+            roleCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    const role = this.getAttribute('data-role');
+                    selectRole(role);
+                });
+
+                // Enhanced hover effects
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-8px) scale(1.02)';
+                });
+
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+
+            // Action button handlers
+            actionButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const card = this.closest('.role-card');
+                    const role = card.getAttribute('data-role');
+                    
+                    // Add loading state
+                    this.classList.add('loading');
+                    setTimeout(() => {
+                        selectRole(role);
+                    }, 500);
+                });
+            });
+
+            function selectRole(role) {
+                console.log(`Selected role: ${role}`);
+                // Add your navigation logic here
+                // window.location.href = `/${role}-dashboard`;
+                
+                // For demo purposes, show an alert
+                const roleNames = {
+                    admin: 'Administrator',
+                    customer: 'Customer',
+                    driver: 'Driver'
+                };
+                alert(`Navigating to ${roleNames[role]} Dashboard...`);
+            }
+
+            // Intersection Observer for scroll animations
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate-in');
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all cards for scroll animations
+            roleCards.forEach(card => {
+                observer.observe(card);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -3,7 +3,6 @@ package com.cabbooking.controller;
 import java.security.Principal;
 import java.util.List;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,10 +21,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.cabbooking.dto.FareEstimateResponse;
 import com.cabbooking.dto.RatingRequest;
 import com.cabbooking.dto.TripBookingRequest;
+import com.cabbooking.dto.TripHistoryResponse; // Already imported, which is correct
 import com.cabbooking.model.TripBooking;
 import com.cabbooking.service.ICabService;
 import com.cabbooking.service.ITripBookingService;
-
 import jakarta.validation.Valid;
 
 /**
@@ -50,10 +49,8 @@ public class TripBookingController {
     
     /**
      * Endpoint to get a list of fare estimates for nearby and available car types.
-     * 
-     * GET /api/trips/estimate
-     * 
-     * Workflow:
+     * * GET /api/trips/estimate
+     * * Workflow:
      * - Used by the customer to get a list of fare estimates for nearby and available car types.
      * - Calls the service layer to calculate the estimates.
      * - Returns a ResponseEntity containing the list of fare estimates.
@@ -112,6 +109,22 @@ public class TripBookingController {
         return ResponseEntity.ok(completedTrip);
     }
 
+  
+     /**
+     * Endpoint for a driver to view their entire trip history.
+     *
+     * @param driverId The ID of the driver.
+     * @param principal The currently authenticated user.
+     * @return A list of the driver's past and present trips.
+     */
+    @GetMapping("/driver/{driverId}")
+    public ResponseEntity<List<TripHistoryResponse>> getDriverTrips(@PathVariable Integer driverId, Principal principal) {
+    
+        // Corrected line: Change the list type from TripBooking to TripHistoryResponse
+        List<TripHistoryResponse> trips = tripBookingService.viewAllTripsDriver(driverId);
+        return ResponseEntity.ok(trips);
+    }
+
     /**
      * Endpoint for a customer to view their entire trip history.
      *
@@ -119,8 +132,9 @@ public class TripBookingController {
      * @return A list of the customer's past and present trips.
      */
     @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<TripBooking>> getCustomerTrips(@PathVariable Integer customerId) {
-        List<TripBooking> trips = tripBookingService.viewAllTripsCustomer(customerId);
+    public ResponseEntity<List<TripHistoryResponse>> getCustomerTrips(@PathVariable Integer customerId) {
+        // Corrected line: Change the list type from TripBooking to TripHistoryResponse
+        List<TripHistoryResponse> trips = tripBookingService.viewAllTripsCustomer(customerId);
         return ResponseEntity.ok(trips);
     }
 
@@ -128,13 +142,11 @@ public class TripBookingController {
      * Endpoint for a customer to rate a completed trip.
      *
      * POST /api/trips/{tripId}/rate
-     * 
-     * Workflow:
+     * * Workflow:
      * - Used by a customer to rate a completed trip.
      * - Calls the service layer to rate the trip.
      * - Returns a ResponseEntity containing the rated trip object.
-     * 
-     * @param tripId The ID of the trip being rated.
+     * * @param tripId The ID of the trip being rated.
      * @param ratingRequest The rating details.
      * @param principal The currently authenticated user, injected by Spring Security.
      * @return The rated trip object.

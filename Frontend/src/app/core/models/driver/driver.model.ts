@@ -75,7 +75,8 @@ export enum TripStatus {
   ACCEPTED = 'accepted',
   IN_PROGRESS = 'in_progress',
   COMPLETED = 'completed',
-  CANCELLED = 'cancelled'
+  CANCELLED = 'cancelled',
+  CONFIRMED='confirmed'
 }
 
 export enum PaymentMethod {

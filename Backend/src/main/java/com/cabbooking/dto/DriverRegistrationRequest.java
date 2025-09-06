@@ -16,6 +16,21 @@ import jakarta.validation.constraints.Size;
  */
 public class DriverRegistrationRequest {
 
+
+     /**
+     * The customer's first name.
+     * * This field is mandatory and cannot be blank.
+     */
+    @NotBlank(message = "First name is required")
+    private String firstName;
+
+    /**
+     * The customer's last name.
+     * * This field is mandatory and cannot be blank.
+     */
+    @NotBlank(message = "Last name is required")
+    private String lastName;
+
     /**
      * The username chosen by the driver.
      *
@@ -92,6 +107,22 @@ public class DriverRegistrationRequest {
     private Double longitude;
 
     // ======= Getters and Setters =======
+      public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+    
     public String getUsername() {
         return username;
     }

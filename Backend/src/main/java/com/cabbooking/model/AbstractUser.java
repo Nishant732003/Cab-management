@@ -37,6 +37,11 @@ public abstract class AbstractUser {
     @Column(nullable = false)
     private String password;
 
+     @Column(nullable = false)
+    private String firstName;
+    
+    @Column(nullable = false)
+    private String lastName;
     /**
      * User's full address.
      */
@@ -64,12 +69,14 @@ public abstract class AbstractUser {
      * This is the constructor that the Admin, Customer, and Driver subclasses
      * will call to set their inherited properties. This resolves the compilation error.
      */
-    public AbstractUser(String username, String password, String address, String mobileNumber, String email) {
+    public AbstractUser(String username, String password, String address, String mobileNumber, String email,String firstName,String lastName) {
         this.username = username;
         this.password = password;
         this.address = address;
         this.mobileNumber = mobileNumber;
         this.email = email;
+        this.firstName = firstName;
+        this.lastName = lastName;
     }
 
 
@@ -78,6 +85,21 @@ public abstract class AbstractUser {
     /**
      * Gets the unique user ID (primary key).
      */
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
     public Integer getId() { return id; }
 
     public void setId(Integer id) { this.id = id; }

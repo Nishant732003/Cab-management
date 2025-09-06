@@ -64,15 +64,13 @@ public class AdminServiceImpl implements IAdminService {
      * Converts a Customer entity into a UserSummaryDTO.
      */
     private UserSummaryDTO mapCustomerToUserSummaryDTO(Customer customer) {
-        String displayName = customer.getUsername() != null 
-            ? customer.getUsername().substring(0, 1).toUpperCase() + customer.getUsername().substring(1)
-            : "N/A";
-
+        // Updated to use firstName and lastName directly from the Customer entity
         UserSummaryDTO userSummary = new UserSummaryDTO();
         userSummary.setUserId(customer.getId());
         userSummary.setUsername(customer.getUsername());
         userSummary.setEmail(customer.getEmail());
-        userSummary.setName(displayName);
+        userSummary.setFirstName(customer.getFirstName());
+        userSummary.setLastName(customer.getLastName());
         userSummary.setMobileNumber(customer.getMobileNumber());
         return userSummary;
     }
@@ -81,17 +79,15 @@ public class AdminServiceImpl implements IAdminService {
      * Converts a Driver entity into a UserSummaryDTO.
      */
     private UserSummaryDTO mapDriverToUserSummaryDTO(Driver driver) {
-        String displayName = driver.getUsername() != null 
-            ? driver.getUsername().substring(0, 1).toUpperCase() + driver.getUsername().substring(1)
-            : "N/A";
-        
         Double ratingAsDouble = (driver.getRating() != null) ? driver.getRating().doubleValue() : 0.0;
 
+        // Updated to use the new constructor with first and last name
         return new UserSummaryDTO(
             driver.getId(),
             driver.getUsername(),
             driver.getEmail(),
-            displayName,
+            driver.getFirstName(),
+            driver.getLastName(),
             driver.getMobileNumber(),
             ratingAsDouble, 
             driver.getLicenceNo(),

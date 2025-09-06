@@ -105,27 +105,32 @@ export class RideService {
   }
 
   // ORS geocoding (Pelias Search)
+// ORS geocoding (Pelias Search)
 geocodeAddress(address: string): Observable<{ lat: number, lng: number }> {
-  const url = `https://api.openrouteservice.org/geocode/search?api_key=${this.orsApiKey}&text=${encodeURIComponent(address)}&size=1`;
-  return this.http.get<any>(url).pipe(
-    map(res => {
-      // features is an array, take first one safely
-      const coords: [number, number] | undefined =
-        res?.features?.[0]?.geometry?.coordinates;
 
-      if (Array.isArray(coords) && coords.length >= 2) {
-        const [lon, lat] = coords;
-        return { lat, lng: lon };
-      }
-      throw new Error('Location not found');
-    })
-  );
+const url = `/api/ors/geocode/search?api_key=${this.orsApiKey}&text=${encodeURIComponent(address)}&size=1`;
+ 
+return this.http.get<any>(url).pipe(
+ map(res => {
+const coords: [number, number] | undefined =
+ res?.features?.[0]?.geometry?.coordinates;
+
+ if (Array.isArray(coords) && coords.length >= 2) {
+const [lon, lat] = coords;
+ return { lat, lng: lon };
+}
+ throw new Error('Location not found');
+ })
+ );
 }
 
 
   // ORS driving distance (km)
+// ORS driving distance (km)
 getDistance(fromLat: number, fromLng: number, toLat: number, toLng: number): Observable<number> {
-  const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${this.orsApiKey}&start=${fromLng},${fromLat}&end=${toLng},${toLat}`;
+  // Update to use the proxy path
+  const url = `/api/ors/v2/directions/driving-car?api_key=${this.orsApiKey}&start=${fromLng},${fromLat}&end=${toLng},${toLat}`;
+
   return this.http.get<any>(url).pipe(
     map(res => {
       const meters: number | undefined = res?.features?.[0]?.properties?.summary?.distance;
@@ -136,8 +141,6 @@ getDistance(fromLat: number, fromLng: number, toLat: number, toLng: number): Obs
     })
   );
 }
-
-
 
   // Ride details and customer trips (optional)
   getRideDetails(tripBookingId: number): Observable<BookRideResponse> {

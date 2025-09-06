@@ -36,6 +36,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/files/**").permitAll()
                         // FIX: Restore the correct and final security rule
                         .requestMatchers("/api/admin/**").hasAuthority("ADMIN") 
                         .anyRequest().authenticated()

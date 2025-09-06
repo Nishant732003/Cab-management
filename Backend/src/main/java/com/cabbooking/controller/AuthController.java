@@ -33,7 +33,9 @@ import com.cabbooking.service.IVerificationService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-
+import java.util.HashMap;
+import java.util.Map;
+import com.cabbooking.model.Customer;
 /**
  * REST controller for handling authentication and registration for all user
  * types.
@@ -124,25 +126,37 @@ public class AuthController {
      * @return ResponseEntity<String> HTTP response with a success or error
      * message.
      */
-    @PostMapping("/register/customer")
-    public ResponseEntity<String> registerCustomer(@Valid @RequestBody CustomerRegistrationRequest request) {
+  @PostMapping("/register/customer")
+    public ResponseEntity<Map<String, Object>> registerCustomer(@Valid @RequestBody CustomerRegistrationRequest request) {
         logger.info("Customer registration attempt for username: {}", request.getUsername());
+        
+        // Declare the response map outside the try-catch block
+        Map<String, Object> response = new HashMap<>();
+        
         try {
-            // Delegate registration logic to the service layer
-            customerRegistrationService.registerCustomer(request);
+            Customer newCustomer = customerRegistrationService.registerCustomer(request);
             logger.info("Customer registered successfully for username: {}", request.getUsername());
-            return ResponseEntity.ok("Customer registered successfully");
+   
+            response.put("message", "Customer registered successfully");
+            response.put("userId", newCustomer.getId());
+            response.put("success", true);
+        
+            return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            // Handle validation failures or duplicate data errors
             logger.error("Customer registration failed: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(e.getMessage());
+            response.put("message", e.getMessage());
+            response.put("success", false);
+            
+            return ResponseEntity.badRequest().body(response);
         } catch (Exception e) {
-            // Handle unexpected server errors
             logger.error("Unexpected error during customer registration", e);
-            return ResponseEntity.internalServerError().body("An error occurred");
+            response.put("message", "An error occurred during registration");
+            response.put("success", false);
+            
+            // Now 'response' is in scope and can be returned
+            return ResponseEntity.internalServerError().body(response);
         }
     }
-
     /**
      * Handles POST requests to register a new driver.
      *
@@ -153,22 +167,32 @@ public class AuthController {
      * @return ResponseEntity<String> HTTP response with a success or error
      * message.
      */
-    @PostMapping("/register/driver")
-    public ResponseEntity<String> registerDriver(@Valid @RequestBody DriverRegistrationRequest request) {
+   @PostMapping("/register/driver")
+    public ResponseEntity<Map<String, Object>> registerDriver(@Valid @RequestBody DriverRegistrationRequest request) {
         logger.info("Driver registration attempt for username: {}", request.getUsername());
+        
+        Map<String, Object> response = new HashMap<>();
+        
         try {
-            // Delegate registration logic to the service layer
             driverRegistrationService.registerDriver(request);
             logger.info("Driver registered successfully (unverified) for username: {}", request.getUsername());
-            return ResponseEntity.ok("Driver registered successfully, pending admin verification.");
+            
+            response.put("message", "Driver registered successfully, pending admin verification.");
+            response.put("success", true);
+            
+            return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            // Handle validation or duplicate data errors
             logger.error("Driver registration failed: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(e.getMessage());
+            response.put("message", e.getMessage());
+            response.put("success", false);
+            
+            return ResponseEntity.badRequest().body(response);
         } catch (Exception e) {
-            // Handle any other unexpected errors
             logger.error("Unexpected error during driver registration", e);
-            return ResponseEntity.internalServerError().body("An error occurred during registration");
+            response.put("message", "An error occurred during registration");
+            response.put("success", false);
+            
+            return ResponseEntity.internalServerError().body(response);
         }
     }
 

@@ -10,7 +10,8 @@ public class UserSummaryDTO {
     private Integer userId; 
     private String username;
     private String email;
-    private String name;
+    private String firstName; // New field
+    private String lastName;  // New field
     private String mobileNumber; 
     
     // Driver-specific fields (will be null for customers)
@@ -22,12 +23,13 @@ public class UserSummaryDTO {
         // Default constructor
     }
 
-    // Constructor for Customer
-    public UserSummaryDTO(Integer userId, String username, String email, String name, String mobileNumber, Double rating, String licenceNo, Boolean verified) {
+    // Constructor with all fields
+    public UserSummaryDTO(Integer userId, String username, String email, String firstName, String lastName, String mobileNumber, Double rating, String licenceNo, Boolean verified) {
         this.userId = userId;
         this.username = username;
         this.email = email;
-        this.name = name;
+        this.firstName = firstName;
+        this.lastName = lastName;
         this.mobileNumber = mobileNumber;
         this.rating = rating;
         this.licenceNo = licenceNo;
@@ -36,68 +38,31 @@ public class UserSummaryDTO {
 
     // Getters and Setters
 
-    public Integer getUserId() {
-        return userId;
-    }
+    public Integer getUserId() { return userId; }
+    public void setUserId(Integer userId) { this.userId = userId; }
 
-    public void setUserId(Integer userId) {
-        this.userId = userId;
-    }
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
 
-    public String getUsername() {
-        return username;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    
+    // Updated getters and setters for first and last name
+    public String getFirstName() { return firstName; }
+    public void setFirstName(String firstName) { this.firstName = firstName; }
 
-    public void setUsername(String username) {
-        this.username = username;
-    }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
 
-    public String getEmail() {
-        return email;
-    }
+    public String getMobileNumber() { return mobileNumber; }
+    public void setMobileNumber(String mobileNumber) { this.mobileNumber = mobileNumber; }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    public Double getRating() { return rating; }
+    public void setRating(Double rating) { this.rating = rating; }
 
-    public String getName() {
-        return name;
-    }
+    public String getLicenceNo() { return licenceNo; }
+    public void setLicenceNo(String licenceNo) { this.licenceNo = licenceNo; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getMobileNumber() {
-        return mobileNumber;
-    }
-
-    public void setMobileNumber(String mobileNumber) {
-        this.mobileNumber = mobileNumber;
-    }
-
-    public Double getRating() {
-        return rating;
-    }
-
-    public void setRating(Double rating) {
-        this.rating = rating;
-    }
-
-    public String getLicenceNo() {
-        return licenceNo;
-    }
-
-    public void setLicenceNo(String licenceNo) {
-        this.licenceNo = licenceNo;
-    }
-
-    public Boolean getVerified() {
-        return verified;
-    }
-
-    public void setVerified(Boolean verified) {
-        this.verified = verified;
-    }
+    public Boolean getVerified() { return verified; }
+    public void setVerified(Boolean verified) { this.verified = verified; }
 }
-

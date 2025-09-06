@@ -4,6 +4,7 @@ import { DriverComponent } from './components/driver-dashboard/driver.component'
 import { TripsComponent } from './pages/trips/trip.component';
 import { EarningsComponent } from './pages/earnings/earnings.component';
 import { OverviewComponent } from './pages/overview/overview.component';
+import { VehicleComponent } from './pages/vehicle/vehicle.component';
 const routes: Routes = [
   {
     path: '',
@@ -25,6 +26,9 @@ const routes: Routes = [
       {
         path: 'trips',
         component: TripsComponent
+      },
+      {path:'vehicle',
+        component:VehicleComponent
       }
     ]
   }

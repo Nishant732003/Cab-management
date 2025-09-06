@@ -40,6 +40,9 @@ public class DataInitializer implements CommandLineRunner {
             superadmin.setUsername("Super");
             superadmin.setPassword(passwordEncoder.encode("superpass"));
             superadmin.setEmail("super@gmail.com");
+            // Set first and last names
+            superadmin.setFirstName("Super");
+            superadmin.setLastName("Admin");
             superadmin.setVerified(true);
             adminRepo.save(superadmin);
         }
@@ -50,6 +53,9 @@ public class DataInitializer implements CommandLineRunner {
             admin.setUsername("Admin");
             admin.setPassword(passwordEncoder.encode("adminpass"));
             admin.setEmail("admin@gmail.com");
+            // Set first and last names
+            admin.setFirstName("Regular");
+            admin.setLastName("Admin");
             adminRepo.save(admin);
         }
 
@@ -59,6 +65,9 @@ public class DataInitializer implements CommandLineRunner {
             customer.setUsername("Customer");
             customer.setPassword(passwordEncoder.encode("custpass"));
             customer.setEmail("customer@gmail.com");
+            // Set first and last names
+            customer.setFirstName("John");
+            customer.setLastName("Doe");
             customerRepo.save(customer);
         }
 
@@ -69,6 +78,9 @@ public class DataInitializer implements CommandLineRunner {
             driver.setPassword(passwordEncoder.encode("driverpass"));
             driver.setEmail("driver@gmail.com");
             driver.setLicenceNo("LIC123");
+            // Set first and last names
+            driver.setFirstName("Jane");
+            driver.setLastName("Smith");
             driver.setRating(4.5f);
             driver.setVerified(true); // Set to true for testing booking
             driver.setIsAvailable(true); // Set to true for testing booking

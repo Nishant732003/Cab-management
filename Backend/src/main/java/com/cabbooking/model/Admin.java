@@ -15,11 +15,8 @@ import jakarta.persistence.Entity;
 @Entity
 public class Admin extends AbstractUser {
 
-    /**
-     * --- ADDED ---
-     * The full name of the admin.
-     */
-    private String name;
+    // --- REMOVED: This field is now redundant as name is a combination of first and last name from AbstractUser ---
+    // private String name;
 
     /**
      * Indicates if the admin account is verified/activated by the superadmin.
@@ -36,28 +33,24 @@ public class Admin extends AbstractUser {
     
     /**
      * Constructor with all fields for creating an Admin instance.
+     * --- UPDATED: New parameters 'firstName' and 'lastName' are added to the constructor. ---
+     * --- UPDATED: The super() call now includes 'firstName' and 'lastName'. ---
      */
-    public Admin(String username, String password, String address, String mobileNumber, String email, String name, Boolean verified) {
-        super(username, password, address, mobileNumber, email);
-        this.name = name;
+    public Admin(String username, String password, String address, String mobileNumber, String email, String firstName, String lastName, Boolean verified) {
+        super(username, password, address, mobileNumber, email, firstName, lastName);
         this.verified = verified;
     }
 
 
     // ===== Getters and Setters =====
-
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * --- FIX ---
-     * This method is now correctly implemented to set the admin's name.
-     * It accepts a String and assigns it to the 'name' field.
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
+    
+    // --- REMOVED: No longer need getName() or setName() since firstName and lastName are handled by the superclass ---
+    // public String getName() {
+    //     return name;
+    // }
+    // public void setName(String name) {
+    //     this.name = name;
+    // }
 
     public Boolean getVerified() {
         return verified;

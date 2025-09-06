@@ -40,26 +40,38 @@ public class FileController {
      * Found if the file doesn't exist.
      */
     @GetMapping("/view/{filename:.+}")
-    public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
-        try {
-            // 1. Construct the full path to the requested file.
-            Path file = Paths.get(uploadPath).resolve(filename);
-            Resource resource = new UrlResource(file.toUri());
+public ResponseEntity<Resource> serveFile(@PathVariable String filename) {
+    try {
+        // Base directory
+        Path baseDir = Paths.get(uploadPath).toAbsolutePath().normalize();
 
-            // 2. Check if the file exists and is readable.
-            if (resource.exists() || resource.isReadable()) {
-                // 3. Return the file with the correct content type.
-                return ResponseEntity.ok()
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
-                        .contentType(MediaType.IMAGE_JPEG) // You can enhance this to dynamically determine the content type
-                        .body(resource);
-            } else {
-                // 4. If the file doesn't exist, return a 404 error.
-                return ResponseEntity.notFound().build();
-            }
-        } catch (MalformedURLException e) {
-            // Handle cases where the file path is invalid.
+        // Resolve and normalize requested file path
+        Path requested = baseDir.resolve(filename).normalize();
+
+        // Prevent path traversal: requested must remain under baseDir
+        if (!requested.startsWith(baseDir)) {
             return ResponseEntity.badRequest().build();
         }
+
+        Resource resource = new UrlResource(requested.toUri());
+        if (!resource.exists() || !resource.isReadable()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        // Probe content type (fallback if unknown)
+        String contentType = java.nio.file.Files.probeContentType(requested);
+        MediaType mediaType = (contentType != null) ? MediaType.parseMediaType(contentType)
+                                                    : MediaType.APPLICATION_OCTET_STREAM;
+
+        return ResponseEntity.ok()
+                // For images, inline is default; header may be omitted
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                .contentType(mediaType)
+                .body(resource);
+    } catch (MalformedURLException e) {
+        return ResponseEntity.badRequest().build();
+    } catch (Exception e) {
+        return ResponseEntity.internalServerError().build();
     }
+}
 }

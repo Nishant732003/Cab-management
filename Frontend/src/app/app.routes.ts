@@ -4,6 +4,9 @@ import { LoginComponent } from './auth/login/login.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { AdminGuard } from './core/guards/admin.guard';
 import { DriverGuard } from './core/guards/driver.guard';
+import { RoleSelectionComponent } from './auth/role-selection/role-selectio.component';
+import { UserRegistrationComponent } from './auth/user-registration/registartion.component';
+import { DriverRegistrationComponent } from './auth/driver-registration/registration.component';
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   
@@ -23,7 +26,18 @@ export const routes: Routes = [
     loadChildren: () => import('./dashboard/user/user.module').then(m => m.UserModule),
     canActivate: [AuthGuard]
   },  
-
+{
+  path:'role',
+  component:RoleSelectionComponent
+},
+{
+path:'registeruser',
+component:UserRegistrationComponent
+},
+{
+  path:'registerdriver',
+  component:DriverRegistrationComponent
+},
   
   // Add user dashboard route when ready
   // { 

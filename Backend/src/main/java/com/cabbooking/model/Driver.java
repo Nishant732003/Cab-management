@@ -74,6 +74,21 @@ public class Driver extends AbstractUser {
      */
     private Double longitude;
 
+    // --- ADDED: Constructors to correctly initialize inherited fields ---
+    /**
+     * Default constructor required by JPA.
+     */
+    public Driver() {
+    }
+
+    /**
+     * Constructor to create a new Driver instance.
+     * It calls the superclass constructor to initialize common fields.
+     */
+    public Driver(String username, String password, String address, String mobileNumber, String email, String firstName, String lastName) {
+        super(username, password, address, mobileNumber, email, firstName, lastName);
+    }
+    
     // ===== Getters and Setters =====
     /**
      * Sets the availability status of the driver.

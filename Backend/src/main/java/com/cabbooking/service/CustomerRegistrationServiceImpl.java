@@ -89,7 +89,8 @@ public class CustomerRegistrationServiceImpl implements ICustomerRegistrationSer
         // Create new Customer entity and populate fields from request
         Customer customer = new Customer();
         customer.setUsername(request.getUsername());
-
+customer.setFirstName(request.getFirstName());
+        customer.setLastName(request.getLastName());
         // Securely hash the plaintext password before saving
         customer.setPassword(passwordEncoder.encode(request.getPassword()));
 

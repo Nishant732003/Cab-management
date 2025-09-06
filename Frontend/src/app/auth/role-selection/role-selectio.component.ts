@@ -1,10 +1,9 @@
-// role-selection.component.ts
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-role-selection',
-  standalone:false,
+  standalone: false,
   templateUrl: './role-selection.component.html',
   styleUrls: ['./role-selection.component.css']
 })
@@ -18,9 +17,14 @@ export class RoleSelectionComponent {
     if (role === 'admin') {
       // Admin goes directly to login
       this.router.navigate(['/login'], { queryParams: { role: 'admin' } });
-    } else {
-      // User and Driver go to auth selection page
-      this.router.navigate(['/auth-selection'], { queryParams: { role: role } });
+
+    } else if (role === 'user') {
+      // User goes to register user page
+      this.router.navigate(['/registeruser'], { queryParams: { role: 'user' } });
+
+    } else if (role === 'driver') {
+      // Driver goes to register driver page
+      this.router.navigate(['/registerdriver'], { queryParams: { role: 'driver' } });
     }
   }
 }

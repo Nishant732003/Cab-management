@@ -1,354 +1,614 @@
+<div class="">
 <div class="trips-container">
-  <!-- Header -->
-  <div class="page-header">
-    <div class="header-left">
-      <button class="back-button" (click)="goBack()">
-        <i class="icon-arrow-left"></i>
-      </button>
-      <h1>My Trips</h1>
-    </div>
-    <div class="header-actions">
-      <button class="export-btn" (click)="exportTrips()">
-        <i class="icon-download"></i>
-        Export
-      </button>
-    </div>
-  </div>
-
-  <!-- Stats Cards -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon earnings">₹</div>
-      <div class="stat-content">
-        <div class="stat-value">₹{{ tripStats.totalEarnings.toFixed(2) }}</div>
-        <div class="stat-label">Total Earnings</div>
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon trips">🚗</div>
-      <div class="stat-content">
-        <div class="stat-value">{{ tripStats.totalTrips }}</div>
-        <div class="stat-label">Total Trips</div>
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon distance">📍</div>
-      <div class="stat-content">
-        <div class="stat-value">{{ tripStats.totalDistance.toFixed(1) }} km</div>
-        <div class="stat-label">Distance</div>
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon rating">⭐</div>
-      <div class="stat-content">
-        <div class="stat-value">{{ tripStats.avgRating.toFixed(1) }}</div>
-        <div class="stat-label">Avg Rating</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Search and Filters -->
-  <div class="search-filter-section">
-    <div class="search-bar">
-      <i class="icon-search"></i>
-      <input 
-        type="text" 
-        placeholder="Search trips by passenger, location, or trip ID..." 
-        [(ngModel)]="searchTerm"
-        (input)="onSearch()"
-      >
-    </div>
-    
-    <div class="filter-controls">
-      <button class="filter-toggle" (click)="toggleFilters()" [class.active]="showFilters">
-        <i class="icon-filter"></i>
-        Filters
-      </button>
-      
-      <div class="sort-controls">
-        <label>Sort by:</label>
-        <select [(ngModel)]="sortBy" (change)="onFilterChange()">
-          <option value="date">Date</option>
-          <option value="fare">Fare</option>
-          <option value="distance">Distance</option>
-          <option value="rating">Rating</option>
-        </select>
-        
-        <button class="sort-order" (click)="sortOrder = sortOrder === 'asc' ? 'desc' : 'asc'; onFilterChange()">
-          <i [class]="sortOrder === 'asc' ? 'icon-arrow-up' : 'icon-arrow-down'"></i>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Advanced Filters -->
-  <div class="filters-panel" [class.show]="showFilters">
-    <div class="filter-row">
-      <div class="filter-group">
-        <label>Date Range:</label>
-        <select [(ngModel)]="filters.dateRange" (change)="onFilterChange()">
-          <option value="today">Today</option>
-          <option value="week">This Week</option>
-          <option value="month">This Month</option>
-          <option value="custom">Custom Range</option>
-        </select>
-      </div>
-      
-      <div class="filter-group">
-        <label>Status:</label>
-        <select [(ngModel)]="filters.status" (change)="onFilterChange()">
-          <option value="all">All Status</option>
-          <option [value]="TripStatus.COMPLETED">Completed</option>
-          <option [value]="TripStatus.CANCELLED">Cancelled</option>
-          <option [value]="TripStatus.IN_PROGRESS">In Progress</option>
-        </select>
-      </div>
-      
-      <div class="filter-group">
-        <label>Payment:</label>
-        <select [(ngModel)]="filters.paymentMethod" (change)="onFilterChange()">
-          <option value="all">All Methods</option>
-          <option [value]="PaymentMethod.CASH">Cash</option>
-          <option [value]="PaymentMethod.CARD">Card</option>
-          <option [value]="PaymentMethod.UPI">UPI</option>
-          <option [value]="PaymentMethod.WALLET">Wallet</option>
-        </select>
-      </div>
-      
-      <div class="filter-group">
-        <button class="clear-filters" (click)="clearFilters()">
-          Clear All
-        </button>
-      </div>
-    </div>
-
-    <!-- Custom Date Range -->
-    <div class="custom-date-range" *ngIf="filters.dateRange === 'custom'">
-      <div class="date-group">
-        <label>From:</label>
-        <input 
-          type="date" 
-          [(ngModel)]="filters.customStartDate" 
-          (change)="onFilterChange()"
-        >
-      </div>
-      <div class="date-group">
-        <label>To:</label>
-        <input 
-          type="date" 
-          [(ngModel)]="filters.customEndDate" 
-          (change)="onFilterChange()"
-        >
-      </div>
-    </div>
-
-    <!-- Fare Range -->
-    <div class="fare-range-filter">
-      <label>Fare Range:</label>
-      <div class="range-inputs">
-        <input 
-          type="number" 
-          placeholder="Min ₹" 
-          [(ngModel)]="filters.minFare"
-          (input)="onFilterChange()"
-        >
-        <span>to</span>
-        <input 
-          type="number" 
-          placeholder="Max ₹" 
-          [(ngModel)]="filters.maxFare"
-          (input)="onFilterChange()"
-        >
-      </div>
-    </div>
-  </div>
-
-  <!-- Trip List -->
-  <div class="trips-list">
-    <div 
-      class="trip-card" 
-      *ngFor="let trip of paginatedTrips"
-      (click)="selectTrip(trip)"
-    >
-      <div class="trip-header">
-        <div class="trip-id">Trip #{{ trip.id }}</div>
-        <div class="trip-status" [ngClass]="getStatusBadgeClass(trip.status)">
-          {{ trip.status | titlecase }}
+    <header class="page-header">
+        <div class="header-left">
+            <button class="back-button" title="Go back" (click)="goBack()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m15 18-6-6 6-6"/>
+                </svg>
+            </button>
+            <div class="header-text">
+                <h1>Trip History</h1>
+                <p class="header-subtitle">Track and manage your driving records</p>
+            </div>
         </div>
-      </div>
-      
-      <div class="trip-content">
-        <div class="passenger-info">
-          <div class="passenger-name">{{ trip.passengerName }}</div>
-          <div class="trip-date">{{ formatDate(trip.startTime) }} • {{ formatTime(trip.startTime) }}</div>
+        <div class="header-actions">
+            <button class="action-btn secondary" title="Refresh trips" (click)="refreshTrips()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                    <path d="M21 3v5h-5"/>
+                    <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                    <path d="M3 21v-5h5"/>
+                </svg>
+                <span>Refresh</span>
+            </button>
+            <button class="action-btn primary" title="Export data" (click)="exportTrips()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="7,10 12,15 17,10"/>
+                    <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>Export</span>
+            </button>
         </div>
-        
-        <div class="trip-route">
-          <div class="location pickup">
-            <i class="icon-circle pickup-dot"></i>
-            <span>{{ trip.pickupLocation.address }}</span>
-          </div>
-          <div class="route-line"></div>
-          <div class="location dropoff">
-            <i class="icon-circle dropoff-dot"></i>
-            <span>{{ trip.dropLocation.address }}</span>
-          </div>
-        </div>
-        
-        <div class="trip-details">
-          <div class="detail-item">
-            <i class="icon-clock"></i>
-            <span>{{ formatDuration(trip.duration) }}</span>
-          </div>
-          <div class="detail-item">
-            <i class="icon-map"></i>
-            <span>{{ trip.distance }} km</span>
-          </div>
-          <div class="detail-item payment">
-            <span>{{ getPaymentMethodIcon(trip.paymentMethod) }}</span>
-            <span>{{ trip.paymentMethod | titlecase }}</span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="trip-footer">
-        <div class="fare-info">
-          <div class="fare">₹{{ trip.fare.toFixed(2) }}</div>
-          <div class="tip" *ngIf="trip.tip > 0">+₹{{ trip.tip.toFixed(2) }} tip</div>
-        </div>
-        <div class="rating" *ngIf="trip.rating > 0">
-          <div class="stars">
-            <span *ngFor="let star of [1,2,3,4,5]" [class.filled]="star <= trip.rating">⭐</span>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <!-- No trips message -->
-    <div class="no-trips" *ngIf="paginatedTrips.length === 0">
-      <div class="no-trips-icon">🚗</div>
-      <h3>No trips found</h3>
-      <p>Try adjusting your search criteria or date range</p>
-    </div>
-  </div>
+    </header>
 
-  <!-- Pagination -->
-  <div class="pagination" *ngIf="totalPages > 1">
-    <button 
-      class="page-btn" 
-      (click)="previousPage()" 
-      [disabled]="currentPage === 1"
-    >
-      Previous
-    </button>
-    
-    <div class="page-numbers">
-      <button 
-        *ngFor="let page of [].constructor(totalPages); let i = index" 
-        class="page-number" 
-        [class.active]="currentPage === i + 1"
-        (click)="goToPage(i + 1)"
-      >
-        {{ i + 1 }}
-      </button>
+    <div class="loading-state" *ngIf="isLoading">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <h3>Loading Trip Data</h3>
+            <p>Please wait while we fetch your trip history...</p>
+        </div>
     </div>
-    
-    <button 
-      class="page-btn" 
-      (click)="nextPage()" 
-      [disabled]="currentPage === totalPages"
-    >
-      Next
-    </button>
-  </div>
+
+    <div class="error-state" *ngIf="error && !isLoading">
+        <div class="error-content">
+            <svg class="error-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="8" x2="12" y2="12"/>
+                <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <h3>Failed to Load Trips</h3>
+            <p>{{ error }}</p>
+            <button class="action-btn primary" (click)="loadTrips()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                </svg>
+                Try Again
+            </button>
+        </div>
+    </div>
+
+    <div class="main-content" *ngIf="!isLoading && !error">
+        <section class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-card earnings">
+                    <div class="stat-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">₹{{ tripStats.totalEarnings.toFixed(2) }}</div>
+                        <div class="stat-label">Total Earnings</div>
+                        <div class="stat-change positive">+₹{{ tripStats.totalTips.toFixed(2) }} tips</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card trips">
+                    <div class="stat-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                            <polyline points="14,2 14,8 20,8"/>
+                            <line x1="16" y1="13" x2="8" y2="13"/>
+                            <line x1="16" y1="17" x2="8" y2="17"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">{{ tripStats.totalTrips }}</div>
+                        <div class="stat-label">Total Trips</div>
+                        <div class="stat-breakdown">{{ tripStats.completedTrips }} completed</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card distance">
+                    <div class="stat-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="M21 21l-4.35-4.35"/>
+                            <circle cx="11" cy="11" r="3"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">{{ tripStats.totalDistance.toFixed(1) }} km</div>
+                        <div class="stat-label">Distance Covered</div>
+                        <div class="stat-breakdown">Avg: {{ (tripStats.totalDistance / tripStats.completedTrips).toFixed(1) || 0 }} km/trip</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card rating">
+                    <div class="stat-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26 12,2"/>
+                        </svg>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-value">{{ tripStats.avgRating }}/5</div>
+                        <div class="stat-label">Average Rating</div>
+                        <div class="stat-stars">
+                            <span class="star" *ngFor="let star of [1,2,3,4,5]" [ngClass]="{ 'filled': tripStats.avgRating >= star }">★</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="search-filter-section">
+            <div class="search-controls">
+                <div class="search-input-group">
+                    <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input 
+                      type="text" 
+                      class="search-input" 
+                      placeholder="Search by passenger, location, or trip ID..." 
+                      [(ngModel)]="searchTerm"
+                      (input)="onSearch()"
+                    >
+                    <button class="clear-search" *ngIf="searchTerm" (click)="searchTerm = ''; onSearch()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="filter-actions">
+                    <button 
+                      class="filter-btn"
+                      [ngClass]="{ 'active': showFilters }"
+                      (click)="toggleFilters()"
+                    >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="22,3 2,3 10,12.46 10,19 14,21 14,12.46 22,3"/>
+                        </svg>
+                        <span>Filters</span>
+                    </button>
+                    
+                    <div class="sort-dropdown">
+                        <label for="sortSelect">Sort:</label>
+                        <select 
+                          id="sortSelect" 
+                          class="sort-select" 
+                          [(ngModel)]="sortBy" 
+                          (change)="onSortChange(sortBy)"
+                        >
+                            <option value="date">Date</option>
+                            <option value="fare">Fare</option>
+                            <option value="distance">Distance</option>
+                            <option value="rating">Rating</option>
+                        </select>
+                        
+                        <button 
+                          class="sort-order-btn" 
+                          [title]="'Sort ' + (sortOrder === 'asc' ? 'Descending' : 'Ascending')"
+                          (click)="onSortChange(sortBy)"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path *ngIf="sortOrder === 'desc'" d="m3 8 4-4 4 4"/>
+                                <path *ngIf="sortOrder === 'desc'" d="M7 4V20"/>
+                                <path *ngIf="sortOrder === 'asc'" d="m3 16 4 4 4-4"/>
+                                <path *ngIf="sortOrder === 'asc'" d="M7 20V4"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filters-panel" [ngClass]="{ 'expanded': showFilters }">
+                <div class="filter-grid">
+                    <div class="filter-group">
+                        <label class="filter-label">Time Period</label>
+                        <select 
+                          class="filter-select" 
+                          [(ngModel)]="filters.dateRange"
+                          (change)="onFilterChange()"
+                        >
+                            <option value="today">Today</option>
+                            <option value="week">This Week</option>
+                            <option value="month">This Month</option>
+                            <option value="custom">Custom Range</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Trip Status</label>
+                        <select 
+                          class="filter-select" 
+                          [(ngModel)]="filters.status"
+                          (change)="onFilterChange()"
+                        >
+                            <option value="all">All Trips</option>
+                            <option value="completed">Completed</option>
+                            <option value="cancelled">Cancelled</option>
+                            <option value="in_progress">In Progress</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Payment Method</label>
+                        <select 
+                          class="filter-select" 
+                          [(ngModel)]="filters.paymentMethod"
+                          (change)="onFilterChange()"
+                        >
+                            <option value="all">All Methods</option>
+                            <option value="cash">Cash</option>
+                            <option value="card">Card</option>
+                            <option value="upi">UPI</option>
+                            <option value="wallet">Wallet</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <button class="clear-filters-btn" (click)="clearFilters()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M3 6h18"/>
+                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                            </svg>
+                            Clear Filters
+                        </button>
+                    </div>
+                </div>
+
+                <div class="custom-date-range" *ngIf="filters.dateRange === 'custom'">
+                    <div class="date-input-group">
+                        <div class="date-field">
+                            <label class="date-label">Start Date</label>
+                            <input 
+                              type="date" 
+                              class="date-input" 
+                              [(ngModel)]="filters.customStartDate"
+                              (change)="onFilterChange()"
+                            >
+                        </div>
+                        <div class="date-separator">to</div>
+                        <div class="date-field">
+                            <label class="date-label">End Date</label>
+                            <input 
+                              type="date" 
+                              class="date-input" 
+                              [(ngModel)]="filters.customEndDate"
+                              (change)="onFilterChange()"
+                            >
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fare-range-section">
+                    <label class="filter-label">Fare Range (₹)</label>
+                    <div class="range-input-group">
+                        <input 
+                          type="number" 
+                          class="range-input" 
+                          placeholder="Min" 
+                          [(ngModel)]="filters.minFare"
+                          (input)="onFilterChange()"
+                        >
+                        <span class="range-separator">—</span>
+                        <input 
+                          type="number" 
+                          class="range-input" 
+                          placeholder="Max" 
+                          [(ngModel)]="filters.maxFare"
+                          (input)="onFilterChange()"
+                        >
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="trips-list-section">
+            <div class="section-header">
+                <h2>Trip History</h2>
+                <div class="results-info">
+                    <span class="results-count">{{ filteredTrips.length }} trips</span>
+                    <span class="results-separator">•</span>
+                    <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
+                </div>
+            </div>
+
+            <div class="trips-list" *ngIf="paginatedTrips.length > 0; else noTrips">
+                <div 
+                  class="trip-card" 
+                  tabindex="0"
+                  *ngFor="let trip of paginatedTrips; trackBy: trackByTripId"
+                  (click)="selectTrip(trip)"
+                  [attr.aria-label]="getAriaLabel(trip)"
+                >
+                    <div class="trip-card-header">
+                        <div class="trip-id">
+                            <span class="trip-label">Trip</span>
+                            <span class="trip-number">#{{ trip.id }}</span>
+                        </div>
+                        <div class="trip-status" [ngClass]="getStatusBadgeClass(trip.status)" [attr.aria-label]="getStatusAriaLabel(trip.status)">
+                            <span class="status-dot"></span>
+                            {{ trip.status | titlecase }}
+                        </div>
+                    </div>
+                    
+                    <div class="trip-card-body">
+                        <div class="passenger-section">
+                            <div class="passenger-avatar">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>
+                            </div>
+                            <div class="passenger-info">
+                                <div class="passenger-name">{{ trip.passengerName }}</div>
+                                <div class="trip-datetime">{{ formatDate(trip.startTime) }} at {{ formatTime(trip.startTime) }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="route-section">
+                            <div class="route-item pickup">
+                                <div class="route-dot pickup-dot"></div>
+                                <div class="route-details">
+                                    <div class="route-label">Pickup</div>
+                                    <div class="route-address">{{ trip.pickupLocation.address }}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="route-line"></div>
+                            
+                            <div class="route-item dropoff">
+                                <div class="route-dot dropoff-dot"></div>
+                                <div class="route-details">
+                                    <div class="route-label">Drop-off</div>
+                                    <div class="route-address">{{ trip.dropLocation.address }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="trip-card-footer">
+                        <div class="trip-metrics">
+                            <div class="metric">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12,6 12,12 16,14"/>
+                                </svg>
+                                <span>{{ formatDuration(trip.duration) }}</span>
+                            </div>
+                            <div class="metric">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0-6 0"/>
+                                    <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 0 1-2.827 0l-4.244-4.243a8 8 0 1 1 11.314 0z"/>
+                                </svg>
+                                <span>{{ trip.distance.toFixed(1) }} km</span>
+                            </div>
+                            <div class="metric payment">
+                                <span class="payment-icon">{{ getPaymentMethodIcon(trip.paymentMethod) }}</span>
+                                <span>{{ trip.paymentMethod }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="trip-earnings">
+                            <div class="fare-amount">₹{{ trip.fare.toFixed(2) }}</div>
+                            <div class="tip-amount" *ngIf="trip.tip > 0">+₹{{ trip.tip.toFixed(2) }} tip</div>
+                            <div class="rating" *ngIf="trip.rating > 0">
+                                <span class="rating-value">{{ trip.rating }}/5</span>
+                                <div class="rating-stars">
+                                    <span class="star" *ngFor="let star of [1,2,3,4,5]" [ngClass]="{ 'filled': trip.rating >= star }">★</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <ng-template #noTrips>
+              <div class="empty-state">
+                  <svg class="empty-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14,2 14,8 20,8"/>
+                    <line x1="8" y1="13" x2="16" y2="13"/>
+                    <line x1="8" y1="17" x2="16" y2="17"/>
+                  </svg>
+                  <h3>No Trips Found</h3>
+                  <p>Your search or filter criteria returned no results. Try adjusting your filters or clearing the search term.</p>
+              </div>
+            </ng-template>
+
+            <div class="pagination" *ngIf="paginatedTrips.length > 0">
+                <button 
+                  class="pagination-btn" 
+                  (click)="previousPage()" 
+                  [disabled]="currentPage === 1" 
+                  title="Previous page"
+                >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15,18 9,12 15,6"/>
+                    </svg>
+                    Previous
+                </button>
+                
+                <div class="page-numbers">
+                    <button 
+                      class="page-number" 
+                      *ngFor="let page of getVisiblePages()"
+                      [ngClass]="{ 'active': currentPage === page, 'ellipsis': page === '...' }"
+                      (click)="goToPage(page)"
+                    >
+                      {{ page }}
+                    </button>
+                </div>
+                
+                <button 
+                  class="pagination-btn" 
+                  (click)="nextPage()" 
+                  [disabled]="currentPage === totalPages" 
+                  title="Next page"
+                >
+                    Next
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9,18 15,12 9,6"/>
+                    </svg>
+                </button>
+            </div>
+        </section>
+    </div>
+
+    <div class="modal-overlay" *ngIf="selectedTrip" (click)="closeModal()">
+        <div class="trip-modal" role="dialog" aria-labelledby="modal-title" (click)="$event.stopPropagation()">
+            <div class="modal-header">
+                <div class="modal-title-section">
+                    <h2 id="modal-title">Trip Details</h2>
+                    <p class="modal-subtitle">Complete information about your trip</p>
+                </div>
+                <button class="close-btn" (click)="closeModal()" title="Close modal">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="modal-content" *ngIf="selectedTrip">
+                <div class="trip-overview-section">
+                    <div class="trip-header-info">
+                        <div class="trip-id-display">
+                            <span class="trip-label">Trip ID</span>
+                            <span class="trip-id-large">#{{ selectedTrip.id }}</span>
+                        </div>
+                        <div class="trip-status-display" [ngClass]="getStatusBadgeClass(selectedTrip.status)">
+                            <span class="status-dot"></span>
+                            {{ selectedTrip.status | titlecase }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-section passenger-details-section">
+                    <h3 class="section-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                            <circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        Passenger Information
+                    </h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">Name</span>
+                            <span class="detail-value">{{ selectedTrip.passengerName }}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Phone</span>
+                            <span class="detail-value">{{ selectedTrip.passengerPhone }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-section trip-timeline-section">
+                    <h3 class="section-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0-6 0"/>
+                            <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 0 1-2.827 0l-4.244-4.243a8 8 0 1 1 11.314 0z"/>
+                        </svg>
+                        Trip Route & Timeline
+                    </h3>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-dot pickup-dot"></div>
+                            <div class="timeline-content">
+                                <div class="timeline-header">
+                                    <span class="timeline-label">Pickup Location</span>
+                                    <span class="timeline-time">{{ formatDate(selectedTrip.startTime) }} • {{ formatTime(selectedTrip.startTime) }}</span>
+                                </div>
+                                <div class="timeline-address">{{ selectedTrip.pickupLocation.address }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="timeline-line-vertical"></div>
+                        
+                        <div class="timeline-item">
+                            <div class="timeline-dot dropoff-dot"></div>
+                            <div class="timeline-content">
+                                <div class="timeline-header">
+                                    <span class="timeline-label">Drop-off Location</span>
+                                    <span class="timeline-time">{{ formatDate(selectedTrip.endTime) }} • {{ formatTime(selectedTrip.endTime) }}</span>
+                                </div>
+                                <div class="timeline-address">{{ selectedTrip.dropLocation.address }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-section trip-metrics-section">
+                    <h3 class="section-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
+                        </svg>
+                        Trip Metrics
+                    </h3>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0-6 0"/>
+                                    <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 0 1-2.827 0l-4.244-4.243a8 8 0 1 1 11.314 0z"/>
+                                </svg>
+                            </div>
+                            <div class="metric-info">
+                                <div class="metric-value">{{ selectedTrip.distance.toFixed(1) }} km</div>
+                                <div class="metric-label">Distance</div>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-card">
+                            <div class="metric-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12,6 12,12 16,14"/>
+                                </svg>
+                            </div>
+                            <div class="metric-info">
+                                <div class="metric-value">{{ formatDuration(selectedTrip.duration) }}</div>
+                                <div class="metric-label">Duration</div>
+                            </div>
+                        </div>
+                        
+                        <div class="metric-card">
+                            <div class="metric-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26 12,2"/>
+                                </svg>
+                            </div>
+                            <div class="metric-info">
+                                <div class="metric-value">{{ selectedTrip.rating }}/5</div>
+                                <div class="metric-label">Customer Rating</div>
+                                <div class="rating-stars-display">
+                                    <span class="star" *ngFor="let star of [1,2,3,4,5]" [ngClass]="{ 'filled': selectedTrip.rating >= star }">★</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-section payment-summary-section">
+                    <h3 class="section-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        Payment Summary
+                    </h3>
+                    <div class="payment-breakdown">
+                        <div class="payment-item">
+                            <span class="payment-label">Base Fare</span>
+                            <span class="payment-amount">₹{{ selectedTrip.fare.toFixed(2) }}</span>
+                        </div>
+                        <div class="payment-item" *ngIf="selectedTrip.tip > 0">
+                            <span class="payment-label">Customer Tip</span>
+                            <span class="payment-amount tip-amount">₹{{ selectedTrip.tip.toFixed(2) }}</span>
+                        </div>
+                        <div class="payment-divider"></div>
+                        <div class="payment-item total">
+                            <span class="payment-label">Total Earned</span>
+                            <span class="payment-amount">₹{{ (selectedTrip.fare + selectedTrip.tip).toFixed(2) }}</span>
+                        </div>
+                        <div class="payment-method-info">
+                            <span class="payment-method-icon">{{ getPaymentMethodIcon(selectedTrip.paymentMethod) }}</span>
+                            <span class="payment-method-text">Paid via {{ selectedTrip.paymentMethod }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-
-<!-- Trip Detail Modal -->
-<div class="modal-overlay" *ngIf="selectedTrip" (click)="closeModal()">
-  <div class="trip-modal" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h2>Trip Details</h2>
-      <button class="close-btn" (click)="closeModal()">×</button>
-    </div>
-    
-    <div class="modal-content" *ngIf="selectedTrip">
-      <div class="trip-overview">
-        <div class="trip-id-large">Trip #{{ selectedTrip.id }}</div>
-        <div class="trip-status-large" [ngClass]="getStatusBadgeClass(selectedTrip.status)">
-          {{ selectedTrip.status | titlecase }}
-        </div>
-      </div>
-      
-      <div class="passenger-details">
-        <h3>Passenger Information</h3>
-        <div class="info-row">
-          <strong>Name:</strong> {{ selectedTrip.passengerName }}
-        </div>
-        <div class="info-row">
-          <strong>Phone:</strong> {{ selectedTrip.passengerPhone }}
-        </div>
-      </div>
-      
-      <div class="trip-timeline">
-        <h3>Trip Details</h3>
-        <div class="timeline-item">
-          <div class="timeline-dot pickup"></div>
-          <div class="timeline-content">
-            <div class="timeline-label">Pickup</div>
-            <div class="timeline-address">{{ selectedTrip.pickupLocation.address }}</div>
-            <div class="timeline-time">{{ formatDate(selectedTrip.startTime) }} at {{ formatTime(selectedTrip.startTime) }}</div>
-          </div>
-        </div>
-        
-        <div class="timeline-line"></div>
-        
-        <div class="timeline-item">
-          <div class="timeline-dot dropoff"></div>
-          <div class="timeline-content">
-            <div class="timeline-label">Drop-off</div>
-            <div class="timeline-address">{{ selectedTrip.dropLocation.address }}</div>
-            <div class="timeline-time">{{ formatDate(selectedTrip.endTime) }} at {{ formatTime(selectedTrip.endTime) }}</div>
-          </div>
-        </div>
-      </div>
-      
-      <div class="trip-metrics">
-        <div class="metric">
-          <div class="metric-value">{{ selectedTrip.distance }} km</div>
-          <div class="metric-label">Distance</div>
-        </div>
-        <div class="metric">
-          <div class="metric-value">{{ formatDuration(selectedTrip.duration) }}</div>
-          <div class="metric-label">Duration</div>
-        </div>
-        <div class="metric" *ngIf="selectedTrip.rating > 0">
-          <div class="metric-value">{{ selectedTrip.rating }}/5</div>
-          <div class="metric-label">Rating</div>
-        </div>
-      </div>
-      
-      <div class="payment-summary">
-        <h3>Payment Summary</h3>
-        <div class="payment-row">
-          <span>Base Fare:</span>
-          <span>₹{{ selectedTrip.fare.toFixed(2) }}</span>
-        </div>
-        <div class="payment-row" *ngIf="selectedTrip.tip > 0">
-          <span>Tip:</span>
-          <span>₹{{ selectedTrip.tip.toFixed(2) }}</span>
-        </div>
-        <div class="payment-row total">
-          <span>Total Earned:</span>
-          <span>₹{{ (selectedTrip.fare + selectedTrip.tip).toFixed(2) }}</span>
-        </div>
-        <div class="payment-method">
-          <span>Payment Method:</span>
-          <span>{{ getPaymentMethodIcon(selectedTrip.paymentMethod) }} {{ selectedTrip.paymentMethod | titlecase }}</span>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>

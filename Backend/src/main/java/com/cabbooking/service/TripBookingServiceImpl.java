@@ -4,14 +4,15 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.time.LocalDate;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.cabbooking.dto.RatingRequest;
 import com.cabbooking.dto.TripBookingRequest;
+import com.cabbooking.dto.TripHistoryResponse;
 import com.cabbooking.exception.AuthenticationException;
 import com.cabbooking.model.Cab;
 import com.cabbooking.model.Customer;
@@ -41,7 +42,7 @@ public class TripBookingServiceImpl implements ITripBookingService {
     /*
      * Constant for nearby radius in kilometers.
      */
-    private static final double NEARBY_RADIUS_KM = 5.0;
+    private static final double NEARBY_RADIUS_KM = 50000.0;
 
     /**
      * Handles the logic for booking a new trip. This method now supports both
@@ -271,8 +272,25 @@ public class TripBookingServiceImpl implements ITripBookingService {
     }
 
     @Override
-    public List<TripBooking> viewAllTripsCustomer(Integer customerId) {
-        return tripBookingRepository.findByCustomer_Id(customerId);
+    public List<TripHistoryResponse> viewAllTripsCustomer(Integer customerId) {
+        List<TripBooking> trips = tripBookingRepository.findByCustomer_Id(customerId);
+        return trips.stream()
+                .map(trip -> new TripHistoryResponse(
+                        trip.getTripBookingId(),
+                        trip.getFromLocation(),
+                        trip.getToLocation(),
+                        trip.getFromDateTime(),
+                        trip.getToDateTime(),
+                        trip.getStatus(),
+                        trip.getBill(),
+                        trip.getCustomerRating(),
+                        trip.getCarType(),
+                        trip.getCustomer() != null ? trip.getCustomer().getFirstName() : null,
+                        trip.getCustomer() != null ? trip.getCustomer().getLastName() : null,
+                        trip.getDriver() != null ? trip.getDriver().getFirstName() : null,
+                        trip.getDriver() != null ? trip.getDriver().getLastName() : null
+                ))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -330,8 +348,25 @@ public class TripBookingServiceImpl implements ITripBookingService {
 
     // --- ADD THE IMPLEMENTATION FOR THE NEW METHODS ---
     @Override
-    public List<TripBooking> viewAllTripsDriver(int driverId) {
-        return tripBookingRepository.findByDriver_Id(driverId);
+    public List<TripHistoryResponse> viewAllTripsDriver(Integer driverId) {
+        List<TripBooking> trips = tripBookingRepository.findByDriver_Id(driverId);
+        return trips.stream()
+                .map(trip -> new TripHistoryResponse(
+                        trip.getTripBookingId(),
+                        trip.getFromLocation(),
+                        trip.getToLocation(),
+                        trip.getFromDateTime(),
+                        trip.getToDateTime(),
+                        trip.getStatus(),
+                        trip.getBill(),
+                        trip.getCustomerRating(),
+                        trip.getCarType(),
+                        trip.getCustomer() != null ? trip.getCustomer().getFirstName() : null,
+                        trip.getCustomer() != null ? trip.getCustomer().getLastName() : null,
+                        trip.getDriver() != null ? trip.getDriver().getFirstName() : null,
+                        trip.getDriver() != null ? trip.getDriver().getLastName() : null
+                ))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -341,7 +376,17 @@ public class TripBookingServiceImpl implements ITripBookingService {
         return tripBookingRepository.findByFromDateTimeBetween(startOfDay, endOfDay);
     }
     // --- ADD THE MISSING METHOD IMPLEMENTATION BELOW ---
+//   @Override
+//     public TripDetailsResponse getTripDetails(Integer tripId) {
+//     TripBooking trip = tripBookingRepository.findById(tripId)
+//         .orElseThrow(() -> new RuntimeException("Trip not found..."));
 
+//     String customerName = trip.getCustomer().getName();
+//     String cabType = trip.getCab().getCarType();
+//     String numberPlate = trip.getCab().getNumberPlate();
+
+//     return new TripDetailsResponse(customerName, cabType, numberPlate);
+// }
     /**
      * Retrieves the most recent trip for a customer to view their bill.
      *

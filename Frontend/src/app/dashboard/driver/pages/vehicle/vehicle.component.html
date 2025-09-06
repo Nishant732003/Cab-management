@@ -1,0 +1,179 @@
+<div class="vehicle-wrapper">
+  <div class="header">
+    <h1>
+      <svg class="icon-taxi" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+      </svg>
+      Professional Vehicle Registration & Management
+    </h1>
+  </div>
+
+  <div class="content">
+    <!-- Driver Information Section -->
+    <!-- <div class="driver-info" [style.display]="driverId ? 'block' : 'none'">
+      <h3 class="section-title">
+        <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+        </svg>
+        Driver Information
+      </h3>
+      <div class="form-group">
+        <label>Driver ID</label>
+        <input type="number" [value]="driverId || ''" disabled />
+        <span class="status-badge status-active">
+          <svg class="icon-small" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+          </svg>
+          Verified
+        </span>
+      </div>
+    </div> -->
+
+    <!-- Vehicle Details Section -->
+    <div class="section">
+      <h3 class="section-title">
+        <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.22.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
+        </svg>
+        Vehicle Details
+      </h3>
+      
+      <form (ngSubmit)="onSaveCab()" #cabForm="ngForm">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Number Plate</label>
+            <input type="text" [(ngModel)]="form.numberPlate" name="numberPlate" required placeholder="e.g., MH 01 AB 1234" />
+          </div>
+
+          <div class="form-group">
+            <label>Car Type</label>
+            <select [(ngModel)]="form.carType" name="carType" required>
+              <option value="">Select Car Type</option>
+              <option value="Sedan">Sedan</option>
+              <option value="SUV">SUV</option>
+              <option value="Hatchback">Hatchback</option>
+              <option value="Mini">Mini</option>
+              <option value="Luxury">Luxury</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Per Km Rate (₹)</label>
+            <input type="number" [(ngModel)]="form.perKmRate" name="perKmRate" step="0.01" required placeholder="0.00" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn btn-primary" [disabled]="isSaving">
+            <span>
+              <svg class="icon-small" viewBox="0 0 24 24" fill="currentColor" *ngIf="!isSaving">
+                <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
+              </svg>
+              <svg *ngIf="isSaving" class="icon-small spinning" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"/>
+              </svg>
+              {{ isSaving ? 'Saving...' : 'Save Vehicle Details' }}
+            </span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Image Management Section -->
+    <div class="section">
+      <h3 class="section-title">
+        <svg class="icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
+        </svg>
+        Vehicle Image
+      </h3>
+
+      <div class="image-section">
+        <!-- Cab ID Display -->
+        <!-- <div class="form-group" [style.display]="cabId ? 'block' : 'none'">
+          <label>Vehicle ID</label>
+          <input type="number" [value]="cabId || ''" disabled />
+        </div> -->
+
+        <!-- Image Preview -->
+        <div class="image-preview" [style.display]="imageUrl ? 'block' : 'none'">
+          <img [src]="imageUrl" alt="Vehicle Image" class="cab-image" />
+        </div>
+
+        <div class="no-image" [style.display]="!imageUrl ? 'flex' : 'none'">
+          <svg class="icon-large" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+          </svg>
+          <p>No vehicle image uploaded yet</p>
+          <p style="font-size: 14px; opacity: 0.7;">Upload an image to complete your vehicle profile</p>
+        </div>
+
+        <!-- File Input -->
+        <div class="file-input-wrapper">
+          <input type="file" id="fileInput" class="file-input" (change)="onFileSelected($event)" accept="image/*" />
+          <label for="fileInput" class="file-input-label">
+            <svg class="icon-small" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+            </svg>
+            Choose Image File
+          </label>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="progress-container" [style.display]="isUploading ? 'block' : 'none'">
+          <div class="progress-bar" [style.width]="uploadProgress + '%'"></div>
+        </div>
+        <div class="progress-text" [style.display]="isUploading ? 'block' : 'none'">{{ uploadProgress }}%</div>
+
+        <!-- Action Buttons -->
+        <div class="actions">
+          <button class="btn btn-secondary" (click)="onUploadImage()" [disabled]="!selectedFile || isUploading">
+            <span>
+              <svg class="icon-small" viewBox="0 0 24 24" fill="currentColor" *ngIf="!isUploading">
+                <path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z"/>
+              </svg>
+              <svg *ngIf="isUploading" class="icon-small spinning" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"/>
+              </svg>
+              {{ isUploading ? 'Uploading...' : 'Upload Image' }}
+            </span>
+          </button>
+          <button class="btn btn-danger" (click)="onDeleteImage()" [disabled]="!imageUrl">
+            <span>
+              <svg class="icon-small" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z"/>
+              </svg>
+              Delete Image
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error Messages -->
+    <div class="alert alert-error" [style.display]="errorMsg ? 'flex' : 'none'">
+      <svg class="icon-small" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12,2C17.53,2 22,6.47 22,12C22,17.53 17.53,22 12,22C6.47,22 2,17.53 2,12C2,6.47 6.47,2 12,2M15.59,7L12,10.59L8.41,7L7,8.41L10.59,12L7,15.59L8.41,17L12,13.41L15.59,17L17,15.59L13.41,12L17,8.41L15.59,7Z"/>
+      </svg>
+      {{ errorMsg }}
+    </div>
+
+
+    <!-- <div class="result-section" [style.display]="updatedCab ? 'block' : 'none'">
+      <h4>
+        <svg class="icon-small" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M11,16.5L18,9.5L16.59,8.09L11,13.67L7.91,10.59L6.5,12L11,16.5Z"/>
+        </svg>
+        Operation Successful
+      </h4>
+      <div class="result-data">
+        <p><strong>Vehicle ID:</strong> {{ updatedCab?.cabId }}</p>
+        <p><strong>Number Plate:</strong> {{ updatedCab?.numberPlate }}</p>
+        <p><strong>Car Type:</strong> {{ updatedCab?.carType }}</p>
+        <p><strong>Rate per KM:</strong> ₹{{ updatedCab?.perKmRate }}</p>
+      </div>
+    </div> -->
+  </div>
+</div>

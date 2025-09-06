@@ -70,6 +70,9 @@
               "buildTarget": "frontend:build:development"
             }
           },
+           "options": {
+    "proxyConfig": "src/proxy.conf.json"
+  },
           "defaultConfiguration": "development"
         },
         "extract-i18n": {
@@ -90,8 +93,10 @@
               }
             ],
           "styles": [
-  "node_modules/@fortawesome/fontawesome-free/css/all.min.css",
-  "src/styles.css"
+
+  "src/styles.css",
+"src/app/dashboard/driver/pages/trips/trip.component.css"
+
 ],
             "scripts": []
           }

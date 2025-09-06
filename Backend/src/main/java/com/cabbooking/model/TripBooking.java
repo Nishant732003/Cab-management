@@ -3,6 +3,9 @@ package com.cabbooking.model;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * Represents a single trip booking record in the system. This entity is the
  * core of the booking module, linking a customer to a driver and a cab for a
@@ -14,6 +17,7 @@ import java.time.LocalDateTime;
  * 4. Upon completion, the final bill is calculated and stored.
  */
 @Entity
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class TripBooking {
 
     /**
@@ -28,24 +32,27 @@ public class TripBooking {
      * relationship with the Customer entity. A customer can have many trip
      * bookings.
      */
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
+    @JsonIgnore
     private Customer customer;
 
     /**
      * The driver assigned to the trip. This is a Many-to-One relationship, as a
      * driver can handle multiple trips over time.
      */
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "driver_id")
+    @JsonIgnore
     private Driver driver;
 
     /**
      * The cab used for the trip. Establishes a Many-to-One relationship with
      * the Cab entity. This will be integrated with the Cab Management module.
      */
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cab_id")
+    @JsonIgnore
     private Cab cab;
 
     /**
@@ -85,7 +92,9 @@ public class TripBooking {
      */
     private float bill;
 
-    // ==> ADD THIS NEW FIELD <==
+    /**
+     * Customer rating for the trip (1-5 stars)
+     */
     private Integer customerRating;
 
     /**
@@ -94,15 +103,38 @@ public class TripBooking {
      */
     private String carType;
 
-    /*
+    /**
      * From Location's latitude
      */
     private Double fromLatitude;
 
-    /*
+    /**
      * From Location's longitude
      */
     private Double fromLongitude;
+
+    // Constructors
+    public TripBooking() {
+    }
+
+    public TripBooking(Integer tripBookingId, String fromLocation, String toLocation, 
+                      LocalDateTime fromDateTime, LocalDateTime toDateTime, 
+                      TripStatus status, float distanceInKm, float bill, 
+                      Integer customerRating, String carType, 
+                      Double fromLatitude, Double fromLongitude) {
+        this.tripBookingId = tripBookingId;
+        this.fromLocation = fromLocation;
+        this.toLocation = toLocation;
+        this.fromDateTime = fromDateTime;
+        this.toDateTime = toDateTime;
+        this.status = status;
+        this.distanceInKm = distanceInKm;
+        this.bill = bill;
+        this.customerRating = customerRating;
+        this.carType = carType;
+        this.fromLatitude = fromLatitude;
+        this.fromLongitude = fromLongitude;
+    }
 
     // Getters and Setters
     public Integer getTripBookingId() {
@@ -223,5 +255,23 @@ public class TripBooking {
 
     public void setFromLongitude(Double fromLongitude) {
         this.fromLongitude = fromLongitude;
+    }
+
+    @Override
+    public String toString() {
+        return "TripBooking{" +
+                "tripBookingId=" + tripBookingId +
+                ", fromLocation='" + fromLocation + '\'' +
+                ", toLocation='" + toLocation + '\'' +
+                ", fromDateTime=" + fromDateTime +
+                ", toDateTime=" + toDateTime +
+                ", status=" + status +
+                ", distanceInKm=" + distanceInKm +
+                ", bill=" + bill +
+                ", customerRating=" + customerRating +
+                ", carType='" + carType + '\'' +
+                ", fromLatitude=" + fromLatitude +
+                ", fromLongitude=" + fromLongitude +
+                '}';
     }
 }

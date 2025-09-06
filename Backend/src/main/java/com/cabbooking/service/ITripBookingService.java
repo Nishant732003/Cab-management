@@ -1,5 +1,5 @@
 package com.cabbooking.service;
-
+import com.cabbooking.dto.TripHistoryResponse;
 import com.cabbooking.dto.RatingRequest;
 import com.cabbooking.dto.TripBookingRequest;
 import com.cabbooking.model.TripBooking;
@@ -50,8 +50,7 @@ public interface ITripBookingService {
      * @return A list of {@link TripBooking} entities representing the
      * customer's trip history.
      */
-    List<TripBooking> viewAllTripsCustomer(Integer customerId);
-
+    List<TripHistoryResponse> viewAllTripsCustomer(Integer customerId);
     /**
      * Applies a customer's rating to a completed trip.
      *
@@ -69,7 +68,7 @@ public interface ITripBookingService {
      * @param driverId The ID of the driver.
      * @return A list of TripBooking objects.
      */
-    List<TripBooking> viewAllTripsDriver(int driverId);
+    List<TripHistoryResponse> viewAllTripsDriver(Integer driverId);
 
     /**
      * Retrieves all trips that occurred on a specific date.
@@ -78,6 +77,15 @@ public interface ITripBookingService {
      * @return A list of TripBooking objects.
      */
     List<TripBooking> getTripsDatewise(LocalDate date);
+    /**
+     * Retrieves the details of a specific trip, including the customer's name
+     * and the cab's type and number plate.
+     *
+     * @param tripId The ID of the trip to retrieve.
+     * @return A DTO containing the trip details.
+     */
+    // TripDetailsResponse getTripDetails(Integer tripId);
+
 
     TripBooking viewBill(int customerId);
 }
