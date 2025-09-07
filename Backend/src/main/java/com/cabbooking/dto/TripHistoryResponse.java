@@ -18,12 +18,16 @@ public class TripHistoryResponse {
     private String customerLastName;
     private String driverFirstName;
     private String driverLastName;
+    private Number distanceinKm; 
+    private Number driverId;
+    private Number customerId;
+    private Number cabId;
 
-    public TripHistoryResponse(Integer tripBookingId, String fromLocation, String toLocation, 
-                               LocalDateTime fromDateTime, LocalDateTime toDateTime, 
-                               TripStatus status, float bill, Integer customerRating, 
-                               String carType, String customerFirstName, String customerLastName, 
-                               String driverFirstName, String driverLastName) {
+    public TripHistoryResponse(Integer tripBookingId, String fromLocation, String toLocation,
+                               LocalDateTime fromDateTime, LocalDateTime toDateTime,
+                               TripStatus status, float bill, Integer customerRating,
+                               String carType, String customerFirstName, String customerLastName,
+                               String driverFirstName, String driverLastName, Number distanceinKm,Number driverId,Number customerId,Number cabId) {
         this.tripBookingId = tripBookingId;
         this.fromLocation = fromLocation;
         this.toLocation = toLocation;
@@ -37,9 +41,14 @@ public class TripHistoryResponse {
         this.customerLastName = customerLastName;
         this.driverFirstName = driverFirstName;
         this.driverLastName = driverLastName;
+        this.distanceinKm = distanceinKm;
+        this.driverId = driverId;
+        this.customerId = customerId;
+        this.cabId = cabId;
     }
 
-    // Getters and Setters
+    // Getters and Setters for all fields
+    
     public Integer getTripBookingId() {
         return tripBookingId;
     }
@@ -142,5 +151,37 @@ public class TripHistoryResponse {
 
     public void setDriverLastName(String driverLastName) {
         this.driverLastName = driverLastName;
+    }
+
+    public Number getDistanceinKm() {
+        return distanceinKm;
+    }
+
+    public void setDistanceinKm(Number distanceinKm) {
+        this.distanceinKm = distanceinKm;
+    }
+
+    public Number getDriverId() {
+        return driverId;
+    }
+
+    public void setDriverId(Number driverId) {
+        this.driverId = driverId;
+    }
+
+    public Number getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(Integer customerId) {
+        this.customerId = customerId;
+    }
+
+    public Number getCabId() {
+        return cabId;
+    }
+
+    public void setCabId(Number cabId) {
+        this.cabId = cabId;
     }
 }

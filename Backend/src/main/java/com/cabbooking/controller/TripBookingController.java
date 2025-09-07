@@ -152,7 +152,7 @@ public class TripBookingController {
      * @return The rated trip object.
      */
     @PostMapping("/{tripId}/rate")
-    @PreAuthorize("hasRole('Customer')")
+    // @PreAuthorize("hasRole('Customer')")
     public ResponseEntity<TripBooking> rateTrip(@PathVariable Integer tripId,
                                                 @Valid @RequestBody RatingRequest ratingRequest,
                                                 Principal principal) {
