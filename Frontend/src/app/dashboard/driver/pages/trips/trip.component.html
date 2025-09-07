@@ -370,7 +370,7 @@
                                     <path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0-6 0"/>
                                     <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 0 1-2.827 0l-4.244-4.243a8 8 0 1 1 11.314 0z"/>
                                 </svg>
-                                <span>{{ trip.distance.toFixed(1) }} km</span>
+                              <span>{{ trip.distanceinKm.toFixed(1) }} km</span>
                             </div>
                             <div class="metric payment">
                                 <span class="payment-icon">{{ getPaymentMethodIcon(trip.paymentMethod) }}</span>
@@ -444,171 +444,214 @@
         </section>
     </div>
 
-    <div class="modal-overlay" *ngIf="selectedTrip" (click)="closeModal()">
-        <div class="trip-modal" role="dialog" aria-labelledby="modal-title" (click)="$event.stopPropagation()">
-            <div class="modal-header">
-                <div class="modal-title-section">
-                    <h2 id="modal-title">Trip Details</h2>
-                    <p class="modal-subtitle">Complete information about your trip</p>
-                </div>
-                <button class="close-btn" (click)="closeModal()" title="Close modal">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="18" y1="6" x2="6" y2="18"/>
-                        <line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                </button>
+  <div class="modal-overlay" *ngIf="selectedTrip" (click)="closeModal()">
+    <div class="trip-modal" role="dialog" aria-labelledby="modal-title" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+            <div class="modal-title-section">
+                <h2 id="modal-title">Trip Details</h2>
+                <p class="modal-subtitle">Complete information about your trip</p>
             </div>
-            
-            <div class="modal-content" *ngIf="selectedTrip">
-                <div class="trip-overview-section">
-                    <div class="trip-header-info">
-                        <div class="trip-id-display">
-                            <span class="trip-label">Trip ID</span>
-                            <span class="trip-id-large">#{{ selectedTrip.id }}</span>
+            <button class="close-btn" (click)="closeModal()" title="Close modal">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+        
+        <div class="modal-content" *ngIf="selectedTrip">
+            <!-- Action buttons section -->
+            <div class="modal-actions" *ngIf="selectedTrip.status === TripStatus.CONFIRMED || selectedTrip.status === TripStatus.IN_PROGRESS">
+                <button 
+                    *ngIf="selectedTrip.status === TripStatus.CONFIRMED"
+                    class="action-btn primary"
+                    (click)="startTrip(selectedTrip.id)"
+                    [disabled]="isUpdatingStatus"
+                >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="5,3 19,12 5,21 5,3"/>
+                    </svg>
+                    Start Trip
+                </button>
+                
+                <button 
+                    *ngIf="selectedTrip.status === TripStatus.IN_PROGRESS"
+                    class="action-btn success"
+                    (click)="completeTrip(selectedTrip.id)"
+                    [disabled]="isUpdatingStatus"
+                >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20,6 9,17 4,12"/>
+                    </svg>
+                    Complete Trip
+                </button>
+                
+                <button 
+                    class="action-btn danger"
+                    (click)="cancelTrip(selectedTrip.id)"
+                    [disabled]="isUpdatingStatus"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="18" y1="6" x2="6" y2="18"/>
+        <line x1="6" y1="6" x2="18" y2="18"/>
+    </svg>
+                    Cancel Trip
+                </button>
+                
+                <div class="status-update-message" *ngIf="statusUpdateMessage">
+                    {{ statusUpdateMessage }}
+                </div>
+            </div>
+
+            <div class="trip-overview-section">
+                <div class="trip-header-info">
+                    <div class="trip-id-display">
+                        <span class="trip-label">Trip ID</span>
+                        <span class="trip-id-large">#{{ selectedTrip.id }}</span>
+                    </div>
+                    <div class="trip-status-display" [ngClass]="getStatusBadgeClass(selectedTrip.status)">
+                        <span class="status-dot"></span>
+                        {{ selectedTrip.status | titlecase }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-section passenger-details-section">
+                <h3 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    Passenger Information
+                </h3>
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Name</span>
+                        <span class="detail-value">{{ selectedTrip.passengerName }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Phone</span>
+                        <span class="detail-value">{{ selectedTrip.passengerPhone }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-section trip-timeline-section">
+                <h3 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0-6 0"/>
+                        <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 0 1-2.827 0l-4.244-4.243a8 8 0 1 1 11.314 0z"/>
+                    </svg>
+                    Trip Route & Timeline
+                </h3>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-dot pickup-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-header">
+                                <span class="timeline-label">Pickup Location</span>
+                                <span class="timeline-time">{{ formatDate(selectedTrip.startTime) }} • {{ formatTime(selectedTrip.startTime) }}</span>
+                            </div>
+                            <div class="timeline-address">{{ selectedTrip.pickupLocation.address }}</div>
                         </div>
-                        <div class="trip-status-display" [ngClass]="getStatusBadgeClass(selectedTrip.status)">
-                            <span class="status-dot"></span>
-                            {{ selectedTrip.status | titlecase }}
+                    </div>
+                    
+                    <div class="timeline-line-vertical"></div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-dot dropoff-dot"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-header">
+                                <span class="timeline-label">Drop-off Location</span>
+                                <span class="timeline-time">{{ formatDate(selectedTrip.endTime) }} • {{ formatTime(selectedTrip.endTime) }}</span>
+                            </div>
+                            <div class="timeline-address">{{ selectedTrip.dropLocation.address }}</div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="modal-section passenger-details-section">
-                    <h3 class="section-title">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                            <circle cx="12" cy="7" r="4"/>
-                        </svg>
-                        Passenger Information
-                    </h3>
-                    <div class="detail-grid">
-                        <div class="detail-item">
-                            <span class="detail-label">Name</span>
-                            <span class="detail-value">{{ selectedTrip.passengerName }}</span>
+            <div class="modal-section trip-metrics-section">
+                <h3 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
+                    </svg>
+                    Trip Metrics
+                </h3>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0-6 0"/>
+                                <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 0 1-2.827 0l-4.244-4.243a8 8 0 1 1 11.314 0z"/>
+                            </svg>
                         </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Phone</span>
-                            <span class="detail-value">{{ selectedTrip.passengerPhone }}</span>
+                        <div class="metric-info">
+                           <div class="metric-value">{{ selectedTrip.distanceinKm.toFixed(1) }} km</div>
+                            <div class="metric-label">Distance</div>
                         </div>
                     </div>
-                </div>
-
-                <div class="modal-section trip-timeline-section">
-                    <h3 class="section-title">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0-6 0"/>
-                            <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 0 1-2.827 0l-4.244-4.243a8 8 0 1 1 11.314 0z"/>
-                        </svg>
-                        Trip Route & Timeline
-                    </h3>
-                    <div class="timeline">
-                        <div class="timeline-item">
-                            <div class="timeline-dot pickup-dot"></div>
-                            <div class="timeline-content">
-                                <div class="timeline-header">
-                                    <span class="timeline-label">Pickup Location</span>
-                                    <span class="timeline-time">{{ formatDate(selectedTrip.startTime) }} • {{ formatTime(selectedTrip.startTime) }}</span>
-                                </div>
-                                <div class="timeline-address">{{ selectedTrip.pickupLocation.address }}</div>
-                            </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12,6 12,12 16,14"/>
+                            </svg>
                         </div>
-                        
-                        <div class="timeline-line-vertical"></div>
-                        
-                        <div class="timeline-item">
-                            <div class="timeline-dot dropoff-dot"></div>
-                            <div class="timeline-content">
-                                <div class="timeline-header">
-                                    <span class="timeline-label">Drop-off Location</span>
-                                    <span class="timeline-time">{{ formatDate(selectedTrip.endTime) }} • {{ formatTime(selectedTrip.endTime) }}</span>
-                                </div>
-                                <div class="timeline-address">{{ selectedTrip.dropLocation.address }}</div>
+                        <div class="metric-info">
+                            <div class="metric-value">{{ formatDuration(selectedTrip.duration) }}</div>
+                            <div class="metric-label">Duration</div>
+                        </div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26 12,2"/>
+                            </svg>
+                        </div>
+                        <div class="metric-info">
+                            <div class="metric-value">{{ selectedTrip.rating }}/5</div>
+                            <div class="metric-label">Customer Rating</div>
+                            <div class="rating-stars-display">
+                                <span class="star" *ngFor="let star of [1,2,3,4,5]" [ngClass]="{ 'filled': selectedTrip.rating >= star }">★</span>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="modal-section trip-metrics-section">
-                    <h3 class="section-title">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="22,12 18,12 15,21 9,3 6,12 2,12"/>
-                        </svg>
-                        Trip Metrics
-                    </h3>
-                    <div class="metrics-grid">
-                        <div class="metric-card">
-                            <div class="metric-icon">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0-6 0"/>
-                                    <path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 0 1-2.827 0l-4.244-4.243a8 8 0 1 1 11.314 0z"/>
-                                </svg>
-                            </div>
-                            <div class="metric-info">
-                                <div class="metric-value">{{ selectedTrip.distance.toFixed(1) }} km</div>
-                                <div class="metric-label">Distance</div>
-                            </div>
-                        </div>
-                        
-                        <div class="metric-card">
-                            <div class="metric-icon">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"/>
-                                    <polyline points="12,6 12,12 16,14"/>
-                                </svg>
-                            </div>
-                            <div class="metric-info">
-                                <div class="metric-value">{{ formatDuration(selectedTrip.duration) }}</div>
-                                <div class="metric-label">Duration</div>
-                            </div>
-                        </div>
-                        
-                        <div class="metric-card">
-                            <div class="metric-icon">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26 12,2"/>
-                                </svg>
-                            </div>
-                            <div class="metric-info">
-                                <div class="metric-value">{{ selectedTrip.rating }}/5</div>
-                                <div class="metric-label">Customer Rating</div>
-                                <div class="rating-stars-display">
-                                    <span class="star" *ngFor="let star of [1,2,3,4,5]" [ngClass]="{ 'filled': selectedTrip.rating >= star }">★</span>
-                                </div>
-                            </div>
-                        </div>
+            <div class="modal-section payment-summary-section">
+                <h3 class="section-title">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="1" x2="12" y2="23"/>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    </svg>
+                    Payment Summary
+                </h3>
+                <div class="payment-breakdown">
+                    <div class="payment-item">
+                        <span class="payment-label">Base Fare</span>
+                        <span class="payment-amount">₹{{ selectedTrip.fare.toFixed(2) }}</span>
                     </div>
-                </div>
-
-                <div class="modal-section payment-summary-section">
-                    <h3 class="section-title">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="1" x2="12" y2="23"/>
-                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                        </svg>
-                        Payment Summary
-                    </h3>
-                    <div class="payment-breakdown">
-                        <div class="payment-item">
-                            <span class="payment-label">Base Fare</span>
-                            <span class="payment-amount">₹{{ selectedTrip.fare.toFixed(2) }}</span>
-                        </div>
-                        <div class="payment-item" *ngIf="selectedTrip.tip > 0">
-                            <span class="payment-label">Customer Tip</span>
-                            <span class="payment-amount tip-amount">₹{{ selectedTrip.tip.toFixed(2) }}</span>
-                        </div>
-                        <div class="payment-divider"></div>
-                        <div class="payment-item total">
-                            <span class="payment-label">Total Earned</span>
-                            <span class="payment-amount">₹{{ (selectedTrip.fare + selectedTrip.tip).toFixed(2) }}</span>
-                        </div>
-                        <div class="payment-method-info">
-                            <span class="payment-method-icon">{{ getPaymentMethodIcon(selectedTrip.paymentMethod) }}</span>
-                            <span class="payment-method-text">Paid via {{ selectedTrip.paymentMethod }}</span>
-                        </div>
+                    <div class="payment-item" *ngIf="selectedTrip.tip > 0">
+                        <span class="payment-label">Customer Tip</span>
+                        <span class="payment-amount tip-amount">₹{{ selectedTrip.tip.toFixed(2) }}</span>
+                    </div>
+                    <div class="payment-divider"></div>
+                    <div class="payment-item total">
+                        <span class="payment-label">Total Earned</span>
+                        <span class="payment-amount">₹{{ (selectedTrip.fare + selectedTrip.tip).toFixed(2) }}</span>
+                    </div>
+                    <div class="payment-method-info">
+                        <span class="payment-method-icon">{{ getPaymentMethodIcon(selectedTrip.paymentMethod) }}</span>
+                        <span class="payment-method-text">Paid via {{ selectedTrip.paymentMethod }}</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 </div>
 </div>

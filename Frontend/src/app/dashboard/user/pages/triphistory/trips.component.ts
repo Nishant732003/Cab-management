@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { RideService, BookRideResponse } from '../../../../core/services/user/ride.service';
-
+import { Router } from '@angular/router'; 
 interface Trip {
   tripBookingId: number;
   fromLocation: string;
@@ -49,7 +49,10 @@ export class TripHistoryComponent implements OnInit {
   isLoading: boolean = true;
   errorMessage: string = '';
 
-  constructor(public rideService: RideService) {}
+  constructor(
+    public rideService: RideService,
+     private router: Router 
+  ) {}
 
   ngOnInit(): void {
     this.loadTripHistory();
@@ -89,63 +92,51 @@ export class TripHistoryComponent implements OnInit {
       }
     });
   }
+mapApiResponseToTrip(api: any): Trip {
+  // Create a safe driver object from the flat API response
+  const safeDriver = {
+    id: api.driverId || 0,
+    username: `${api.driverFirstName || 'Driver'} ${api.driverLastName || ''}`.trim() || 'Assigned Soon',
+    mobileNumber: null, // Not provided in API
+    rating: 0, // Not provided in API
+    profilePhotoUrl: null, // Not provided in API
+    licenceNo: 'N/A' // Not provided in API
+  };
 
-  mapApiResponseToTrip(api: BookRideResponse): Trip {
-    const safeDriver = api?.driver ?? {
-      id: 0,
-      username: 'Assigned Soon',
-      mobileNumber: null,
-      rating: 0,
-      profilePhotoUrl: null,
-      licenceNo: 'N/A'
-    };
+  // Create a safe cab object from the flat API response
+  const safeCab = {
+    cabId: api.cabId || 0,
+    carType: api.carType || 'Vehicle',
+    numberPlate: ' ', // Not provided in API
+    imageUrl: null // Not provided in API
+  };
 
-    const safeCab = api?.cab
-      ? {
-          cabId: api.cab.cabId,
-          carType: api.cab.carType ?? 'Vehicle',
-          numberPlate: api.cab.numberPlate ?? ' ',
-          imageUrl: api.cab.imageUrl ?? null
-        }
-      : {
-          cabId: 0,
-          carType: 'Vehicle',
-          numberPlate: ' ',
-          imageUrl: null
-        };
+  // Normalize status
+  const normalizeStatus = (s: string): Trip['status'] => {
+    switch ((s || '').toUpperCase()) {
+      case 'COMPLETED': return 'COMPLETED';
+      case 'CANCELLED': return 'CANCELLED';
+      case 'IN_PROGRESS': return 'IN_PROGRESS';
+      case 'CONFIRMED': return 'CONFIRMED';
+      case 'SCHEDULED': return 'CONFIRMED'; 
+      default: return 'CONFIRMED';
+    }
+  };
 
-    const normalizeStatus = (s: string): Trip['status'] => {
-      switch ((s || '').toUpperCase()) {
-        case 'COMPLETED': return 'COMPLETED';
-        case 'CANCELLED': return 'CANCELLED';
-        case 'IN_PROGRESS': return 'IN_PROGRESS';
-        case 'CONFIRMED': return 'CONFIRMED';
-        case 'SCHEDULED': return 'CONFIRMED'; 
-        default: return 'CONFIRMED';
-      }
-    };
-
-    return {
-      tripBookingId: api.tripBookingId,
-      fromLocation: api.fromLocation,
-      toLocation: api.toLocation,
-      fromDateTime: api.fromDateTime,
-      toDateTime: api.toDateTime ?? null,
-      status: normalizeStatus(api.status),
-      distanceInKm: api.distanceInKm,
-      bill: api.bill,
-      customerRating: api.customerRating ?? null,
-      driver: {
-        id: safeDriver.id,
-        username: safeDriver.username,
-        mobileNumber: safeDriver.mobileNumber ?? null,
-        rating: safeDriver.rating ?? 0,
-        profilePhotoUrl: safeDriver.profilePhotoUrl ?? null,
-        licenceNo: safeDriver.licenceNo ?? 'N/A'
-      },
-      cab: safeCab
-    };
-  }
+  return {
+    tripBookingId: api.tripBookingId,
+    fromLocation: api.fromLocation,
+    toLocation: api.toLocation,
+    fromDateTime: api.fromDateTime,
+    toDateTime: api.toDateTime ?? null,
+    status: normalizeStatus(api.status),
+    distanceInKm: api.distanceinKm || 0, // Note: API uses 'distanceinKm' not 'distanceInKm'
+    bill: api.bill || 0,
+    customerRating: api.customerRating ?? null,
+    driver: safeDriver,
+    cab: safeCab
+  };
+}
 
   initializeMockTripHistory(): void {
     this.tripHistory = [
@@ -285,8 +276,10 @@ export class TripHistoryComponent implements OnInit {
   rebookTrip(trip: Trip): void {
     const confirmed = confirm(`Rebook trip from ${trip.fromLocation} to ${trip.toLocation}?`);
     if (confirmed) {
-      alert('Redirecting to booking page with pre-filled details...');
+      alert('Redirecting to booking page ...');
     }
+      this.router.navigate(['/book-ride']);
+
   }
 
   callDriver(trip: Trip): void {
@@ -327,12 +320,13 @@ export class TripHistoryComponent implements OnInit {
     }
   }
 
-  getStarArray(rating: number): boolean[] {
-    const stars: boolean[] = [];
-    for (let i = 1; i <= 5; i++) stars.push(i <= rating);
-    return stars;
+ getStarArray(rating: number): {filled: boolean}[] {
+  const stars: {filled: boolean}[] = [];
+  for (let i = 1; i <= 5; i++) {
+    stars.push({filled: i <= rating});
   }
-
+  return stars;
+}
   formatDate(dateString: string): string {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });

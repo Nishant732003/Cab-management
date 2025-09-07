@@ -65,7 +65,7 @@ export interface BookRideResponse {
 
 @Injectable({ providedIn: 'root' })
 export class RideService {
-  private apiUrl = environment.apiUrl;   // e.g., https://example.com/api
+  private apiUrl = environment.apiUrl;   
   private orsApiKey = environment.openRouteServiceApiKey;
 
   constructor(private http: HttpClient) {}
@@ -80,7 +80,7 @@ export class RideService {
 
   // Backend trips
   bookRide(rideRequest: BookRideRequest): Observable<BookRideResponse> {
-    return this.http.post<BookRideResponse>(
+    return this.http.post<any>(
       `${this.apiUrl}/api/trips/book`,
       rideRequest,
       { headers: this.getAuthHeaders() }
@@ -96,7 +96,6 @@ export class RideService {
     );
   }
 
-  // Backend cabs for vehicle selection cards
   listCabs(): Observable<Cab[]> {
     return this.http.get<Cab[]>(
       `${this.apiUrl}/api/cabs/all`,
@@ -104,8 +103,6 @@ export class RideService {
     );
   }
 
-  // ORS geocoding (Pelias Search)
-// ORS geocoding (Pelias Search)
 geocodeAddress(address: string): Observable<{ lat: number, lng: number }> {
 
 const url = `/api/ors/geocode/search?api_key=${this.orsApiKey}&text=${encodeURIComponent(address)}&size=1`;
@@ -124,9 +121,6 @@ const [lon, lat] = coords;
  );
 }
 
-
-  // ORS driving distance (km)
-// ORS driving distance (km)
 getDistance(fromLat: number, fromLng: number, toLat: number, toLng: number): Observable<number> {
   // Update to use the proxy path
   const url = `/api/ors/v2/directions/driving-car?api_key=${this.orsApiKey}&start=${fromLng},${fromLat}&end=${toLng},${toLat}`;
@@ -163,27 +157,29 @@ getDistance(fromLat: number, fromLng: number, toLat: number, toLng: number): Obs
     );
   }
 
-  rateRide(tripBookingId: number, rating: number): Observable<any> {
-    return this.http.put(
-      `${this.apiUrl}/rides/${tripBookingId}/rate`,
-      { customerRating: rating },
-      { headers: this.getAuthHeaders() }
-    );
-  }
+
+rateRide(tripBookingId: number, rating: number): Observable<any> {
+  return this.http.post(
+    `${this.apiUrl}/api/trips/${tripBookingId}/rate`,
+    { rating: rating }, 
+    { headers: this.getAuthHeaders() }
+  );
+}
 
   // Helpers
    getDriverImage(driver: Partial<Driver> | null): string {
   if (!driver || !driver.profilePhotoUrl) {
-    return 'assets/images/driver.avif';
+    return 'assets/driver.avif';
   }
   return driver.profilePhotoUrl;
 }
 
   getCabImage(cab: Cab): string {
-    return cab.imageUrl || 'assets/images/default-car.jpg';
+    return cab.imageUrl || 'assets/default-car.jpg';
   }
 
   calculateFare(distanceInKm: number, perKmRate: number, baseFare: number = 50): number {
     return baseFare + (distanceInKm * perKmRate);
   }
+  
 }

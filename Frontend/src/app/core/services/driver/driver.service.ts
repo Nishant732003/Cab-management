@@ -10,6 +10,7 @@ export interface CabUpdateRequest {
 }
  // In src/app/core/services/driver/driver.service.ts
 export interface Trip {
+distanceinKm: number;
   tripBookingId: number;
   fromLocation: string;
   toLocation: string;
@@ -23,6 +24,7 @@ export interface Trip {
   customerLastName: string;
   driverFirstName: string;
   driverLastName: string;
+  canRate?: boolean;
 }
 export interface Cab {
   cabId: number; // Changed from id to cabId
@@ -39,19 +41,18 @@ export class DriverService {
 
   constructor(private http: HttpClient) {}
 
-  // PUT /api/cabs/{driverId}/update
+
   updateCabForDriver(driverId: number, payload: CabUpdateRequest): Observable<Cab> {
     return this.http.put<Cab>(`${this.baseUrl}/api/cabs/${driverId}/update`, payload);
   }
 
-  // PUT /api/cabs/{cabId}/image with FormData field name "file"
   uploadCabImage(cabId: number, file: File): Observable<HttpEvent<Cab>> {
     const form = new FormData();
     form.append('file', file);
     
     const req = new HttpRequest(
       'PUT', 
-      `${this.baseUrl}/api/cabs/${cabId}/image`, // Fixed endpoint URL
+      `${this.baseUrl}/api/cabs/${cabId}/image`, 
       form, 
       {
         reportProgress: true
@@ -60,12 +61,34 @@ export class DriverService {
     return this.http.request<Cab>(req);
   }
 
-  // DELETE /api/cabs/{cabId}/image
   deleteCabImage(cabId: number): Observable<Cab> {
-    return this.http.delete<Cab>(`${this.baseUrl}/api/cabs/${cabId}/image`); // Fixed endpoint URL
+    return this.http.delete<Cab>(`${this.baseUrl}/api/cabs/${cabId}/image`); 
   }
   getTripsForDriver(driverId: number): Observable<Trip[]> {
   return this.http.get<Trip[]>(`${this.baseUrl}/api/trips/driver/${driverId}`);
 }
+ completeTripsForDriver(driverId: number): Observable<Trip[]> {
+    return this.http.put<Trip[]>(`${this.baseUrl}/api/trips/${driverId}/complete`, {});
+  }
+
+   updateTripStatus(tripId: number, status: string): Observable<Trip> {
+    return this.http.post<Trip>(`${this.baseUrl}/api/trips/${tripId}/status?status=${status}`, {});
+  }
+
+  startTrip(tripId: number): Observable<Trip> {
+    return this.updateTripStatus(tripId, 'IN_PROGRESS');
+  }
+
+  completeTrip(tripId: number): Observable<Trip> {
+    return this.updateTripStatus(tripId, 'COMPLETED');
+  }
+
+  cancelTrip(tripId: number): Observable<Trip> {
+    return this.updateTripStatus(tripId, 'CANCELLED');
+  }
+
+   getDriverProfile(username: string): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}/api/profiles/${username}`);
+  }
 }
 

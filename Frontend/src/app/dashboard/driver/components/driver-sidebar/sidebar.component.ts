@@ -29,26 +29,26 @@ export class SidebarComponent implements OnInit {
       icon: "Activity",
       href: "/driver/trips"
     },
-    {
-      label: "Earnings",
-      icon: "BadgeIndianRupee", 
-      href: "/driver/earnings"
-    },
+    // {
+    //   label: "Earnings",
+    //   icon: "BadgeIndianRupee", 
+    //   href: "/driver/earnings"
+    // },
     {
       label: "My Vehicle",
       icon: "Ambulance",
       href: "/driver/vehicle"
     },
-    {
-      label: "Profile",
-      icon: "BookUser",
-      href: "/driver/profile"
-    },
-    {
-      label: "Settings",
-      icon: "Settings",
-      href: "/driver/settings"
-    }
+    // {
+    //   label: "Profile",
+    //   icon: "BookUser",
+    //   href: "/driver/profile"
+    // },
+    // {
+    //   label: "Settings",
+    //   icon: "Settings",
+    //   href: "/driver/settings"
+    // }
   ];
 
   constructor(private router: Router) {}

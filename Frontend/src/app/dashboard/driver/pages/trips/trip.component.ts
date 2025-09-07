@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
+import { Subject, takeUntil, debounceTime, distinctUntilChanged, Observable } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -8,7 +8,7 @@ import { Trip, TripStatus, PaymentMethod, Location } from '../../../../core/mode
 import { DriverService, Trip as ApiTrip } from '../../../../core/services/driver/driver.service';
 
 interface TripFilter {
-  dateRange: 'today' | 'week' | 'month' | 'custom';
+  dateRange: 'today' | 'week' | 'month' | 'custom'| 'all';
   status: TripStatus | 'all';
   paymentMethod: PaymentMethod | 'all';
   minFare?: number;
@@ -37,7 +37,8 @@ export class TripsComponent implements OnInit, OnDestroy {
   // Observables
   private readonly destroy$ = new Subject<void>();
   private readonly searchSubject = new Subject<string>();
-
+   isUpdatingStatus = false;
+   statusUpdateMessage = '';
   // Trip data
   allTrips: Trip[] = [];
   filteredTrips: Trip[] = [];
@@ -49,7 +50,7 @@ export class TripsComponent implements OnInit, OnDestroy {
   sortOrder: 'asc' | 'desc' = 'desc';
   
   filters: TripFilter = {
-    dateRange: 'week',
+    dateRange: 'all',
     status: 'all',
     paymentMethod: 'all'
   };
@@ -75,8 +76,6 @@ export class TripsComponent implements OnInit, OnDestroy {
 
   // Driver ID
   private driverId: string | null = null;
-
-  // Enums for template
   TripStatus = TripStatus;
   PaymentMethod = PaymentMethod;
 
@@ -160,14 +159,7 @@ export class TripsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (apiTrips: ApiTrip[]) => {
-          // Log the API response to verify its structure
-          console.log('API Response:', apiTrips);
-          
           this.allTrips = this.transformApiTripsToTrips(apiTrips);
-          
-          // Log the transformed data to check if it's correct
-          console.log('Transformed Trips:', this.allTrips);
-          
           this.applyFilters();
           this.calculateStats();
           this.isLoading = false;
@@ -183,20 +175,16 @@ export class TripsComponent implements OnInit, OnDestroy {
       });
   }
   
-  // 🎨 Corrected transformApiTripsToTrips method
   private transformApiTripsToTrips(apiTrips: ApiTrip[]): Trip[] {
     return apiTrips.map((apiTrip) => {
-      // Safely parse date times, providing a fallback if null
       const start = apiTrip.fromDateTime ? new Date(apiTrip.fromDateTime) : new Date();
       const end = apiTrip.toDateTime ? new Date(apiTrip.toDateTime) : start;
 
       return {
-        // Use fields directly from the API response
         id: String(apiTrip.tripBookingId),
         passengerName: `${apiTrip.customerFirstName || ''} ${apiTrip.customerLastName || ''}`.trim() || 'Customer',
         pickupLocation: {
           address: apiTrip.fromLocation || '',
-          // Default values for missing properties
           latitude: 0,
           longitude: 0,
           city: this.extractCityFromAddress(apiTrip.fromLocation || ''),
@@ -204,31 +192,28 @@ export class TripsComponent implements OnInit, OnDestroy {
         },
         dropLocation: {
           address: apiTrip.toLocation || '',
-          // Default values for missing properties
           latitude: 0,
           longitude: 0,
           city: this.extractCityFromAddress(apiTrip.toLocation || ''),
           state: 'Unknown',
         },
-        // Map API properties to the Trip model
         fare: Number(apiTrip.bill ?? 0),
         rating: Number(apiTrip.customerRating ?? 0),
         status: this.mapApiStatusToTripStatus(apiTrip.status || 'confirmed'),
+        distanceinKm: Number(apiTrip?.distanceinKm) || 0, // ✅ Fixed: using distanceinKm
         
-        // Use dummy data for fields not in the API response
+        // Use dummy data for other fields not in the API response
         driverId: this.driverId || 'unknown',
         passengerId: 'unknown',
         passengerPhone: '',
         startTime: start,
         endTime: end,
-        distance: 0,
         duration: this.calculateDuration(start.toISOString(), end.toISOString()),
         tip: 0,
-        paymentMethod: PaymentMethod.CASH, // Assuming a default method
+        paymentMethod: PaymentMethod.CASH,
       };
     });
   }
-  // -------------------------------------------------------------
   
   private extractCityFromAddress(address: string): string {
     if (!address) return 'Unknown';
@@ -310,7 +295,7 @@ export class TripsComponent implements OnInit, OnDestroy {
         },
         startTime: new Date(now.getTime() - 2 * 60 * 60 * 1000),
         endTime: new Date(now.getTime() - 2 * 60 * 60 * 1000 + 25 * 60 * 1000),
-        distance: 8.5,
+        distanceinKm: 8.5, // ✅ Fixed: using distanceinKm instead of distance
         duration: 25,
         fare: 185.50,
         tip: 20.00,
@@ -340,7 +325,7 @@ export class TripsComponent implements OnInit, OnDestroy {
         },
         startTime: new Date(now.getTime() - 5 * 60 * 60 * 1000),
         endTime: new Date(now.getTime() - 5 * 60 * 60 * 1000 + 42 * 60 * 1000),
-        distance: 14.2,
+        distanceinKm: 14.2, // ✅ Fixed: using distanceinKm instead of distance
         duration: 42,
         fare: 245.00,
         tip: 0,
@@ -370,7 +355,7 @@ export class TripsComponent implements OnInit, OnDestroy {
         },
         startTime: new Date(now.getTime() - 24 * 60 * 60 * 1000),
         endTime: new Date(now.getTime() - 24 * 60 * 60 * 1000 + 65 * 60 * 1000),
-        distance: 32.5,
+        distanceinKm: 32.5, 
         duration: 65,
         fare: 450.00,
         tip: 50.00,
@@ -400,7 +385,7 @@ export class TripsComponent implements OnInit, OnDestroy {
         },
         startTime: new Date(now.getTime() - 26 * 60 * 60 * 1000),
         endTime: new Date(now.getTime() - 26 * 60 * 60 * 1000 + 15 * 60 * 1000),
-        distance: 5.1,
+        distanceinKm: 5.1,
         duration: 15,
         fare: 95.00,
         tip: 0,
@@ -430,7 +415,7 @@ export class TripsComponent implements OnInit, OnDestroy {
         },
         startTime: new Date(now.getTime() - 48 * 60 * 60 * 1000),
         endTime: new Date(now.getTime() - 48 * 60 * 60 * 1000 + 55 * 60 * 1000),
-        distance: 25.8,
+        distanceinKm: 25.8, 
         duration: 55,
         fare: 350.00,
         tip: 25.00,
@@ -526,8 +511,8 @@ export class TripsComponent implements OnInit, OnDestroy {
           bValue = b.fare;
           break;
         case 'distance':
-          aValue = a.distance;
-          bValue = b.distance;
+          aValue = a.distanceinKm; 
+          bValue = b.distanceinKm; 
           break;
         case 'rating':
           aValue = a.rating;
@@ -557,7 +542,7 @@ export class TripsComponent implements OnInit, OnDestroy {
     this.tripStats = {
       totalTrips: this.filteredTrips.length,
       totalEarnings: completedTrips.reduce((sum, trip) => sum + trip.fare + trip.tip, 0),
-      totalDistance: completedTrips.reduce((sum, trip) => sum + trip.distance, 0),
+      totalDistance: completedTrips.reduce((sum, trip) => sum + trip.distanceinKm, 0), // ✅ Fixed: using distanceinKm
       totalTips: completedTrips.reduce((sum, trip) => sum + trip.tip, 0),
       avgRating: ratingsCount > 0 ? Number((ratingsSum / ratingsCount).toFixed(1)) : 0,
       completedTrips: completedTrips.length,
@@ -577,7 +562,7 @@ export class TripsComponent implements OnInit, OnDestroy {
   }
 
   onFilterChange(): void {
-    this.currentPage = 1; // Reset to first page when filters change
+    this.currentPage = 1; 
     this.applyFilters();
     this.calculateStats();
   }
@@ -616,7 +601,6 @@ export class TripsComponent implements OnInit, OnDestroy {
     this.selectedTrip = null;
   }
 
-  // Pagination methods
   nextPage(): void {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
@@ -729,7 +713,7 @@ export class TripsComponent implements OnInit, OnDestroy {
       trip.dropLocation.address,
       this.formatDate(trip.startTime),
       this.formatTime(trip.startTime),
-      trip.distance.toFixed(1),
+      trip.distanceinKm.toFixed(1), // ✅ Fixed: using distanceinKm
       this.formatDuration(trip.duration),
       trip.fare.toFixed(2),
       trip.tip.toFixed(2),
@@ -845,4 +829,81 @@ export class TripsComponent implements OnInit, OnDestroy {
         return 'Trip status unknown';
     }
   }
+
+  startTrip(tripId: string): void {
+  this.updateTripStatus(tripId, TripStatus.IN_PROGRESS, 'Trip started successfully');
+}
+
+completeTrip(tripId: string): void {
+  this.updateTripStatus(tripId, TripStatus.COMPLETED, 'Trip completed successfully');
+}
+
+cancelTrip(tripId: string): void {
+  if (confirm('Are you sure you want to cancel this trip?')) {
+    this.updateTripStatus(tripId, TripStatus.CANCELLED, 'Trip cancelled successfully');
+  }
+}
+
+private updateTripStatus(tripId: string, status: TripStatus, successMessage: string): void {
+  this.isUpdatingStatus = true;
+  this.statusUpdateMessage = '';
+  
+  // Convert tripId to number if your API expects a number
+  const numericTripId = Number(tripId);
+  
+  let apiCall: Observable<any>;
+  
+  switch (status) {
+    case TripStatus.IN_PROGRESS:
+      apiCall = this.driverService.startTrip(numericTripId);
+      break;
+    case TripStatus.COMPLETED:
+      apiCall = this.driverService.completeTrip(numericTripId);
+      break;
+    case TripStatus.CANCELLED:
+      apiCall = this.driverService.cancelTrip(numericTripId);
+      break;
+    default:
+      console.error('Invalid status update');
+      this.isUpdatingStatus = false;
+      return;
+  }
+  
+  apiCall.pipe(takeUntil(this.destroy$)).subscribe({
+    next: (updatedTrip) => {
+      // Update the trip in our local data
+      const index = this.allTrips.findIndex(t => t.id === tripId);
+      if (index !== -1) {
+        this.allTrips[index].status = status;
+      }
+      
+      // Also update the selected trip if it's the same one
+      if (this.selectedTrip && this.selectedTrip.id === tripId) {
+        this.selectedTrip.status = status;
+      }
+      
+      this.statusUpdateMessage = successMessage;
+      this.isUpdatingStatus = false;
+      
+      // Recalculate stats and refresh filters
+      this.applyFilters();
+      this.calculateStats();
+      
+      // Clear message after 3 seconds
+      setTimeout(() => {
+        this.statusUpdateMessage = '';
+      }, 3000);
+    },
+    error: (error) => {
+      console.error('Error updating trip status:', error);
+      this.statusUpdateMessage = 'Failed to update trip status. Please try again.';
+      this.isUpdatingStatus = false;
+      
+      // Clear error message after 5 seconds
+      setTimeout(() => {
+        this.statusUpdateMessage = '';
+      }, 5000);
+    }
+  });
+}
 }

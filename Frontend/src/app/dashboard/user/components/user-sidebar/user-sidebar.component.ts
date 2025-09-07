@@ -35,11 +35,11 @@ export class UserSidebarComponent implements OnInit {
       href: "/user/trip-history"
     },
   
-    {
-      label: "Settings",
-      icon: "Settings",
-      href: "/user/settings"
-    }
+    // {
+    //   label: "Settings",
+    //   icon: "Settings",
+    //   href: "/user/settings"
+    // }
   ];
 
   constructor(private router: Router) {}

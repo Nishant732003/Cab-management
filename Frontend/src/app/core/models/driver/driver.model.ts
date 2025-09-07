@@ -61,13 +61,15 @@ export interface Trip {
   dropLocation: Location;
   startTime: Date;
   endTime: Date;
-  distance: number;
+  // distance: number;
   duration: number;
   fare: number;
   tip: number;
   status: TripStatus;
   paymentMethod: PaymentMethod;
   rating: number;
+  distanceinKm:number
+
 }
 
 export enum TripStatus {

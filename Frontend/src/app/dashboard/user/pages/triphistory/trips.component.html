@@ -146,14 +146,14 @@
         </div>
         <div class="detail-item">
           <span class="detail-label">
-            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <!-- <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="12" y1="1" x2="12" y2="23"/>
               <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-            </svg>
+            </svg> -->
             Fare
           </span>
           <span class="detail-value" [class.cancelled-fare]="trip.status === 'CANCELLED'">
-            {{trip.status === 'CANCELLED' ? 'N/A' : '$' + trip.bill}}
+            {{trip.status === 'CANCELLED' ? 'N/A' :  + trip.bill}}
           </span>
         </div>
       </div>
@@ -161,7 +161,13 @@
       <div class="trip-rating" *ngIf="trip.status === 'COMPLETED'">
         <div class="rating" *ngIf="trip.customerRating">
           <div class="stars">
-            <svg *ngFor="let star of getStarArray(trip.customerRating)" class="star filled" viewBox="0 0 24 24" fill="currentColor">
+            <svg *ngFor="let star of getStarArray(trip.customerRating)" 
+                 [class.filled]="star.filled" 
+                 class="star" 
+                 viewBox="0 0 24 24" 
+                 [attr.fill]="star.filled ? 'currentColor' : 'none'" 
+                 stroke="currentColor" 
+                 stroke-width="2">
               <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
             </svg>
           </div>
@@ -221,23 +227,30 @@
         </div>
 
         <div class="trip-info-section">
-          <h4>
+          <!-- <h4>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
               <circle cx="12" cy="7" r="4"/>
             </svg>
             Driver Information
-          </h4>
-          <div class="driver-details">
+          </h4> -->
+          <!-- <div class="driver-details">
             <div class="driver-avatar">
               <img [src]="rideService.getDriverImage(selectedTrip.driver)" [alt]="selectedTrip.driver.username"
-                   onerror="this.src='assets/images/driver.avif'">
+                   onerror="this.src='assets/driver.avif'">
             </div>
             <div class="driver-info">
               <p><strong>{{selectedTrip.driver.username}}</strong></p>
               <div class="rating">
+              
                 <div class="stars">
-                  <svg *ngFor="let star of getStarArray(selectedTrip.driver.rating)" class="star filled" viewBox="0 0 24 24" fill="currentColor">
+                  <svg *ngFor="let star of getStarArray(selectedTrip.driver.rating)" 
+                       [class.filled]="star.filled" 
+                       class="star" 
+                       viewBox="0 0 24 24" 
+                       [attr.fill]="star.filled ? 'currentColor' : 'none'" 
+                       stroke="currentColor" 
+                       stroke-width="2">
                     <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
                   </svg>
                 </div>
@@ -247,20 +260,20 @@
               <p>License: {{selectedTrip.driver.licenceNo}}</p>
             </div>
           </div>
-        </div>
+        </div> -->
 
         <div class="trip-info-section">
           <h4>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <!-- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <line x1="12" y1="1" x2="12" y2="23"/>
               <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-            </svg>
+            </svg> -->
             Payment Information
           </h4>
           <div class="payment-details">
             <p><strong>Fare:</strong>
               <span [class.cancelled-fare]="selectedTrip.status === 'CANCELLED'">
-                {{selectedTrip.status === 'CANCELLED' ? 'N/A' : '$' + selectedTrip.bill}}
+                {{selectedTrip.status === 'CANCELLED' ? 'N/A' : + selectedTrip.bill}}
               </span>
             </p>
             <p><strong>Distance:</strong> {{selectedTrip.distanceInKm}} km</p>
@@ -270,13 +283,13 @@
       </div>
 
       <div class="modal-actions">
-        <button class="action-btn secondary" (click)="rebookTrip(selectedTrip); $event.stopPropagation()">
+        <!-- <button class="action-btn secondary" (click)="rebookTrip(selectedTrip); $event.stopPropagation()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M1 4v6h6"/>
             <path d="M3.51 15a9 9 0 102.13-9.36L1 10"/>
           </svg>
           Rebook
-        </button>
+        </button> -->
         <button class="action-btn primary" (click)="callDriver(selectedTrip); $event.stopPropagation()"
                 [disabled]="!selectedTrip.driver.mobileNumber">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -304,19 +317,22 @@
       <div class="modal-body" *ngIf="ratingTrip">
         <div class="rating-driver">
           <div class="driver-avatar">
-            <img [src]="rideService.getDriverImage(ratingTrip.driver)" [alt]="ratingTrip.driver.username"
-                 onerror="this.src='assets/images/driver.avif'">
+            <!-- <img [src]="rideService.getDriverImage(ratingTrip.driver)" [alt]="ratingTrip.driver.username"
+                 onerror="this.src='assets/images/driver.avif'"> -->
           </div>
           <h4>{{ratingTrip.driver.username}}</h4>
           <p>{{ratingTrip.cab.carType}}</p>
         </div>
 
         <div class="rating-stars">
-          <svg *ngFor="let star of [1,2,3,4,5]; let i = index"
-                class="rating-star"
-                [class.active]="i < currentRating"
-                (click)="setRating(i + 1)"
-                viewBox="0 0 24 24" fill="currentColor">
+          <svg *ngFor="let i of [1,2,3,4,5]"
+               class="rating-star"
+               [class.active]="i <= currentRating"
+               (click)="setRating(i)"
+               viewBox="0 0 24 24" 
+               [attr.fill]="i <= currentRating ? 'currentColor' : 'none'"
+               stroke="currentColor"
+               stroke-width="2">
             <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
           </svg>
         </div>
