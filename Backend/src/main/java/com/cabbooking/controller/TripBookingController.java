@@ -69,9 +69,14 @@ public class TripBookingController {
             @RequestParam double lat,
             @RequestParam double lng) {
         logger.info("Received request to get fare estimates.");
-        List<FareEstimateResponse> estimates = cabService.getAllFareEstimates(distance, lat, lng);
-        logger.info("Retrieved fare estimates.");
-        return ResponseEntity.ok(estimates);
+        try {
+            List<FareEstimateResponse> estimates = cabService.getAllFareEstimates(distance, lat, lng);
+            logger.info("Fare estimates retrieved successfully");
+            return ResponseEntity.ok(estimates);
+        } catch (Exception e) {
+            logger.error("Error fetching fare estimates: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     /**
@@ -82,8 +87,15 @@ public class TripBookingController {
      */
     @PostMapping("/book")
     public ResponseEntity<TripBooking> bookTrip(@Valid @RequestBody TripBookingRequest tripBookingRequest) {
-        TripBooking newTrip = tripBookingService.bookTrip(tripBookingRequest);
-        return ResponseEntity.ok(newTrip);
+        logger.info("Received trip booking request for customer: {}", tripBookingRequest.getCustomerId());
+        try {
+            TripBooking newTrip = tripBookingService.bookTrip(tripBookingRequest);
+            logger.info("Trip booked successfully. Trip ID: {}", newTrip.getTripBookingId());
+            return ResponseEntity.ok(newTrip);
+        } catch (Exception e) {
+            logger.error("Error booking trip for customer {}: {}", tripBookingRequest.getCustomerId(), e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     /**
@@ -95,8 +107,15 @@ public class TripBookingController {
      */
     @PutMapping("/{tripId}/status")
     public ResponseEntity<TripBooking> updateTripStatus(@PathVariable Integer tripId, @RequestParam String status, Principal principal) {
-        TripBooking updatedTrip = tripBookingService.updateTripStatus(tripId, status, principal.getName());
-        return ResponseEntity.ok(updatedTrip);
+        logger.info("Driver '{}' attempting to update status of trip ID: {} to '{}'", principal.getName(), tripId, status);
+        try {
+            TripBooking updatedTrip = tripBookingService.updateTripStatus(tripId, status, principal.getName());
+            logger.info("Trip status updated successfully. Trip ID: {}", tripId);
+            return ResponseEntity.ok(updatedTrip);
+        } catch (Exception e) {
+            logger.error("Error updating trip status for trip ID {}: {}", tripId, e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
     
     /**
@@ -108,8 +127,15 @@ public class TripBookingController {
      */
     @PutMapping("/{tripId}/complete")
     public ResponseEntity<TripBooking> completeTrip(@PathVariable Integer tripId, Principal principal) {
-        TripBooking completedTrip = tripBookingService.completeTrip(tripId, principal.getName());
-        return ResponseEntity.ok(completedTrip);
+        logger.info("Driver '{}' completing trip ID: {}", principal.getName(), tripId);
+        try {
+            TripBooking completedTrip = tripBookingService.completeTrip(tripId, principal.getName());
+            logger.info("Trip completed successfully. Trip ID: {}", tripId);
+            return ResponseEntity.ok(completedTrip);
+        } catch (Exception e) {
+            logger.error("Error completing trip ID {}: {}", tripId, e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     /**
@@ -120,8 +146,15 @@ public class TripBookingController {
      */
     @GetMapping("/customer/{customerId}")
     public ResponseEntity<List<TripBooking>> getCustomerTrips(@PathVariable Integer customerId) {
-        List<TripBooking> trips = tripBookingService.viewAllTripsCustomer(customerId);
-        return ResponseEntity.ok(trips);
+        logger.info("Fetching trip history for customer ID: {}", customerId);
+        try {
+            List<TripBooking> trips = tripBookingService.viewAllTripsCustomer(customerId);
+            logger.info("Trip history retrieved for customer ID: {}", customerId);
+            return ResponseEntity.ok(trips);
+        } catch (Exception e) {
+            logger.error("Error fetching trips for customer ID {}: {}", customerId, e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     /**
@@ -147,9 +180,14 @@ public class TripBookingController {
         
         logger.info("Customer '{}' trying to rate trip ID: {}", principal.getName(), tripId);
 
-        TripBooking ratedTrip = tripBookingService.rateTrip(tripId, ratingRequest, principal.getName());
-
-        logger.info("Trip rated successfully.");
-        return ResponseEntity.ok(ratedTrip);
+        logger.info("Customer '{}' rating trip ID: {} with rating={}", principal.getName(), tripId, ratingRequest.getRating());
+        try {
+            TripBooking ratedTrip = tripBookingService.rateTrip(tripId, ratingRequest, principal.getName());
+            logger.info("Trip rated successfully. Trip ID: {}", tripId);
+            return ResponseEntity.ok(ratedTrip);
+        } catch (Exception e) {
+            logger.error("Error rating trip ID {}: {}", tripId, e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

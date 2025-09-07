@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -63,9 +64,17 @@ public class CabController {
             @PathVariable int driverId,
             @Valid @RequestBody CabUpdateRequest request) {
         logger.info("Received request to update cab details for a driver.");
-        Cab updatedCab = cabService.updateCabDetails(driverId, request);
-        logger.info("Updated cab details for driver with ID: {}", driverId);
-        return ResponseEntity.ok(updatedCab);
+        try {
+            Cab updatedCab = cabService.updateCabDetails(driverId, request);
+            logger.info("Cab details updated successfully for driver ID: {}", driverId);
+            return ResponseEntity.ok(updatedCab);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid driver ID {}: {}", driverId, e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            logger.error("Unexpected error while updating cab for driver ID {}: {}", driverId, e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     /**
@@ -83,11 +92,14 @@ public class CabController {
     @GetMapping("/type/{carType}")
     public ResponseEntity<List<Cab>> getCabsOfType(@PathVariable String carType) {
         logger.info("Received request to view cabs of a specific type.");
-        List<Cab> cabs = cabService.getCabsOfType(carType);
-        logger.info("Retrieved cabs of type: {}", carType);
-        return ResponseEntity.ok(cabs);
+        try {
+            List<Cab> cabs = cabService.getCabsOfType(carType);
+            return ResponseEntity.ok(cabs);
+        } catch (Exception e) {
+            logger.error("Error fetching cabs of type {}: {}", carType, e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
-
     /**
      * Endpoint to get the details of a specific cab by its ID.
      *
@@ -104,13 +116,18 @@ public class CabController {
     @GetMapping("/{cabId}")
     public ResponseEntity<Cab> getCabById(@PathVariable int cabId) {
         logger.info("Received request to get details of a specific cab.");
-        Optional<Cab> cab = cabService.getCabById(cabId);
-        if (cab.isPresent()) {
-            logger.info("Retrieved details of cab with ID: {}", cabId);
-            return ResponseEntity.ok(cab.get());
-        } else {
-            logger.info("Cab with ID: {} not found.", cabId);
-            return ResponseEntity.notFound().build();
+        try {
+            Optional<Cab> cab = cabService.getCabById(cabId);
+            if (cab.isPresent()) {
+                logger.info("Retrieved details of cab with ID: {}", cabId);
+                return ResponseEntity.ok(cab.get());
+            } else {
+                logger.warn("Cab not found with ID: {}", cabId);
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            logger.error("Error fetching cab by ID {}: {}", cabId, e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
         }
     }
 
@@ -128,9 +145,13 @@ public class CabController {
     @GetMapping("/all")
     public ResponseEntity<List<Cab>> getAllCabs() {
         logger.info("Received request to get all cabs.");
-        List<Cab> cabs = cabService.getAllCabs();
-        logger.info("Retrieved all cabs.");
-        return ResponseEntity.ok(cabs);
+        try {
+            List<Cab> cabs = cabService.getAllCabs();
+            return ResponseEntity.ok(cabs);
+        } catch (Exception e) {
+            logger.error("Error fetching all cabs: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     /**
@@ -148,9 +169,13 @@ public class CabController {
     @GetMapping("/available")
     public ResponseEntity<List<Cab>> getAllAvailableCabs() {
         logger.info("Received request to get all available cabs.");
-        List<Cab> cabs = cabService.getAllAvailableCabs();
-        logger.info("Retrieved all available cabs.");
-        return ResponseEntity.ok(cabs);
+        try {
+            List<Cab> cabs = cabService.getAllAvailableCabs();
+            return ResponseEntity.ok(cabs);
+        } catch (Exception e) {
+            logger.error("Error fetching available cabs: {}", e.getMessage(), e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     /**

@@ -7,6 +7,7 @@ import com.cabbooking.service.IProfileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -49,11 +50,22 @@ public class ProfileController {
     @PreAuthorize("isAuthenticated()") // Any logged-in user can view a profile
     public ResponseEntity<AbstractUser> getUserProfile(@PathVariable String username) {
         logger.info("Received get-profile request for username: {}", username);
-        return profileService.getUserProfileByUsername(username)
-                .map(ResponseEntity::ok) // If user is found, return 200 OK with the user object
-                .orElse(ResponseEntity.notFound().build()); // If not found, return 404 Not Found
+        try {
+            return profileService.getUserProfileByUsername(username)
+                    .map(user -> {
+                        logger.debug("Profile found for username: {}", username);
+                        return ResponseEntity.ok(user);
+                    })
+                    .orElseGet(() -> {
+                        logger.warn("Profile not found for username: {}", username);
+                        return ResponseEntity.notFound().build();
+                    });
+        } catch (Exception e) {
+            logger.error("Error fetching profile for username {}: {}", username, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                 .build();
+        }
     }
-
     /**
      * Endpoint for a user to update their own profile details. 
      * PUT /api/profiles/{username} 
@@ -73,8 +85,17 @@ public class ProfileController {
             @RequestBody UserProfileUpdateRequest request) {
 
         logger.info("Received update-profile request for username: {}", username);
-
-        AbstractUser updatedUser = profileService.updateUserProfile(username, request);
-        return ResponseEntity.ok(updatedUser);
+        try {
+            AbstractUser updatedUser = profileService.updateUserProfile(username, request);
+            logger.info("Profile updated successfully for username: {}", username);
+            return ResponseEntity.ok(updatedUser);
+        } catch (IllegalArgumentException e) {
+            logger.warn("Invalid update request for username {}: {}", username, e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception e) {
+            logger.error("Error updating profile for username {}: {}", username, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                 .build();
+        }
     }
 }
