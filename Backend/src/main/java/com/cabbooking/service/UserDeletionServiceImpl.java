@@ -1,34 +1,57 @@
 package com.cabbooking.service;
 
 
-import com.cabbooking.model.Customer;
-import com.cabbooking.model.Driver;
-import com.cabbooking.model.Admin;
-import com.cabbooking.repository.AdminRepository;
-import com.cabbooking.repository.CustomerRepository;
-import com.cabbooking.repository.DriverRepository;
+import java.io.IOException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
+import com.cabbooking.model.Admin;
+import com.cabbooking.model.Customer;
+import com.cabbooking.model.Driver;
+import com.cabbooking.repository.AdminRepository;
+import com.cabbooking.repository.CustomerRepository;
+import com.cabbooking.repository.DriverRepository;
 
 /**
  * Implementation of the IUserDeletionService.
  * Handles the logic for deleting any type of user from the system.
+ * 
+ * Main Responsibilities:
+ * - Deletes a user from the system, regardless of their type (Admin, Customer, or Driver).
+ * 
+ * Security:
+ * - All endpoints are secured using method-level security.
  */
 @Service
 public class UserDeletionServiceImpl implements IUserDeletionService {
 
+    /*
+     * Repository for Admin entity.
+     * Provides access to the Admin table in the database.
+     */
     @Autowired
     private AdminRepository adminRepository;
 
+    /*
+     * Repository for Customer entity.
+     * Provides access to the Customer table in the database.
+     */
     @Autowired
     private CustomerRepository customerRepository;
 
+    /*
+     * Repository for Driver entity.
+     * Provides access to the Driver table in the database.
+     */
     @Autowired
     private DriverRepository driverRepository;
 
+    /*
+     * Service for handling file uploads.
+     * Provides methods for uploading and deleting files.
+     */
     @Autowired
     private IFileUploadService fileUploadService;
 
@@ -42,10 +65,11 @@ public class UserDeletionServiceImpl implements IUserDeletionService {
      * - If the user is not found in any repository, it throws an exception.
      *
      * @param userId The username of the user to delete.
+     * @throws IOException If there's an error deleting the driver.
      */
     @Override
     @Transactional
-    public void deleteUser(String username) {
+    public void deleteUser(String username) throws IOException {
         // Try to find and delete as an Admin
         Admin admin = adminRepository.findByUsername(username);
         if (admin != null) {
@@ -63,7 +87,6 @@ public class UserDeletionServiceImpl implements IUserDeletionService {
         // If not a Customer, try as a Driver
         Driver driver = driverRepository.findByUsername(username);
         if (driver != null) {
-            // ==> THIS IS THE NEW LOGIC <==
             // Check if the driver has a profile photo
             if (driver.getProfilePhotoUrl() != null && !driver.getProfilePhotoUrl().isEmpty()) {
                 try {
@@ -72,8 +95,8 @@ public class UserDeletionServiceImpl implements IUserDeletionService {
                     // Delete the physical file
                     fileUploadService.deleteFile(fileName);
                 } catch (IOException e) {
-                    // In a production app, you would log this error more robustly
-                    System.err.println("Error deleting profile photo for driver " + username + ": " + e.getMessage());
+                    // If there's an error deleting the file, throw an exception
+                    throw new IOException("Error deleting driver profile photo: " + e.getMessage());
                 }
             }
             // Finally, delete the driver record

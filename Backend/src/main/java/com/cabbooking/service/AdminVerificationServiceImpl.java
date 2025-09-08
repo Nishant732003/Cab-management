@@ -1,13 +1,12 @@
 package com.cabbooking.service;
 
-import com.cabbooking.model.Admin;
-import com.cabbooking.repository.AdminRepository;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import com.cabbooking.model.Admin;
+import com.cabbooking.repository.AdminRepository;
 
 /**
  * Service implementation class for the IAdminVerificationService interface.
@@ -18,12 +17,20 @@ import java.util.stream.Collectors;
  * - Verifying (activating) an admin by setting their 'verified' status to true.
  *
  * This service interacts directly with the AdminRepository to perform database operations.
+ * 
+ * Main Responsibilities:
+ * - Retrieves a list of unverified Admin accounts.
+ * - Verifies an Admin account by adminId.
+ * 
+ * Dependencies:
+ * - AdminRepository for accessing admin data in the database.
  */
 @Service
 public class AdminVerificationServiceImpl implements IAdminVerificationService {
 
     /**
      * Repository used for CRUD operations on Admin entities.
+     * Provides access to the underlying database.
      */
     @Autowired
     private AdminRepository adminRepository;
@@ -39,19 +46,11 @@ public class AdminVerificationServiceImpl implements IAdminVerificationService {
      * Use case:
      * - This method is used by superadmin to view pending admin registration requests for verification.
      *
-     * NOTE:
-     * - The filtering is done in-memory after retrieving all admins. For better performance with a large user base,
-     *   consider adding a custom query method in AdminRepository like:
-     *   `List<Admin> findByVerifiedFalse();`
-     *
      * @return List of unverified Admin users.
      */
     @Override
     public List<Admin> getUnverifiedAdmins() {
-        List<Admin> allAdmins = adminRepository.findAll();
-        return allAdmins.stream()
-                .filter(admin -> admin.getVerified() != null && !admin.getVerified())
-                .collect(Collectors.toList());
+        return adminRepository.findByVerifiedFalse();
     }
 
     /**
@@ -64,22 +63,17 @@ public class AdminVerificationServiceImpl implements IAdminVerificationService {
      * - Saves the updated Admin entity back to the database.
      *
      * Use case:
-     * - Called when superadmin approves an admin registration after validation.
+     * - Called when superadmin verifies an admin after registration.
      *
      * @param adminId The unique identifier of the Admin to verify.
-     * @return The updated Admin entity after setting verified=true.
+     * @return A message indicating successful verification.
      * @throws IllegalArgumentException if no Admin with the given ID is found.
      */
     @Override
-    public Admin verifyAdmin(Integer adminId) {
-        Optional<Admin> adminOpt = adminRepository.findById(adminId);
-
-        if (!adminOpt.isPresent()) {
-            throw new IllegalArgumentException("Admin with id " + adminId + " not found");
-        }
-
-        Admin admin = adminOpt.get();
+    public String verifyAdmin(Integer adminId) {
+        Admin admin = adminRepository.findById(adminId).orElseThrow(() -> new IllegalArgumentException("Driver not found with id: " + adminId));
         admin.setVerified(true);
-        return adminRepository.save(admin);
+        adminRepository.save(admin);
+        return "Admin verified successfully";
     }
 }

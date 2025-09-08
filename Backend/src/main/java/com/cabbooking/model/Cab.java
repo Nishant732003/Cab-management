@@ -16,13 +16,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 
 /**
- * Represents a cab vehicle in the fleet.
- *
- * Main Responsibilities: - Stores details about each cab, such as its type and
- * per-kilometer rate. - Tracks the availability status of the cab for booking.
- *
- * Workflow: - Admins create and manage Cab entities. - The booking service
- * queries for available cabs when a trip is requested.
+ * Cab entity representing a vehicle in the cab booking system.
  */
 @Entity
 public class Cab {
@@ -46,8 +40,8 @@ public class Cab {
     private Float perKmRate;
 
     /**
-     * The official registration number plate of the cab.
-     * This is a mandatory and unique identifier.
+     * The official registration number plate of the cab. This is a mandatory
+     * and unique identifier.
      */
     @Column(unique = true)
     private String numberPlate;

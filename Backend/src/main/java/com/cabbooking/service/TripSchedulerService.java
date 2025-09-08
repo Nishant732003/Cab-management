@@ -1,12 +1,10 @@
 package com.cabbooking.service;
 
-import com.cabbooking.model.Cab;
-import com.cabbooking.model.Driver;
-import com.cabbooking.model.TripBooking;
-import com.cabbooking.model.TripStatus;
-import com.cabbooking.repository.CabRepository;
-import com.cabbooking.repository.DriverRepository;
-import com.cabbooking.repository.TripBookingRepository;
+import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,35 +12,52 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.cabbooking.model.Cab;
+import com.cabbooking.model.Driver;
+import com.cabbooking.model.TripBooking;
+import com.cabbooking.model.TripStatus;
+import com.cabbooking.repository.DriverRepository;
+import com.cabbooking.repository.TripBookingRepository;
 
 /**
- * A background service responsible for processing scheduled trips.
- * This service uses Spring's @Scheduled annotation to run a task at a fixed interval,
- * ensuring that future bookings are handled automatically without manual intervention.
+ * A background service responsible for processing scheduled trips. This service
+ * uses Spring's @Scheduled annotation to run a task at a fixed interval,
+ * ensuring that future bookings are handled automatically without manual
+ * intervention.
+ *
+ * Main Responsibilities: 
+ * - Checks for scheduled trips that are due to start within the next 15 minutes. 
+ * - Assigns drivers and cabs to these trips if available.
+ *
+ * Security: 
+ * - This service is only accessible to users with the 'Admin' role.
  */
 @Service
 public class TripSchedulerService {
 
+    /*
+     * Logger for TripSchedulerService
+     */
     private static final Logger logger = LoggerFactory.getLogger(TripSchedulerService.class);
 
+    /*
+     * Repository for TripBooking entity
+     * Provides CRUD operations for TripBooking
+     */
     @Autowired
     private TripBookingRepository tripBookingRepository;
 
+    /*
+     * Repository for Driver entity
+     * Provides CRUD operations for Driver
+     */
     @Autowired
     private DriverRepository driverRepository;
-
-    @Autowired
-    private CabRepository cabRepository;
 
     /*
      * Constant for nearby radius in kilometers
      */
     private static final double NEARBY_RADIUS_KM = 5.0;
-
 
     /**
      * This method is the core of the scheduler. It runs automatically at a

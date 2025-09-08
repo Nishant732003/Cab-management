@@ -1,16 +1,15 @@
 package com.cabbooking.model;
 
-import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
 
 /**
- * AbstractUser is a base class representing common properties and structure
- * shared by all user entities in the Cab Booking Platform, such as Admin,
- * Customer, and Driver.
- * * This is annotated with @MappedSuperclass, allowing subclasses to inherit
- * its fields and JPA mapping without being a table on its own.
- * * Usage:
- * - Extend this class in concrete user entities (e.g., Admin, Customer, Driver).
- * - Ensures a consistent user model across modules.
+ * Abstract base class for users in the cab booking system.
  */
 @MappedSuperclass
 public abstract class AbstractUser {
@@ -24,24 +23,32 @@ public abstract class AbstractUser {
     private Integer id;
 
     /**
-     * Username for login; must be unique and not null.
-     * Used to identify users in login and business logic.
+     * Username for login; must be unique and not null. Used to identify users
+     * in login and business logic.
      */
     @Column(unique = true, nullable = false)
     private String username;
 
     /**
-     * Password for login; cannot be null.
-     * In a real-world app, store hashed, not plain text.
+     * First name of the user; cannot be null.
      */
     @Column(nullable = false)
-    private String password;
-
-     @Column(nullable = false)
     private String firstName;
-    
+
+    /**
+     * Last name of the user; cannot be null.
+     */
     @Column(nullable = false)
     private String lastName;
+
+    /**
+     * Password for login; cannot be null. In a real-world app, store hashed,
+     * not plain text.
+     */
+    @Column(nullable = false)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String password;
+
     /**
      * User's full address.
      */
@@ -60,31 +67,23 @@ public abstract class AbstractUser {
 
     private Boolean emailVerified = false;
 
-    // --- ADDED: No-argument constructor (good practice and required by JPA) ---
-    public AbstractUser() {
+    // ======= Getters and Setters =======
+    public Integer getId() {
+        return id;
     }
 
-    /**
-     * --- ADDED: Constructor to initialize common fields ---
-     * This is the constructor that the Admin, Customer, and Driver subclasses
-     * will call to set their inherited properties. This resolves the compilation error.
-     */
-    public AbstractUser(String username, String password, String address, String mobileNumber, String email,String firstName,String lastName) {
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
         this.username = username;
-        this.password = password;
-        this.address = address;
-        this.mobileNumber = mobileNumber;
-        this.email = email;
-        this.firstName = firstName;
-        this.lastName = lastName;
     }
 
-
-    // ====== Getters and Setters =======
-
-    /**
-     * Gets the unique user ID (primary key).
-     */
     public String getFirstName() {
         return firstName;
     }
@@ -100,49 +99,44 @@ public abstract class AbstractUser {
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
-    public Integer getId() { return id; }
 
-    public void setId(Integer id) { this.id = id; }
+    public String getPassword() {
+        return password;
+    }
 
-    /**
-     * Gets/sets the username.
-     */
-    public String getUsername() { return username; }
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
-    public void setUsername(String username) { this.username = username; }
+    public String getAddress() {
+        return address;
+    }
 
-    /**
-     * Gets/sets the password.
-     */
-    public String getPassword() { return password; }
+    public void setAddress(String address) {
+        this.address = address;
+    }
 
-    public void setPassword(String password) { this.password = password; }
+    public String getMobileNumber() {
+        return mobileNumber;
+    }
 
-    /**
-     * Gets/sets the address.
-     */
-    public String getAddress() { return address; }
+    public void setMobileNumber(String mobileNumber) {
+        this.mobileNumber = mobileNumber;
+    }
 
-    public void setAddress(String address) { this.address = address; }
+    public String getEmail() {
+        return email;
+    }
 
-    /**
-     * Gets/sets the mobile number.
-     */
-    public String getMobileNumber() { return mobileNumber; }
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-    public void setMobileNumber(String mobileNumber) { this.mobileNumber = mobileNumber; }
+    public Boolean getEmailVerified() {
+        return emailVerified;
+    }
 
-    /**
-     * Gets/sets the email address.
-     */
-    public String getEmail() { return email; }
-
-    public void setEmail(String email) { this.email = email; }
-
-    /**
-     * Gets/sets the email verification status.
-     */
-    public Boolean getEmailVerified() { return emailVerified; }
-
-    public void setEmailVerified(Boolean emailVerified) { this.emailVerified = emailVerified; }
+    public void setEmailVerified(Boolean emailVerified) {
+        this.emailVerified = emailVerified;
+    }
 }

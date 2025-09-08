@@ -25,13 +25,24 @@ import com.cabbooking.service.ICabService;
 import jakarta.validation.Valid;
 
 /**
- * REST controller for admin/driver operations related to cab management.
+ * REST controller for handling cab-related operations.
  *
+ * Endpoints:
+ * - PUT /api/cabs/{driverId}/update: Admin can add or update cab details for a specific driver.
+ * - GET /api/cabs/type/{carType}: View all cabs of a specific type.
+ * - GET /api/cabs/{cabId}: Get details of a specific cab by its ID.
+ * - GET /api/cabs/all: Admin can view all cabs in the system.
+ * - GET /api/cabs/available: Admin can view all available cabs in the system.
+ * - PUT /api/cabs/{cabId}/image: Driver can upload or update a cab's image.
+ * - DELETE /api/cabs/{cabId}/image: Admin can remove a cab's image.
+ * 
  * Main Responsibilities:
- *
- *
- * Security: - All endpoints are secured and require the user to have the
- * 'Admin' or 'Driver' role.
+ * - Handle HTTP requests related to cab management.
+ * - Delegate business logic to the ICabService.
+ * - Return appropriate HTTP responses with status codes and data.
+ * 
+ * Dependencies:
+ * - ICabService: Service layer for cab-related operations.
  */
 @RestController
 @RequestMapping("/api/cabs")
@@ -50,9 +61,10 @@ public class CabController {
      *
      * PUT /api/cabs/{driverId}/update
      *
-     * Workflow: - User sends request with driver ID and CabUpdateRequest DTO. -
-     * Calls the service layer to update the cab details for the driver. -
-     * Returns the updated Cab object wrapped in a ResponseEntity.
+     * Workflow:
+     * - User sends request with driver ID and CabUpdateRequest DTO.
+     * - Calls the service layer to update the cab details for the driver.
+     * - Returns the updated Cab object wrapped in a ResponseEntity.
      *
      * @param driverId The ID of the driver whose cab details are being set.
      * @param request The DTO with the new cab details.
@@ -73,9 +85,10 @@ public class CabController {
      *
      * GET /api/cabs/type/{carType}
      *
-     * Workflow: - Accepts a car type as a path variable. - Calls the service
-     * layer to retrieve a list of cabs matching the type. - Returns a
-     * ResponseEntity containing the list of cabs.
+     * Workflow:
+     * - Accepts a car type as a path variable.
+     * - Calls the service layer to retrieve a list of cabs matching the type.
+     * - Returns a ResponseEntity containing the list of cabs.
      *
      * @param carType The type of car to filter by (e.g., "Sedan", "SUV").
      * @return A ResponseEntity containing a list of cabs matching the type.
@@ -93,9 +106,10 @@ public class CabController {
      *
      * GET /api/cabs/{cabId}
      *
-     * Workflow: - Accepts a cab ID as a path variable. - Calls the service
-     * layer to retrieve the cab details. - Returns a ResponseEntity containing
-     * the Cab object if found, or a 404 Not Found response if not.
+     * Workflow:
+     * - Accepts a cab ID as a path variable.
+     * - Calls the service layer to retrieve the cab details.
+     * - Returns a ResponseEntity containing the Cab object if found, or a 404 Not Found response if not.
      *
      * @param cabId The unique ID of the cab to retrieve.
      * @return A ResponseEntity containing the Cab object if found, or a 404 Not
@@ -119,9 +133,10 @@ public class CabController {
      *
      * GET /api/cabs/all
      *
-     * Workflow: - An admin calls this endpoint to get a list of all cabs in the
-     * system. - Calls the service layer to fetch all cabs from the database. -
-     * Returns a ResponseEntity containing the list of cabs as a JSON array.
+     * Workflow:
+     * - An admin calls this endpoint to get a list of all cabs in the system.
+     * - Calls the service layer to fetch all cabs from the database.
+     * - Returns a ResponseEntity containing the list of cabs as a JSON array.
      *
      * @return A ResponseEntity containing a list of all Cab objects.
      */
@@ -138,10 +153,10 @@ public class CabController {
      *
      * GET /api/cabs/available
      *
-     * Workflow: - An admin calls this endpoint to get a list of all available
-     * cabs in the system. - Calls the service layer to fetch all available cabs
-     * from the database. - Returns a ResponseEntity containing the list of
-     * available cabs as a JSON array.
+     * Workflow:
+     * - An admin calls this endpoint to get a list of all available cabs in the system.
+     * - Calls the service layer to fetch all available cabs from the database.
+     * - Returns a ResponseEntity containing the list of available cabs as a JSON array.
      *
      * @return A ResponseEntity containing a list of all available Cab objects.
      */
@@ -159,10 +174,11 @@ public class CabController {
      *
      * PUT /api/cabs/{cabId}/image
      *
-     * Workflow: - Accepts a cab ID as a path variable. - Accepts an image file
-     * as a request parameter. - Calls the service layer to upload or update the
-     * cab's image. - Returns a ResponseEntity containing the updated Cab
-     * object.
+     * Workflow:
+     * - Accepts a cab ID as a path variable.
+     * - Accepts an image file as a request parameter.
+     * - Calls the service layer to upload or update the cab's image.
+     * - Returns a ResponseEntity containing the updated Cab object.
      *
      * @param cabId The ID of the cab.
      * @param file The image file.
@@ -189,9 +205,10 @@ public class CabController {
      *
      * DELETE /api/cabs/{cabId}/image
      *
-     * Workflow: - Accepts a cab ID as a path variable. - Calls the service
-     * layer to remove the cab's image. - Returns a ResponseEntity containing
-     * the updated Cab object.
+     * Workflow:
+     * - Accepts a cab ID as a path variable.
+     * - Calls the service layer to remove the cab's image.
+     * - Returns a ResponseEntity containing the updated Cab object.
      *
      * @param cabId The ID of the cab.
      * @return The updated Cab object.

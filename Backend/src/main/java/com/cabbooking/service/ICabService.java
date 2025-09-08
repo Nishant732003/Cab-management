@@ -17,6 +17,7 @@ public interface ICabService {
 
     /**
      * Updates the details of the cab associated with a specific driver.
+     * 
      * @param driverId The ID of the driver whose cab is to be updated.
      * @param request The DTO containing the new cab details.
      * @return The updated Cab entity.
@@ -65,6 +66,7 @@ public interface ICabService {
 
     /**
      * Uploads an image for a specific cab.
+     * 
      * @param cabId The ID of the cab.
      * @param file The image file to upload.
      * @return The updated Cab object with the new image URL.
@@ -74,6 +76,7 @@ public interface ICabService {
 
     /**
      * Removes the image for a specific cab.
+     * 
      * @param cabId The ID of the cab.
      * @return The updated Cab object with the image URL removed.
      * @throws IOException if the file deletion fails.

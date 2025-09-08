@@ -6,11 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 /**
- * Data Transfer Object (DTO) for handling incoming trip booking requests from a customer.
- * This class encapsulates the data required to create a new {@link com.cabbooking.model.TripBooking}.
- *
- * Using a DTO is a best practice as it decouples the API layer from the internal data model,
- * providing flexibility and security. It also allows for clear validation of incoming data.
+ * DTO for booking a trip.
  */
 public class TripBookingRequest {
 

@@ -1,33 +1,105 @@
 package com.cabbooking.dto;
 
-import com.cabbooking.model.TripStatus;
 import java.time.LocalDateTime;
 
+import com.cabbooking.model.TripStatus;
+
+/*
+ * DTO for representing trip history details.
+ */
 public class TripHistoryResponse {
 
+    /*
+     * The unique identifier for the trip booking.
+     */
     private Integer tripBookingId;
+
+    /*
+     * The starting location for the trip.
+     */
     private String fromLocation;
+
+    /*
+     * The destination for the trip.
+     */
     private String toLocation;
+
+    /*
+     * The start date and time of the trip.
+     */
     private LocalDateTime fromDateTime;
+
+    /*
+     * The end date and time of the trip.
+     */
     private LocalDateTime toDateTime;
+
+    /*
+     * The current status of the trip (e.g., COMPLETED, CANCELLED).
+     */
     private TripStatus status;
+
+    /*
+     * The total bill amount for the trip.
+     */
     private float bill;
+
+    /*
+     * The rating given by the customer for the trip (1-5).
+     */
     private Integer customerRating;
+
+    /*
+     * The car type used for the trip (e.g., Sedan, SUV).
+     */
     private String carType;
+
+    /*
+     * Customer's first name
+     */
     private String customerFirstName;
+
+    /*
+     * Customer's last name
+     */
     private String customerLastName;
+
+    /*
+     * Driver's first name
+     */
     private String driverFirstName;
+
+    /*
+     * Driver's last name
+     */
     private String driverLastName;
-    private Number distanceinKm; 
+
+    /*
+     * Distance covered during the trip in kilometers
+     */
+    private Number distanceinKm;
+
+    /*
+     * Driver ID
+     */
     private Number driverId;
+
+    /*
+     * Customer ID
+     */
     private Number customerId;
+
+    /*
+     * Cab ID
+     */
     private Number cabId;
 
+    // ======= Constructor =======
     public TripHistoryResponse(Integer tripBookingId, String fromLocation, String toLocation,
-                               LocalDateTime fromDateTime, LocalDateTime toDateTime,
-                               TripStatus status, float bill, Integer customerRating,
-                               String carType, String customerFirstName, String customerLastName,
-                               String driverFirstName, String driverLastName, Number distanceinKm,Number driverId,Number customerId,Number cabId) {
+            LocalDateTime fromDateTime, LocalDateTime toDateTime,
+            TripStatus status, float bill, Integer customerRating,
+            String carType, String customerFirstName, String customerLastName,
+            String driverFirstName, String driverLastName, Number distanceinKm, Number driverId, Number customerId, Number cabId) {
         this.tripBookingId = tripBookingId;
         this.fromLocation = fromLocation;
         this.toLocation = toLocation;
@@ -47,8 +119,7 @@ public class TripHistoryResponse {
         this.cabId = cabId;
     }
 
-    // Getters and Setters for all fields
-    
+    // ======= Getters and Setters =======
     public Integer getTripBookingId() {
         return tripBookingId;
     }

@@ -1,7 +1,7 @@
 package com.cabbooking.service;
 
-import java.util.List;
 import java.io.IOException;
+import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -10,14 +10,6 @@ import com.cabbooking.model.Driver;
 
 /**
  * Service interface for driver management operations.
- *
- * Main Responsibilities:
- * - Defines the contract for all business logic related to drivers.
- * - Abstracts the implementation for viewing drivers and managing their verification status.
- *
- * Workflow:
- * - Implementations of this interface are injected into controllers that handle driver management.
- * - It provides a clear set of operations that an Admin can perform on Driver entities.
  */
 public interface IDriverService {
 
@@ -26,38 +18,39 @@ public interface IDriverService {
      *
      * @return A list of Driver entities considered to be "best drivers" (e.g., rating >= 4.5).
      */
-    List<Driver> viewBestDrivers();
+    List<Driver> getBestDrivers();
 
     /**
      * Retrieves a list of all drivers who have registered but are not yet verified.
      *
      * @return A list of unverified Driver entities.
      */
-    List<Driver> viewUnverifiedDrivers();
+    List<Driver> getUnverifiedDrivers();
 
     /**
      * Verifies a driver's account, allowing them to be assigned to trips.
      *
      * @param driverId The unique ID of the driver to be verified.
-     * @return The updated Driver entity with its 'verified' status set to true.
+     * @return A message of successful verification.
+     * @throws IllegalArgumentException if admin does not exist
      */
-    Driver verifyDriver(int driverId);
+    String verifyDriver(int driverId);
 
     /**
      * Uploads a profile photo for a driver and updates their record.
-     * @param driverId The ID of the driver.
+     * @param username The username of the driver.
      * @param file The image file to upload.
      * @return The updated Driver object with the new photo URL.
      * @throws IOException if the file upload fails.
      */
-    Driver uploadProfilePhoto(int driverId, MultipartFile file) throws IOException;
+    Driver uploadProfilePhoto(String username, MultipartFile file) throws IOException;
 
     /**
      * Removes the profile photo for a given driver.
      * This involves deleting the file from storage and clearing the URL in the database.
-     * @param driverId The ID of the driver.
+     * @param username The username of the driver.
      * @return The updated Driver object with the photo URL removed.
      * @throws IOException if the file deletion fails.
      */
-    Driver removeProfilePhoto(int driverId) throws IOException;
+    Driver removeProfilePhoto(String username) throws IOException;
 }

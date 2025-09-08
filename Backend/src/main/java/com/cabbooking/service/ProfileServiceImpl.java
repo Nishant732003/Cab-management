@@ -53,6 +53,42 @@ public class ProfileServiceImpl implements IProfileService {
      */
     @Autowired private DriverRepository driverRepository;
 
+    /**
+     * Finds a user by their unique username across all user type repositories.
+     *
+     * Workflow:
+     * - Search in Admin repository first.
+     * - If not an admin, search in Customer repository.
+     * - Finally, search in Driver repository.
+     * - If no user is found, return an empty Optional.
+     * 
+     * @param username The username to search for.
+     * @return An Optional containing the AbstractUser if found.
+     */
+    @Override
+    public Optional<AbstractUser> getUserProfileByUsername(String username) {
+        // Search in Admin repository first
+        Admin admin = adminRepository.findByUsername(username);
+        if (admin != null) {
+            return Optional.of(admin);
+        }
+
+        // If not an admin, search in Customer repository
+        Customer customer = customerRepository.findByUsername(username);
+        if (customer != null) {
+            return Optional.of(customer);
+        }
+
+        // Finally, search in Driver repository
+        Driver driver = driverRepository.findByUsername(username);
+        if (driver != null) {
+            return Optional.of(driver);
+        }
+
+        // If no user is found, return an empty Optional
+        return Optional.empty();
+    }
+
     /*
      * Updates a user's profile.
      * 
@@ -88,15 +124,29 @@ public class ProfileServiceImpl implements IProfileService {
     }
 
     /*
-     * Helper method to save a user regardless of their type.
+     * Checks if a username is already taken across all user types.
      * 
      * Workflow:
-     * - Checks the type of the user.
-     * - Calls the appropriate repository to save the user.
-     * - Returns the saved user.
+     * - Checks each user type repository for the existence of the username.
+     * - Returns true if the username exists in any repository, false otherwise.
      * 
-     * @param user The user to save.
-     * @return The saved user.
+     * @param username The username to check.
+     * @return True if the username exists, false otherwise.
+     */
+    @Override
+    public boolean isUsernameTaken(String username) {
+        return adminRepository.existsByUsername(username) ||
+               customerRepository.existsByUsername(username) ||
+               driverRepository.existsByUsername(username);
+    }
+
+    /* ==============
+     * HELPER METHODS
+     * ==============
+     */
+
+    /*
+     * Helper method to save a user regardless of their type.
      */
     private AbstractUser saveUser(AbstractUser user) {
         if (user instanceof Admin) {
@@ -107,41 +157,5 @@ public class ProfileServiceImpl implements IProfileService {
             return driverRepository.save((Driver) user);
         }
         throw new IllegalStateException("Unknown user type cannot be saved.");
-    }
-
-    /**
-     * Finds a user by their unique username across all user type repositories.
-     *
-     * Workflow:
-     * - Search in Admin repository first.
-     * - If not an admin, search in Customer repository.
-     * - Finally, search in Driver repository.
-     * - If no user is found, return an empty Optional.
-     * 
-     * @param username The username to search for.
-     * @return An Optional containing the AbstractUser if found.
-     */
-    @Override
-    public Optional<AbstractUser> getUserProfileByUsername(String username) {
-        // Search in Admin repository first
-        Admin admin = adminRepository.findByUsername(username);
-        if (admin != null) {
-            return Optional.of(admin);
-        }
-
-        // If not an admin, search in Customer repository
-        Customer customer = customerRepository.findByUsername(username);
-        if (customer != null) {
-            return Optional.of(customer);
-        }
-
-        // Finally, search in Driver repository
-        Driver driver = driverRepository.findByUsername(username);
-        if (driver != null) {
-            return Optional.of(driver);
-        }
-
-        // If no user is found, return an empty Optional
-        return Optional.empty();
     }
 }

@@ -5,64 +5,77 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 /**
- * Data Transfer Object (DTO) for registering a new Admin.
- * It includes all the necessary details and validation for creating an admin account.
+ * DTO for registering a new admin user.
  */
 public class AdminRegistrationRequest {
 
-
-      /**
-     * The customer's first name.
-     * * This field is mandatory and cannot be blank.
-     */
-    @NotBlank(message = "First name is required")
-    private String firstName;
-
     /**
-     * The customer's last name.
-     * * This field is mandatory and cannot be blank.
-     */
-    @NotBlank(message = "Last name is required")
-    private String lastName;
-
-
-    /**
-     * The unique username for the admin.
-     * This field is mandatory.
+     * Username for the new admin account.
+     *
+     * Must be provided (not blank) and unique in the system.
      */
     @NotBlank(message = "Username is required")
     private String username;
 
     /**
-     * The password for the admin account.
-     * Must be at least 6 characters long.
+     * First name of the admin user.
+     * 
+     * Must be provided (not blank).
+     */
+    @NotBlank(message = "First name is required")
+    private String firstName;
+
+    /**
+     * First name of the admin user.
+     * 
+     * Must be provided (not blank).
+     */
+    @NotBlank(message = "Last name is required")
+    private String lastName;
+
+    /**
+     * Plain text password entered by the admin user.
+     *
+     * Must be provided (not blank) and have at least 6 characters. The password
+     * will be hashed before storage.
      */
     @NotBlank(message = "Password is required")
     @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
 
     /**
-     * The admin's email address.
-     * Must be a valid email format.
+     * Email address of the admin.
+     * 
+     * Must be provided (not blank) and follow a valid email format.
      */
     @NotBlank(message = "Email is required")
     @Email(message = "Email should be valid")
     private String email;
 
     /**
-     * The admin's physical address.
+     * Address of the admin user.
+     * 
+     * Must be provided (not blank).
      */
     @NotBlank(message = "Address is required")
     private String address;
 
     /**
-     * The admin's mobile phone number.
+     * Mobile phone number of the admin.
+     * 
+     * Must be provided (not blank).
      */
     @NotBlank(message = "Mobile number is required")
     private String mobileNumber;
-  
-    // --- Getters and Setters ---
 
+    // ===== Getters and Setters =====
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
 
     public String getFirstName() {
         return firstName;
@@ -78,14 +91,6 @@ public class AdminRegistrationRequest {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
-    }
-    
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public String getPassword() {
@@ -119,6 +124,4 @@ public class AdminRegistrationRequest {
     public void setMobileNumber(String mobileNumber) {
         this.mobileNumber = mobileNumber;
     }
-
-   
 }

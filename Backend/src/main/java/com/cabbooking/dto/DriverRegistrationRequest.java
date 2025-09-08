@@ -5,31 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 /**
- * Data Transfer Object (DTO) representing the data needed to register a new
- * Driver.
- *
- * This class is used to capture the registration details submitted by a driver
- * through the REST API or other client interfaces.
- *
- * Validation annotations are applied to enforce constraints on the input data,
- * helping to ensure data integrity before processing in service layers.
+ * DTO for registering a new driver user.
  */
 public class DriverRegistrationRequest {
-
-
-     /**
-     * The customer's first name.
-     * * This field is mandatory and cannot be blank.
-     */
-    @NotBlank(message = "First name is required")
-    private String firstName;
-
-    /**
-     * The customer's last name.
-     * * This field is mandatory and cannot be blank.
-     */
-    @NotBlank(message = "Last name is required")
-    private String lastName;
 
     /**
      * The username chosen by the driver.
@@ -39,6 +17,18 @@ public class DriverRegistrationRequest {
      */
     @NotBlank(message = "Username is required")
     private String username;
+
+    /*
+     * The first name of the driver.
+     */
+    @NotBlank(message = "First name is required")
+    private String firstName;
+
+    /*
+     * The last name of the driver.
+     */
+    @NotBlank(message = "Last name is required")
+    private String lastName;
 
     /**
      * The password chosen by the driver.
@@ -52,9 +42,8 @@ public class DriverRegistrationRequest {
 
     /**
      * The email address of the driver.
-     *
-     * Optional, but if provided, must be in a valid email format.
      */
+    @NotBlank(message = "Email is required")
     @Email(message = "Email should be valid")
     private String email;
 
@@ -107,7 +96,15 @@ public class DriverRegistrationRequest {
     private Double longitude;
 
     // ======= Getters and Setters =======
-      public String getFirstName() {
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getFirstName() {
         return firstName;
     }
 
@@ -121,14 +118,6 @@ public class DriverRegistrationRequest {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
-    }
-    
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public String getPassword() {

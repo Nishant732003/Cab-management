@@ -1,27 +1,36 @@
 package com.cabbooking.controller;
 
-import com.cabbooking.dto.UserProfileUpdateRequest;
-import com.cabbooking.model.AbstractUser;
-import com.cabbooking.service.IProfileService;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.cabbooking.dto.UserProfileUpdateRequest;
+import com.cabbooking.model.AbstractUser;
+import com.cabbooking.service.IProfileService;
 
 /**
- * REST controller for handling user profile-related operations. 
- * Main Responsibilities: 
- * - Provides endpoints for fetching and updating user profiles. 
+ * REST controller for handling user profile-related operations.
  * 
- * Security: 
- * - All endpoints are secured using method-level security.
- * - Only users with the 'Driver' or 'Admin' role can access these endpoints. 
- * - Users can only update their own profile. 
- * - Admins can update any user's profile. 
- * - Drivers can only update their own profile.
+ * Endpoints:
+ * - GET /api/profiles/{username}: Fetches the profile details of any user by their username.
+ * - PUT /api/profiles/{username}: Allows a user to update their own profile details.
+ * 
+ * Main Responsibilities: 
+ * - Provides endpoints for fetching and updating user profiles.
+ * - Delegates business logic to the IProfileService.
+ * - Handles request validation and response formatting.
+ * 
+ * Dependencies:
+ * - IProfileService: Service layer for profile-related operations.
  */
 @RestController
 @RequestMapping("/api/profiles")
@@ -34,9 +43,10 @@ public class ProfileController {
     private IProfileService profileService;
 
     /**
-     * Endpoint to fetch the profile details of any user by their username. This
-     * endpoint is accessible to any authenticated user. 
-     * GET /api/profiles/{username} 
+     * Endpoint to fetch the profile details of any user by their username.
+     * 
+     * GET /api/profiles/{username}
+     * 
      * Workflow: 
      * - Checks if the user is authenticated.
      * - Calls the service layer to fetch the user's profile details. 
@@ -46,17 +56,26 @@ public class ProfileController {
      * @return A ResponseEntity containing the user's profile details, or a 404 Not Found response.
      */
     @GetMapping("/{username}")
-    @PreAuthorize("isAuthenticated()") // Any logged-in user can view a profile
     public ResponseEntity<AbstractUser> getUserProfile(@PathVariable String username) {
         logger.info("Received get-profile request for username: {}", username);
-        return profileService.getUserProfileByUsername(username)
-                .map(ResponseEntity::ok) // If user is found, return 200 OK with the user object
-                .orElse(ResponseEntity.notFound().build()); // If not found, return 404 Not Found
+        Optional<AbstractUser> userProfile = profileService.getUserProfileByUsername(username);
+
+        if (userProfile.isPresent()) {
+            logger.info("Found user profile for username: {}", username);
+            // Return the user profile
+            return ResponseEntity.ok(userProfile.get());
+        } else {
+            logger.info("User profile not found for username: {}", username);
+            // User profile not found
+            return ResponseEntity.notFound().build();
+        }
     }
 
     /**
-     * Endpoint for a user to update their own profile details. 
-     * PUT /api/profiles/{username} 
+     * Endpoint to allow a user to update their own profile details.
+     * 
+     * PUT /api/profiles/{username}
+     * 
      * Workflow: 
      * - Checks if the user is authenticated.
      * - Calls the service layer to update the user's profile details. 
@@ -67,7 +86,6 @@ public class ProfileController {
      * @return The updated user profile.
      */
     @PutMapping("/{username}")
-    @PreAuthorize("principal == #username")
     public ResponseEntity<AbstractUser> updateUserProfile(
             @PathVariable String username,
             @RequestBody UserProfileUpdateRequest request) {
@@ -75,6 +93,7 @@ public class ProfileController {
         logger.info("Received update-profile request for username: {}", username);
 
         AbstractUser updatedUser = profileService.updateUserProfile(username, request);
+        logger.info("Updated user profile for username: {}", username);
         return ResponseEntity.ok(updatedUser);
     }
 }

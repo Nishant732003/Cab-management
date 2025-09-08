@@ -10,46 +10,114 @@ import com.cabbooking.repository.AdminRepository;
 import com.cabbooking.repository.CustomerRepository;
 import com.cabbooking.repository.DriverRepository;
 
+/**
+ * Implementation of the IAdminRegistrationService interface.
+ * 
+ * This service handles the business logic for registering new Admin users
+ * into the system.
+ * It performs necessary validations such as checking for unique username 
+ * and email before creating an Admin entity with hashed password.
+ * 
+ * Newly registered admins are created with a verified status set to false,
+ * indicating they require approval by a superadmin before activation.
+ * 
+ * Main Responsibilities:
+ * - Validating that the username and email are unique.
+ * - Hashing the admin's password securely before persisting.
+ * - Creating and saving a new Admin entity from the registration data.
+ * 
+ * Dependencies:
+ * - AdminRepository for database persistence and uniqueness checks.
+ * - CustomerRepository for customer uniqueness checks.
+ * - DriverRepository for driver uniqueness checks.
+ * - PasswordEncoder for securely hashing admin passwords.
+ */
 @Service
 public class AdminRegistrationServiceImpl implements IAdminRegistrationService {
 
+    /**
+     * Repository to handle CRUD operations for Admin entities.
+     * Provides methods to check for existing usernames and emails.
+     */
     @Autowired
     private AdminRepository adminRepository;
 
+    /*
+     * Repository to handle CRUD operations for Customer entities.
+     * Provides methods to check for existing usernames and emails.
+     */
     @Autowired
     private CustomerRepository customerRepository;
 
+    /*
+     * Repository to handle CRUD operations for Driver entities.
+     * Provides methods to check for existing usernames and emails.
+     */
     @Autowired
     private DriverRepository driverRepository;
 
+    /*
+     * PasswordEncoder for securely hashing admin passwords.
+     * Used for password storage and comparison.
+     */
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    /**
+     * Registers a new admin user.
+     * 
+     * Workflow:
+     * - Check if the username is already taken by querying all the repositories.
+     *    - If taken, throw IllegalArgumentException with error message.
+     * - Check if the email is already registered by querying all the repositories.
+     *    - If email exists, throw IllegalArgumentException.
+     * - Create a new Admin entity and populate it with data from the request DTO.
+     * - Hash the password before setting on the Admin entity.
+     * - Set the "verified" flag to false to indicate that the admin is not activated yet.
+     * - Save the new Admin entity to the database and return it.
+     * 
+     * Important Notes:
+     * - Password hashing uses BCryptPasswordEncoder for security best practices.
+     * 
+     * @param request AdminRegistrationRequest DTO containing registration input data
+     * @return A created Admin entity persisted in the database
+     * @throws IllegalArgumentException if username or email is already in use
+     */
     @Override
     public Admin registerAdmin(AdminRegistrationRequest request) {
-        if (adminRepository.existsByUsername(request.getUsername()) || 
-            customerRepository.existsByUsername(request.getUsername()) || 
-            driverRepository.existsByUsername(request.getUsername())) {
+
+        // Check for existing username at the database level
+        if (adminRepository.existsByUsername(request.getUsername()) 
+        || customerRepository.existsByUsername(request.getUsername()) 
+        || driverRepository.existsByUsername(request.getUsername())) {
             throw new IllegalArgumentException("Username is already taken.");
         }
 
-        if (adminRepository.existsByEmail(request.getEmail()) || 
-            customerRepository.existsByEmail(request.getEmail()) || 
-            driverRepository.existsByEmail(request.getEmail())) {
+        // Check for existing email at the database level
+        if (adminRepository.existsByEmail(request.getEmail()) 
+        || customerRepository.existsByEmail(request.getEmail()) 
+        || driverRepository.existsByEmail(request.getEmail())) {
             throw new IllegalArgumentException("Email is already registered.");
         }
 
-        // --- Correctly use the fields inherited from AbstractUser ---
+        // Create new Admin entity and populate fields
         Admin admin = new Admin();
         admin.setUsername(request.getUsername());
         admin.setFirstName(request.getFirstName());
         admin.setLastName(request.getLastName());
+
+        // Hash the raw password before storage to ensure security
         admin.setPassword(passwordEncoder.encode(request.getPassword()));
+
+        // Set other fields from the registration request
         admin.setEmail(request.getEmail());
         admin.setAddress(request.getAddress());
         admin.setMobileNumber(request.getMobileNumber());
+
+        // Set the "verified" flag to false
         admin.setVerified(false);
 
+        // Save the entity to the database and return the persisted instance
         return adminRepository.save(admin);
     }
 }

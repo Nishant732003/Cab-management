@@ -8,17 +8,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.cabbooking.model.TripBooking;
 
 /**
- * Spring Data JPA repository for {@link TripBooking} entities.
- * This interface provides standard CRUD (Create, Read, Update, Delete) operations
- * for the TripBooking table out of the box.
- *
- * It is used by the service layer to interact with the database for all trip-related data.
+ * TripBookingRepository interface for performing CRUD operations on TripBooking
+ * entities.
  */
 public interface TripBookingRepository extends JpaRepository<TripBooking, Integer> {
 
     /**
-     * Finds all trip bookings associated with a specific customer.
-     * This is useful for fetching a customer's trip history.
+     * Finds all trip bookings associated with a specific customer. This is
+     * useful for fetching a customer's trip history.
      *
      * @param customerId The ID of the customer whose trips are to be retrieved.
      * @return A list of {@link TripBooking} entities.
@@ -28,6 +25,7 @@ public interface TripBookingRepository extends JpaRepository<TripBooking, Intege
 
     /**
      * Finds all trips associated with a specific driver.
+     *
      * @param driverId The ID of the driver.
      * @return A list of trips for that driver.
      */
@@ -35,16 +33,10 @@ public interface TripBookingRepository extends JpaRepository<TripBooking, Intege
 
     /**
      * Finds all trips that started within a given date and time range.
+     *
      * @param startOfDay The beginning of the day.
      * @param endOfDay The end of the day.
      * @return A list of trips that started on that day.
      */
     List<TripBooking> findByFromDateTimeBetween(LocalDateTime startOfDay, LocalDateTime endOfDay);
-    
-    /**
-     * Finds all trips associated with a specific cab.
-     * @param cabId The ID of the cab.
-     * @return A list of trips for that cab.
-     */
-    List<TripBooking> findByCab_CabId(Integer cabId);
 }

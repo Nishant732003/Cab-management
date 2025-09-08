@@ -24,4 +24,11 @@ public interface IProfileService {
      * @return An Optional containing the user if found, otherwise empty.
      */
     Optional<AbstractUser> getUserProfileByUsername(String username);
+
+    /**
+     * Checks if a username is already taken across all user types.
+     * @param username The username to check.
+     * @return True if the username exists, false otherwise.
+     */
+    boolean isUsernameTaken(String username);
 }

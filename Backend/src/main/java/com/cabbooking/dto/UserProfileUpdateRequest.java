@@ -1,14 +1,7 @@
 package com.cabbooking.dto;
 
-// No need for email or password validation imports anymore
-// import jakarta.validation.constraints.Email;
-// import jakarta.validation.constraints.Size;
 /**
- * DTO for handling partial updates to a user's profile. All fields are
- * optional; only non-null fields will be updated.
- *
- * NOTE: Username, email, and password are not updatable through this DTO to
- * ensure security and data consistency.
+ * DTO for updating user profile information.
  */
 public class UserProfileUpdateRequest {
 

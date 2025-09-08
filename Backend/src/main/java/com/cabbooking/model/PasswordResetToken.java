@@ -8,6 +8,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
+/*
+ * PasswordResetToken entity to manage password reset requests.
+ */
 @Entity
 public class PasswordResetToken {
 
@@ -43,14 +46,15 @@ public class PasswordResetToken {
     private String userEmail;
 
     // Constructors
-    public PasswordResetToken() {}
+    public PasswordResetToken() {
+    }
 
     public PasswordResetToken(String token, LocalDateTime expiryDate, String userEmail) {
         this.token = token;
         this.expiryDate = expiryDate;
         this.userEmail = userEmail;
     }
-    
+
     // ======= Getters and Setters =======
     public Long getId() {
         return id;

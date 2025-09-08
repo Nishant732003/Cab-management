@@ -1,20 +1,22 @@
 package com.cabbooking.model;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+
 /**
- * Represents a single trip booking record in the system. This entity is the
- * core of the booking module, linking a customer to a driver and a cab for a
- * specific journey.
- *
- * Workflow: 1. A Customer initiates a request, which creates a TripBooking
- * record with a 'CONFIRMED' status. 2. A Driver is assigned to the trip. 3. The
- * trip status is updated as it progresses (e.g., 'IN_PROGRESS', 'COMPLETED').
- * 4. Upon completion, the final bill is calculated and stored.
+ * TripBooking entity representing a cab trip booking in the system.
  */
 @Entity
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
@@ -98,8 +100,9 @@ public class TripBooking {
     private Integer customerRating;
 
     /**
-     * The type of car requested by the customer for the trip (e.g., "Sedan", "SUV").
-     * This is crucial for the scheduler to assign the correct type of cab.
+     * The type of car requested by the customer for the trip (e.g., "Sedan",
+     * "SUV"). This is crucial for the scheduler to assign the correct type of
+     * cab.
      */
     private String carType;
 
@@ -117,11 +120,11 @@ public class TripBooking {
     public TripBooking() {
     }
 
-    public TripBooking(Integer tripBookingId, String fromLocation, String toLocation, 
-                      LocalDateTime fromDateTime, LocalDateTime toDateTime, 
-                      TripStatus status, float distanceInKm, float bill, 
-                      Integer customerRating, String carType, 
-                      Double fromLatitude, Double fromLongitude) {
+    public TripBooking(Integer tripBookingId, String fromLocation, String toLocation,
+            LocalDateTime fromDateTime, LocalDateTime toDateTime,
+            TripStatus status, float distanceInKm, float bill,
+            Integer customerRating, String carType,
+            Double fromLatitude, Double fromLongitude) {
         this.tripBookingId = tripBookingId;
         this.fromLocation = fromLocation;
         this.toLocation = toLocation;
@@ -136,7 +139,7 @@ public class TripBooking {
         this.fromLongitude = fromLongitude;
     }
 
-    // Getters and Setters
+    // ======= Getters and Setters =======
     public Integer getTripBookingId() {
         return tripBookingId;
     }
@@ -259,19 +262,19 @@ public class TripBooking {
 
     @Override
     public String toString() {
-        return "TripBooking{" +
-                "tripBookingId=" + tripBookingId +
-                ", fromLocation='" + fromLocation + '\'' +
-                ", toLocation='" + toLocation + '\'' +
-                ", fromDateTime=" + fromDateTime +
-                ", toDateTime=" + toDateTime +
-                ", status=" + status +
-                ", distanceInKm=" + distanceInKm +
-                ", bill=" + bill +
-                ", customerRating=" + customerRating +
-                ", carType='" + carType + '\'' +
-                ", fromLatitude=" + fromLatitude +
-                ", fromLongitude=" + fromLongitude +
-                '}';
+        return "TripBooking{"
+                + "tripBookingId=" + tripBookingId
+                + ", fromLocation='" + fromLocation + '\''
+                + ", toLocation='" + toLocation + '\''
+                + ", fromDateTime=" + fromDateTime
+                + ", toDateTime=" + toDateTime
+                + ", status=" + status
+                + ", distanceInKm=" + distanceInKm
+                + ", bill=" + bill
+                + ", customerRating=" + customerRating
+                + ", carType='" + carType + '\''
+                + ", fromLatitude=" + fromLatitude
+                + ", fromLongitude=" + fromLongitude
+                + '}';
     }
 }

@@ -5,12 +5,6 @@ import jakarta.validation.constraints.NotNull;
 
 /*
  * DTO for updating a cab's details.
- * 
- * This class encapsulates the data required to update a cab's details, such as
- * its number plate, type, and per-kilometer rate.
- * 
- * Validation annotations ensure that the incoming data meets expected criteria
- * before being further processed in the service layer.
  */
 public class CabUpdateRequest {
 
@@ -38,11 +32,28 @@ public class CabUpdateRequest {
     @NotNull(message = "Per kilometer rate is required")
     private Float perKmRate;
 
-    // ====== Getters and Setters for fields ======
-    public String getNumberPlate() { return numberPlate; }
-    public void setNumberPlate(String numberPlate) { this.numberPlate = numberPlate; }
-    public String getCarType() { return carType; }
-    public void setCarType(String carType) { this.carType = carType; }
-    public Float getPerKmRate() { return perKmRate; }
-    public void setPerKmRate(Float perKmRate) { this.perKmRate = perKmRate; }
+    // ====== Getters and Setters ======
+    public String getNumberPlate() { 
+        return numberPlate; 
+    }
+
+    public void setNumberPlate(String numberPlate) {
+         this.numberPlate = numberPlate; 
+    }
+
+    public String getCarType() { 
+        return carType; 
+    }
+
+    public void setCarType(String carType) { 
+        this.carType = carType; 
+    }
+
+    public Float getPerKmRate() { 
+        return perKmRate; 
+    }
+
+    public void setPerKmRate(Float perKmRate) { 
+        this.perKmRate = perKmRate; 
+    }
 }

@@ -1,17 +1,15 @@
 package com.cabbooking.service;
+
+import java.time.LocalDate;
+import java.util.List;
+
 import com.cabbooking.dto.TripHistoryResponse;
 import com.cabbooking.dto.RatingRequest;
 import com.cabbooking.dto.TripBookingRequest;
 import com.cabbooking.model.TripBooking;
-import java.time.LocalDate; // <-- IMPORT THIS
-
-import java.util.List;
 
 /**
  * Service interface defining the business logic for the Trip Booking module.
- * This interface abstracts the implementation details, allowing for easier
- * testing and maintenance. It outlines the core operations related to managing
- * trips.
  */
 public interface ITripBookingService {
 
@@ -47,10 +45,10 @@ public interface ITripBookingService {
      * Retrieves all trips for a specific customer.
      *
      * @param customerId The ID of the customer.
-     * @return A list of {@link TripBooking} entities representing the
-     * customer's trip history.
+     * @return A list of {@link TripBooking} entities representing the customer's trip history.
      */
-    List<TripHistoryResponse> viewAllTripsCustomer(Integer customerId);
+    List<TripHistoryResponse> getAllTripsCustomer(Integer customerId);
+
     /**
      * Applies a customer's rating to a completed trip.
      *
@@ -61,31 +59,27 @@ public interface ITripBookingService {
      */
     TripBooking rateTrip(Integer tripId, RatingRequest ratingRequest, String customerUsername);
 
-    // --- ADD THE TWO NEW METHOD SIGNATURES BELOW ---
     /**
-     * Retrieves all trips for a specific driver.
-     *
+     * Retrieves all trips taken by a specific driver.
+     * 
      * @param driverId The ID of the driver.
-     * @return A list of TripBooking objects.
+     * @return A list of trips.
      */
-    List<TripHistoryResponse> viewAllTripsDriver(Integer driverId);
+    List<TripHistoryResponse> getTripsByDriver(Integer driverId);
 
     /**
      * Retrieves all trips that occurred on a specific date.
-     *
+     * 
      * @param date The date to search for.
-     * @return A list of TripBooking objects.
+     * @return A list of trips.
      */
-    List<TripBooking> getTripsDatewise(LocalDate date);
-    /**
-     * Retrieves the details of a specific trip, including the customer's name
-     * and the cab's type and number plate.
-     *
-     * @param tripId The ID of the trip to retrieve.
-     * @return A DTO containing the trip details.
+    List<TripHistoryResponse> getTripsByDate(LocalDate date);
+
+    /*
+     * Retrieves the most recent trip for a customer to view their bill.
+     * 
+     * @param customerId The ID of the customer.
+     * @return The latest TripBooking object for the customer.
      */
-    // TripDetailsResponse getTripDetails(Integer tripId);
-
-
-    TripBooking viewBill(int customerId);
+    TripBooking getBill(int customerId);
 }

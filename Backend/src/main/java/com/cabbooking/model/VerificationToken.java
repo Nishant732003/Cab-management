@@ -1,28 +1,48 @@
 package com.cabbooking.model;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
+/*
+ * VerificationToken entity to manage email verification tokens.
+ */
 @Entity
 public class VerificationToken {
 
+    /*
+     * A verification token is a token that is generated when a user registers
+     * and is used to verify their email address. It is valid for 24 hours.
+     */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true) // The token itself should be unique
+    /*
+     * The token itself. It's unique and is generated when the user registers.
+     */
+    @Column(nullable = false, unique = true)
     private String token;
 
+    /*
+     * The date and time when the token expires.
+     */
     @Column(nullable = false)
     private LocalDateTime expiryDate;
 
-    // ==> THIS IS THE KEY CHANGE <==
-    // Store the user's email directly. It's unique across the system.
+    /*
+     * The email address of the user who registered.
+     */
     @Column(nullable = false)
     private String userEmail;
 
     // --- Constructors ---
-    public VerificationToken() {}
+    public VerificationToken() {
+    }
 
     public VerificationToken(String token, LocalDateTime expiryDate, String userEmail) {
         this.token = token;
@@ -30,8 +50,7 @@ public class VerificationToken {
         this.userEmail = userEmail;
     }
 
-    // --- Getters and Setters ---
-    
+    // ======= Getters and Setters =======
     public Long getId() {
         return id;
     }

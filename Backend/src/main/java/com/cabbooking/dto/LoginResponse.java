@@ -1,11 +1,33 @@
 package com.cabbooking.dto;
 
+/**
+ * DTO for capturing login response data.
+ */
 public class LoginResponse {
 
+    /**
+     * Message indicating the success or failure of the login attempt.
+     */
     private String message;
+
+    /**
+     * ID of the logged-in user.
+     */
     private Integer userId;
+
+    /**
+     * Type of the logged-in user (e.g., "admin", "customer", "driver").
+     */
     private String userType;
+
+    /**
+     * JWT token for authentication.
+     */
     private String token;
+
+    /*
+     * Indicates whether the login was successful.
+     */
     private boolean success;
 
     public LoginResponse(String message, Integer userId, String userType, String token, boolean success) {
@@ -16,8 +38,7 @@ public class LoginResponse {
         this.userType = userType;
     }
 
-    // Getters and Setters
-
+    // ======= Getters and Setters =======
     public String getMessage() {
         return message;
     }
