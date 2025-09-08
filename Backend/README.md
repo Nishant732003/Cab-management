@@ -50,6 +50,10 @@ The backend provides the following API endpoints:
    - `GET /api/admin/unverified/admins`: Get list of all unverified admins
    - `POST /api/admin/verify/admins/{adminId}`: Verify an admin
 
+**Swagger API Documentation**
+
+The URL to access the Swagger API Documentation - http://localhost:8081/swagger-ui/index.html
+
 **Security**
 
 The backend uses JSON Web Tokens (JWT) for authentication and authorization. The `JwtUtil` class provides methods for generating, validating, and parsing JWT tokens.
