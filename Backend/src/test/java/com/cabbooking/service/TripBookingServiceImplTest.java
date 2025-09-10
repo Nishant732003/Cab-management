@@ -20,11 +20,19 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Unit tests for TripBookingServiceImpl.
+ *
+ * Covers scenarios for:
+ * - Booking trips (immediate and scheduled)
+ * - Updating trip status (progress, cancellation, completion)
+ * - Rating trips and updating driver ratings
+ * - Access control for drivers updating trips
+ */
 @ExtendWith(MockitoExtension.class)
 public class TripBookingServiceImplTest {
 
@@ -47,6 +55,10 @@ public class TripBookingServiceImplTest {
     private TripBookingRequest testRequest;
     private RatingRequest ratingRequest;
 
+    /**
+     * Initializes test data for Customer, Driver, Cab, TripBooking,
+     * TripBookingRequest, and RatingRequest.
+     */
     @BeforeEach
     void setUp() {
         testCustomer = new Customer();
@@ -91,7 +103,14 @@ public class TripBookingServiceImplTest {
         ratingRequest = new RatingRequest();
         ratingRequest.setRating(5);
     }
-    
+
+    /**
+     * Tests immediate trip booking.
+     * Workflow:
+     * - Find customer by ID
+     * - Assign an available driver
+     * - Save trip and update driver/cab availability
+     */
     @Test
     void bookTrip_immediateBooking_findsAndAssignsDriver() {
         when(customerRepository.findById(1)).thenReturn(Optional.of(testCustomer));
@@ -109,6 +128,13 @@ public class TripBookingServiceImplTest {
         verify(tripBookingRepository, times(1)).save(any(TripBooking.class));
     }
 
+    /**
+     * Tests scheduled trip booking.
+     * Workflow:
+     * - Sets a scheduled time
+     * - Trip status should be SCHEDULED
+     * - No driver assigned immediately
+     */
     @Test
     void bookTrip_scheduledBooking_setsStatusToScheduled() {
         testRequest.setScheduledTime(LocalDateTime.now().plusHours(1));
@@ -123,6 +149,9 @@ public class TripBookingServiceImplTest {
         verify(tripBookingRepository, times(1)).save(any(TripBooking.class));
     }
 
+    /**
+     * Tests updating trip status from CONFIRMED to IN_PROGRESS.
+     */
     @Test
     void updateTripStatus_confirmedToInProgress_succeeds() {
         testTrip.setStatus(TripStatus.CONFIRMED);
@@ -136,6 +165,12 @@ public class TripBookingServiceImplTest {
         assertEquals(TripStatus.IN_PROGRESS, updatedTrip.getStatus());
     }
 
+    /**
+     * Tests cancelling an IN_PROGRESS trip.
+     * Workflow:
+     * - Release driver and cab availability
+     * - Update trip status to CANCELLED
+     */
     @Test
     void updateTripStatus_inProgressToCancelled_succeedsAndReleasesResources() {
         testTrip.setStatus(TripStatus.IN_PROGRESS);
@@ -156,7 +191,10 @@ public class TripBookingServiceImplTest {
         verify(driverRepository, times(1)).save(testDriver);
         verify(cabRepository, times(1)).save(testCab);
     }
-    
+
+    /**
+     * Tests that unauthorized driver cannot update trip status.
+     */
     @Test
     void updateTripStatus_unauthorizedDriver_throwsAccessDeniedException() {
         testTrip.setStatus(TripStatus.CONFIRMED);
@@ -168,6 +206,13 @@ public class TripBookingServiceImplTest {
         assertThrows(AccessDeniedException.class, () -> tripBookingService.updateTripStatus(1, "IN_PROGRESS", "driver"));
     }
 
+    /**
+     * Tests completing a trip.
+     * Workflow:
+     * - Update status to COMPLETED
+     * - Calculate bill
+     * - Release driver and cab availability
+     */
     @Test
     void completeTrip_validRequest_succeedsAndCalculatesBill() {
         testTrip.setStatus(TripStatus.IN_PROGRESS);
@@ -189,7 +234,13 @@ public class TripBookingServiceImplTest {
         verify(driverRepository, times(1)).save(testDriver);
         verify(cabRepository, times(1)).save(testCab);
     }
-    
+
+    /**
+     * Tests rating a completed trip.
+     * Workflow:
+     * - Update trip's customer rating
+     * - Update driver's overall rating
+     */
     @Test
     void rateTrip_validRequest_updatesTripAndDriverRating() {
         testTrip.setStatus(TripStatus.COMPLETED);
@@ -202,7 +253,7 @@ public class TripBookingServiceImplTest {
 
         assertNotNull(ratedTrip);
         assertEquals(5, ratedTrip.getCustomerRating());
-        // Verify new driver rating calculation
+        // Verify driver rating update is saved
         verify(driverRepository, times(1)).save(any(Driver.class));
         verify(tripBookingRepository, times(1)).save(any(TripBooking.class));
     }

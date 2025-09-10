@@ -15,12 +15,19 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+
 import java.io.IOException;
 import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+/**
+ * Unit tests for JwtAuthenticationFilter.
+ * Covers scenarios for valid tokens, invalid tokens,
+ * blacklisted tokens, and missing authorization headers.
+ */
 @ExtendWith(MockitoExtension.class)
 public class JwtAuthenticationFilterTest {
 
@@ -41,7 +48,7 @@ public class JwtAuthenticationFilterTest {
 
     @Mock
     private FilterChain filterChain;
-    
+
     @Mock
     private Jws<Claims> claimsJws;
 
@@ -50,9 +57,15 @@ public class JwtAuthenticationFilterTest {
 
     @BeforeEach
     void setUp() {
+        // Clear authentication before each test
         SecurityContextHolder.getContext().setAuthentication(null);
     }
 
+    /**
+     * Test: Any protected endpoint
+     * Scenario: Valid JWT token provided in Authorization header
+     * Expected: Authentication is set in SecurityContext and filter chain proceeds
+     */
     @Test
     void doFilterInternal_validToken_setsAuthenticationInContext() throws ServletException, IOException {
         String token = "valid.jwt.token";
@@ -67,22 +80,27 @@ public class JwtAuthenticationFilterTest {
         when(jwtUtil.getClaimsFromJWT(token)).thenReturn(claimsJws);
         when(claimsJws.getBody()).thenReturn(claims);
         when(claims.get("role", String.class)).thenReturn(role);
-        
+
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
         assertNotNull(SecurityContextHolder.getContext().getAuthentication());
         assertTrue(SecurityContextHolder.getContext().getAuthentication() instanceof UsernamePasswordAuthenticationToken);
         assertEquals(username, SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         assertTrue(SecurityContextHolder.getContext().getAuthentication().getAuthorities().stream()
-            .anyMatch(a -> a.getAuthority().equals(role.toUpperCase())));
+                .anyMatch(a -> a.getAuthority().equals(role.toUpperCase())));
         verify(filterChain, times(1)).doFilter(request, response);
     }
 
+    /**
+     * Test: Any protected endpoint
+     * Scenario: Invalid JWT token provided
+     * Expected: Authentication not set, filter chain proceeds
+     */
     @Test
     void doFilterInternal_invalidToken_doesNotSetAuthentication() throws ServletException, IOException {
         String token = "invalid.jwt.token";
         String header = "Bearer " + token;
-        
+
         when(request.getHeader("Authorization")).thenReturn(header);
         when(blacklistedTokenRepository.findByToken(token)).thenReturn(Optional.empty());
         when(jwtUtil.validateToken(token)).thenReturn(false);
@@ -92,12 +110,17 @@ public class JwtAuthenticationFilterTest {
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         verify(filterChain, times(1)).doFilter(request, response);
     }
-    
+
+    /**
+     * Test: Any protected endpoint
+     * Scenario: JWT token is blacklisted
+     * Expected: Response returns 401 Unauthorized, filter chain not called
+     */
     @Test
     void doFilterInternal_blacklistedToken_returnsUnauthorized() throws ServletException, IOException {
         String token = "blacklisted.token";
         String header = "Bearer " + token;
-        
+
         when(request.getHeader("Authorization")).thenReturn(header);
         when(blacklistedTokenRepository.findByToken(token)).thenReturn(Optional.of(new com.cabbooking.model.BlacklistedToken()));
 
@@ -107,6 +130,11 @@ public class JwtAuthenticationFilterTest {
         verify(filterChain, never()).doFilter(request, response);
     }
 
+    /**
+     * Test: Any protected endpoint
+     * Scenario: No Authorization header provided
+     * Expected: Authentication not set, filter chain proceeds normally
+     */
     @Test
     void doFilterInternal_noAuthorizationHeader_doesNothing() throws ServletException, IOException {
         when(request.getHeader("Authorization")).thenReturn(null);

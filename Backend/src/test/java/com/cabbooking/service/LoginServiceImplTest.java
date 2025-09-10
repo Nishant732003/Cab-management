@@ -20,9 +20,24 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+/**
+ * Unit tests for LoginServiceImpl.
+ *
+ * Tests cover authentication and user retrieval logic for Admin, Driver, and Customer entities:
+ * - login() by username and email
+ * - Handling invalid credentials
+ * - Handling users not found after authentication
+ * - loadUserByUsername() for different user types
+ *
+ * Dependencies:
+ * - AdminRepository, DriverRepository, CustomerRepository: Mocked to simulate database operations
+ * - AuthenticationManager: Mocked to simulate authentication
+ * - JwtUtil: Mocked to simulate JWT token generation
+ */
 @ExtendWith(MockitoExtension.class)
 public class LoginServiceImplTest {
 
@@ -49,6 +64,10 @@ public class LoginServiceImplTest {
     private Driver testDriver;
     private Customer testCustomer;
 
+    /**
+     * Sets up common test data before each test.
+     * Initializes sample Admin, Driver, and Customer objects along with a valid login request.
+     */
     @BeforeEach
     void setUp() {
         validLoginRequest = new LoginRequest();
@@ -71,6 +90,16 @@ public class LoginServiceImplTest {
         testCustomer.setPassword("hashedPassword");
     }
 
+    /**
+     * Tests successful admin login by username.
+     *
+     * Workflow:
+     * - Mocks authentication manager to pass authentication
+     * - Mocks admin repository to find the admin by username
+     * - Mocks JwtUtil to generate a token
+     * - Asserts LoginResponse fields
+     * - Verifies repository call
+     */
     @Test
     void login_adminLoginByUsername_returnsSuccessResponse() {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(null);
@@ -86,6 +115,16 @@ public class LoginServiceImplTest {
         verify(adminRepository, times(1)).findByUsername("testuser");
     }
 
+    /**
+     * Tests successful driver login by username.
+     *
+     * Workflow:
+     * - Mocks authentication to pass
+     * - Mocks admin repository to return null
+     * - Mocks driver repository to return the driver
+     * - Mocks JwtUtil to generate token
+     * - Asserts LoginResponse fields and verifies repository calls
+     */
     @Test
     void login_driverLoginByUsername_returnsSuccessResponse() {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(null);
@@ -103,6 +142,16 @@ public class LoginServiceImplTest {
         verify(driverRepository, times(1)).findByUsername("testuser");
     }
 
+    /**
+     * Tests successful customer login by username.
+     *
+     * Workflow:
+     * - Mocks authentication to pass
+     * - Mocks admin and driver repositories to return null
+     * - Mocks customer repository to return the customer
+     * - Mocks JwtUtil to generate token
+     * - Asserts LoginResponse fields and verifies repository calls
+     */
     @Test
     void login_customerLoginByUsername_returnsSuccessResponse() {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(null);
@@ -121,7 +170,17 @@ public class LoginServiceImplTest {
         verify(driverRepository, times(1)).findByUsername("testuser");
         verify(customerRepository, times(1)).findByUsername("testuser");
     }
-    
+
+    /**
+     * Tests successful login by email instead of username.
+     *
+     * Workflow:
+     * - Sets email in login request
+     * - Mocks authentication to pass
+     * - Mocks admin repository to find admin by email
+     * - Mocks JwtUtil to generate token
+     * - Asserts LoginResponse fields
+     */
     @Test
     void login_byEmail_returnsSuccessResponse() {
         validLoginRequest.setUsername(null);
@@ -138,6 +197,13 @@ public class LoginServiceImplTest {
         assertEquals("Admin", response.getUserType());
     }
 
+    /**
+     * Tests that login throws exception for invalid credentials.
+     *
+     * Workflow:
+     * - Mocks authentication manager to throw BadCredentialsException
+     * - Asserts that UsernameNotFoundException is thrown by login
+     */
     @Test
     void login_invalidCredentials_throwsException() {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
@@ -146,6 +212,14 @@ public class LoginServiceImplTest {
         assertThrows(UsernameNotFoundException.class, () -> loginService.login(validLoginRequest));
     }
 
+    /**
+     * Tests that login throws exception when no user is found after successful authentication.
+     *
+     * Workflow:
+     * - Mocks authentication to pass
+     * - Mocks admin, driver, and customer repositories to return null
+     * - Asserts that UsernameNotFoundException is thrown
+     */
     @Test
     void login_userNotFoundAfterAuthentication_throwsException() {
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(null);
@@ -156,6 +230,13 @@ public class LoginServiceImplTest {
         assertThrows(UsernameNotFoundException.class, () -> loginService.login(validLoginRequest));
     }
 
+    /**
+     * Tests loadUserByUsername() for Admin.
+     *
+     * Workflow:
+     * - Mocks admin repository to find admin
+     * - Asserts returned UserDetails username
+     */
     @Test
     void loadUserByUsername_adminFound_returnsUserDetails() {
         when(adminRepository.findByUsername("testadmin")).thenReturn(testAdmin);
@@ -165,6 +246,14 @@ public class LoginServiceImplTest {
         assertEquals("testadmin", userDetails.getUsername());
     }
 
+    /**
+     * Tests loadUserByUsername() for Driver.
+     *
+     * Workflow:
+     * - Mocks admin repository to return null
+     * - Mocks driver repository to return driver
+     * - Asserts returned UserDetails username
+     */
     @Test
     void loadUserByUsername_driverFound_returnsUserDetails() {
         when(adminRepository.findByUsername("testdriver")).thenReturn(null);
@@ -175,6 +264,14 @@ public class LoginServiceImplTest {
         assertEquals("testdriver", userDetails.getUsername());
     }
 
+    /**
+     * Tests loadUserByUsername() for Customer.
+     *
+     * Workflow:
+     * - Mocks admin and driver repositories to return null
+     * - Mocks customer repository to return customer
+     * - Asserts returned UserDetails username
+     */
     @Test
     void loadUserByUsername_customerFound_returnsUserDetails() {
         when(adminRepository.findByUsername("testcustomer")).thenReturn(null);
@@ -185,7 +282,14 @@ public class LoginServiceImplTest {
         assertNotNull(userDetails);
         assertEquals("testcustomer", userDetails.getUsername());
     }
-    
+
+    /**
+     * Tests loadUserByUsername() throws exception when user is not found.
+     *
+     * Workflow:
+     * - Mocks all repositories to return null
+     * - Asserts UsernameNotFoundException is thrown
+     */
     @Test
     void loadUserByUsername_userNotFound_throwsException() {
         when(adminRepository.findByUsername("nonexistent")).thenReturn(null);
