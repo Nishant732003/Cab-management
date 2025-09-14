@@ -1,6 +1,8 @@
 package com.cabbooking.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -148,22 +150,27 @@ public class AdminController {
      * @return ResponseEntity containing the updated and now-verified Driver
      * object.
      */
-    @PostMapping("/verify/drivers/{driverId}")
-    public ResponseEntity<String> verifyDriver(@PathVariable int driverId) {
-        logger.info("Admin trying to verify driver with id: {}", driverId);
-        try {
-            String message = driverService.verifyDriver(driverId);
-            return ResponseEntity.ok(message);
-        } catch (IllegalArgumentException e) {
-            // Handles known issues like "driver not found"
-            logger.warn("Driver verification failed: {}", e.getMessage());
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            // Handles any unexpected server or database error
-            logger.error("Unexpected error verifying driver", e);
-            return ResponseEntity.internalServerError().body(e.getMessage());
-        }
+  @PostMapping("/verify/drivers/{driverId}")
+public ResponseEntity<Map<String, String>> verifyDriver(@PathVariable int driverId) {
+    logger.info("Admin trying to verify driver with id: {}", driverId);
+    try {
+        String message = driverService.verifyDriver(driverId);
+        Map<String, String> response = new HashMap<>();
+        response.put("message", message);
+        return ResponseEntity.ok(response);
+    } catch (IllegalArgumentException e) {
+        logger.warn("Driver verification failed: {}", e.getMessage());
+        Map<String, String> response = new HashMap<>();
+        response.put("error", e.getMessage());
+        return ResponseEntity.badRequest().body(response);
+    } catch (Exception e) {
+        logger.error("Unexpected error verifying driver", e);
+        Map<String, String> response = new HashMap<>();
+        response.put("error", e.getMessage());
+        return ResponseEntity.internalServerError().body(response);
     }
+}
+
 
     /**
      * Endpoint for an admin to retrieve a summary list of all customers. 

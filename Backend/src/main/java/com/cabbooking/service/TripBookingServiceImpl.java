@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
@@ -126,11 +127,13 @@ public class TripBookingServiceImpl implements ITripBookingService {
             // Find all available drivers of the correct car type
             List<Driver> availableDrivers = driverRepository.findAll().stream()
                     .filter(driver
-                            -> driver.getVerified()
-                    && driver.getIsAvailable()
-                    && driver.getCab() != null
-                    && driver.getCab().getCarType().equalsIgnoreCase(tripBookingRequest.getCarType())
-                    && driver.getLatitude() != null && driver.getLongitude() != null
+                            ->  driver.getVerified()
+    && driver.getIsAvailable()
+    && driver.getCab() != null
+    && driver.getCab().getCarType() != null
+    && tripBookingRequest.getCarType() != null
+    && driver.getCab().getCarType().equalsIgnoreCase(tripBookingRequest.getCarType())
+    && driver.getLatitude() != null && driver.getLongitude() != null
                     ).toList();
 
             // Filter for nearby drivers and find the best one by rating
