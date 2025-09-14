@@ -18,13 +18,18 @@
           <tr *ngFor="let admin of unverifiedAdmins" class="bg-white border-b">
             <td class="py-4 px-6">{{ admin.id }}</td>
             <td class="py-4 px-6">{{ admin.username }}</td>
-            <td class="py-4 px-6">{{ admin.name }}</td>
+            <td class="py-4 px-6">{{ admin.firstName }} {{admin.lastName}}</td>
             <td class="py-4 px-6">{{ admin.email }}</td>
             <td class="py-4 px-6">
-              <button (click)="verifyAdmin(admin.id)"
-                class="px-4 py-2 font-medium text-white bg-blue-600 rounded-md hover:bg-blue-500 focus:outline-none focus:shadow-outline-blue active:bg-blue-600 transition duration-150 ease-in-out">
-                Verify
-              </button>
+            <button 
+  (click)="verifyAdmin(admin.id)"
+  class="px-5 py-2.5 rounded-lg bg-gradient-to-r from-blue-300 to-blue-500 
+         text-white font-semibold shadow-md hover:from-blue-500 hover:to-blue-400 
+         focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1 
+         active:scale-95 transition-all duration-200 ease-in-out">
+   Verify
+</button>
+
             </td>
           </tr>
           <tr *ngIf="unverifiedAdmins.length === 0">

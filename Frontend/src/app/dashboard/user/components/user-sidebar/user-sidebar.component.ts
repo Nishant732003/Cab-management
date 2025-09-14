@@ -20,7 +20,7 @@ export class UserSidebarComponent implements OnInit {
   // Routes for user interface
   routes: Route[] = [
     {
-      label: "Dashboard",
+      label: "Overview",
       icon: "LayoutDashboard",
       href: "/user/overview"
     },

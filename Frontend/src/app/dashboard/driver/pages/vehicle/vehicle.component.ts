@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { DriverService, CabUpdateRequest, Cab } from '../../../../core/services/driver/driver.service';
 import { finalize } from 'rxjs/operators';
 import { environment } from '../../../../../environments/environment';
-@Component({
+import { ChangeDetectorRef } from '@angular/core';@Component({
   selector: 'app-vehicle',
   standalone: false,
   templateUrl: './vehicle.component.html',
@@ -27,7 +27,9 @@ export class VehicleComponent implements OnInit {
   updatedCab: Cab | null = null;
   errorMsg: string | null = null;
 
-  constructor(private driverSvc: DriverService) {}
+
+constructor(private driverSvc: DriverService, private cdr: ChangeDetectorRef) {}
+
 
   ngOnInit() {
     this.getDriverIdFromCurrentUser();
@@ -129,9 +131,13 @@ export class VehicleComponent implements OnInit {
           // Handle response body
           if (event.body) {
             this.updatedCab = event.body as Cab;
-            if (event.body.imageUrl) {
-              this.imageUrl = event.body.imageUrl;
-            }
+             if (event.body.imageUrl) {
+            const raw = event.body.imageUrl;
+            const normalized = this.buildImageUrl(raw);
+            // cache-busting to force fresh fetch
+            this.imageUrl = `${normalized}${normalized.includes('?') ? '&' : '?'}t=${Date.now()}`;
+            this.cdr.detectChanges(); // if using OnPush or preview still lags
+          }
           }
         },
         error: (err: any) => this.errorMsg = err?.error?.message || 'Failed to upload image'

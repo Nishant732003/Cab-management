@@ -88,7 +88,11 @@
                     </div>
 
                     <button class="card-action-btn admin-btn" (click)="selectRole('admin')">
+                         <a href="/login" class="text-primary hover:text-primary/80 font-semibold transition-colors duration-300 ">
+                       
+
                         <span>Access Admin Panel</span>
+                        </a>
                         <svg class="btn-arrow" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
                         </svg>
@@ -143,7 +147,12 @@
                     </div>
 
                     <button class="card-action-btn customer-btn" (click)="selectRole('user')">
-                        <span>Book Your Ride</span>
+                          <a href="/registeruser" class="text-primary hover:text-primary/80 font-semibold transition-colors duration-300 ">
+                       
+  <span>Book Your Ride</span>
+
+                                            </a>
+                      
                         <svg class="btn-arrow" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
                         </svg>
@@ -200,7 +209,11 @@
                     </div>
 
                     <button class="card-action-btn driver-btn" (click)="selectRole('driver')">
+                        <a href="/registerdriver" class="text-primary hover:text-primary/80 font-semibold transition-colors duration-300 ">
+                       
+
                         <span>Start Driving</span>
+                                            </a>
                         <svg class="btn-arrow" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
                         </svg>
@@ -219,77 +232,5 @@
         </footer>
     </div>
 
-    <script>
-        // Role selection functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const roleCards = document.querySelectorAll('.role-card');
-            const actionButtons = document.querySelectorAll('.card-action-btn');
-
-            // Add hover effects and click handlers
-            roleCards.forEach(card => {
-                card.addEventListener('click', function() {
-                    const role = this.getAttribute('data-role');
-                    selectRole(role);
-                });
-
-                // Enhanced hover effects
-                card.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-8px) scale(1.02)';
-                });
-
-                card.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0) scale(1)';
-                });
-            });
-
-            // Action button handlers
-            actionButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const card = this.closest('.role-card');
-                    const role = card.getAttribute('data-role');
-                    
-                    // Add loading state
-                    this.classList.add('loading');
-                    setTimeout(() => {
-                        selectRole(role);
-                    }, 500);
-                });
-            });
-
-            function selectRole(role) {
-                console.log(`Selected role: ${role}`);
-                // Add your navigation logic here
-                // window.location.href = `/${role}-dashboard`;
-                
-                // For demo purposes, show an alert
-                const roleNames = {
-                    admin: 'Administrator',
-                    customer: 'Customer',
-                    driver: 'Driver'
-                };
-                alert(`Navigating to ${roleNames[role]} Dashboard...`);
-            }
-
-            // Intersection Observer for scroll animations
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
-
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('animate-in');
-                    }
-                });
-            }, observerOptions);
-
-            // Observe all cards for scroll animations
-            roleCards.forEach(card => {
-                observer.observe(card);
-            });
-        });
-    </script>
 </body>
 </html>

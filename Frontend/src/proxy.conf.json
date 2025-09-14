@@ -1,7 +1,13 @@
 
 
 {
-  
+  "/api/google": {
+    "target": "https://maps.googleapis.com",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "debug",
+    "pathRewrite": { "^/api/google": "" }
+  },
   "/api/ors": {
     "target": "https://api.openrouteservice.org",
     "secure": true,

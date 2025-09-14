@@ -1,11 +1,44 @@
-/* Navbar Component Styles */
 
-/* Base navbar styling */
 .navbar {
   @apply bg-white shadow-lg border-b border-gray-200 sticky top-0 z-50;
 }
 
 /* Search input focus states */
+/* Avatar gradient and hover */
+.user-avatar {
+  @apply bg-indigo-600;
+  background: linear-gradient(135deg, #6366f1 0%, #7c3aed 100%);
+}
+.user-avatar:hover {
+  background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+}
+
+/* Role badge base */
+.role-badge {
+  @apply border rounded-full;
+  @apply transition-colors;
+}
+
+/* Role variants */
+.role-admin {
+  @apply bg-red-50 text-red-700 border-red-200;
+}
+.role-driver {
+  @apply bg-emerald-50 text-emerald-700 border-emerald-200;
+}
+.role-staff {
+  @apply bg-blue-50 text-blue-700 border-blue-200;
+}
+.role-default {
+  @apply bg-gray-100 text-gray-700 border-gray-200;
+}
+
+/* Role dot colors (inherits via parent) */
+.role-admin .role-dot { @apply bg-red-600; }
+.role-driver .role-dot { @apply bg-emerald-600; }
+.role-staff .role-dot { @apply bg-blue-600; }
+.role-default .role-dot { @apply bg-gray-500; }
+
 .search-input {
   transition: all 0.2s ease-in-out;
 }
@@ -151,7 +184,7 @@
   }
   
   .user-info-desktop .text-gray-900 {
-    @apply text-white;
+    @apply text-gray-800;
   }
   
   .user-info-desktop .text-gray-500 {

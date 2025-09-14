@@ -1,74 +1,257 @@
-<div class="container mx-auto px-4 sm:px-8">
-  <div class="py-8">
-    
-    <div class="flex justify-between items-center">
-      <h2 class="text-2xl font-semibold leading-tight">Users</h2>
-      <button (click)="refreshData()" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" [disabled]="isLoading">
-        <i class="fas fa-sync-alt" [ngClass]="{'animate-spin': isLoading}"></i>
-        <span class="ml-2">Refresh</span>
-      </button>
+<div class="user-management-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="title-section">
+        <h1 class="page-title">
+        
+          User Management
+        </h1>
+        <p class="page-subtitle">Manage and monitor your application users</p>
+      </div>
+
+      <div class="header-actions">
+        <button (click)="exportToCSV()" class="btn btn-outline" title="Export to CSV">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512">
+            <path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32V274.7l-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7V32zM64 352c-35.3 0-64 28.7-64 64v32c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V416c0-35.3-28.7-64-64-64H346.5l-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352H64zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z"/>
+          </svg>
+          Export
+        </button>
+        <button (click)="refreshData()" class="btn btn-primary" [disabled]="isLoading" title="Refresh Data">
+          <svg id="refreshIcon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512">
+            <path fill="currentColor" d="M463.5 224H472c13.3 0 24-10.7 24-24V72c0-9.7-5.8-18.5-14.8-22.2s-19.3-1.7-26.2 5.2L413.4 96.6c-87.6-86.5-228.7-86.2-315.8 1c-87.5 87.5-87.5 229.3 0 316.8s229.3 87.5 316.8 0c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0c-62.5 62.5-163.8 62.5-226.3 0s-62.5-163.8 0-226.3c62.2-62.2 162.7-62.5 225.3-1L327 183c-6.9 6.9-8.9 17.2-5.2 26.2s12.5 14.8 22.2 14.8H463.5z"/>
+          </svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-section">
+    <div class="stats-card">
+      <div class="stats-icon stats-icon-primary">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
+          <path d="M96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3zM609.3 512H471.4c5.4-9.4 8.6-20.3 8.6-32v-8c0-60.7-27.1-115.2-69.8-151.8c2.4-.1 4.7-.2 7.1-.2h61.4C567.8 320 640 392.2 640 481.3c0 17-13.8 30.7-30.7 30.7zM432 256c-31 0-59-12.6-79.3-32.9C372.4 196.5 384 163.6 384 128c0-26.8-6.6-52.1-18.3-74.3C384.3 40.1 407.2 32 432 32c61.9 0 112 50.1 112 112s-50.1 112-112 112z"/>
+        </svg>
+      </div>
+      <div class="stats-content">
+        <h3 class="stats-number">{{ customers.length }}</h3>
+        <p class="stats-label">Total Users</p>
+      </div>
     </div>
 
-    <div *ngIf="isLoading" class="text-center py-10">
-      <div class="spinner border-t-4 border-b-4 border-indigo-500 rounded-full w-12 h-12 mx-auto"></div>
-      <p class="mt-2 text-gray-600">Loading Users...</p>
+    <div class="stats-card">
+      <div class="stats-icon stats-icon-success">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
+          <path d="M96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3zM625 177L497 305c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L591 143c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/>
+        </svg>
+      </div>
+      <div class="stats-content">
+        <h3 class="stats-number">{{ customers.length }}</h3>
+        <p class="stats-label">Active Users</p>
+      </div>
     </div>
+  </div>
 
-    <div *ngIf="errorMessage && !isLoading" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative my-4" role="alert">
-      <strong class="font-bold">Error:</strong>
-      <span class="block sm:inline ml-2">{{ errorMessage }}</span>
+  <!-- Search -->
+  <div class="filter-section">
+    <div class="search-container">
+      <div class="search-input-wrapper">
+        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+          <path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"/>
+        </svg>
+        <input
+          type="text"
+          placeholder="Search users by name, username, or email..."
+          class="search-input"
+          [(ngModel)]="searchTerm"
+          (input)="onSearchChange(searchTerm)"
+        />
+      </div>
     </div>
+  </div>
 
-    <div *ngIf="!isLoading && !errorMessage" class="-mx-4 sm:-mx-8 px-4 sm:px-8 py-4 overflow-x-auto">
-      <div class="inline-block min-w-full shadow-md rounded-lg overflow-hidden">
-        <table class="min-w-full leading-normal">
-          <thead>
-            <tr>
-              <th class="table-header">User</th>
-              <th class="table-header">Username</th>
-              <th class="table-header">Contact</th>
-              <th class="table-header">User ID</th>
-              <th class="table-header">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let customer of customers">
-              <td class="table-cell">
-                <div class="flex items-center">
-                  <div class="flex-shrink-0 w-10 h-10">
-                    <img class="w-full h-full rounded-full" src="https://i.pravatar.cc/150?u={{customer.userId}}" alt="User Avatar" />
+  <!-- Users Table -->
+  <div class="table-container" *ngIf="!isLoading && !errorMessage">
+    <div class="table-wrapper">
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th class="table-header"><div class="header-content">User</div></th>
+            <th class="table-header"><div class="header-content">Username</div></th>
+            <th class="table-header"><div class="header-content">Contact</div></th>
+            <th class="table-header"><div class="header-content">User ID</div></th>
+            <th class="table-header actions-header"><div class="header-content">Actions</div></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let customer of paginatedCustomers" class="table-row">
+            <td class="table-cell user-cell">
+              <div class="user-info">
+                <div class="avatar-wrapper">
+                  <div
+                    class="user-avatar-initials"
+                    [ngStyle]="{ 'background-color': getAvatarColor(customer) }"
+                  >
+                    {{ getInitials(customer.firstName, customer.lastName, customer.username, customer.email) }}
                   </div>
-                  <div class="ml-3">
-                    <p class="text-gray-900 whitespace-no-wrap font-semibold">{{ customer.name }}</p>
-                  </div>
+                  <div class="avatar-status"></div>
                 </div>
-              </td>
-              <td class="table-cell">
-                <p class="text-gray-900 whitespace-no-wrap">{{ customer.username }}</p>
-              </td>
-              <td class="table-cell">
-                <p class="text-gray-900 whitespace-no-wrap">{{ customer.email }}</p>
-                <p class="text-gray-600 whitespace-no-wrap text-sm">{{ customer.mobileNumber }}</p>
-              </td>
-              <td class="table-cell">
-                <span class="relative inline-block px-3 py-1 font-semibold text-green-900 leading-tight">
-                  <span aria-hidden class="absolute inset-0 bg-green-200 opacity-50 rounded-full"></span>
-                  <span class="relative">ID: {{ customer.userId }}</span>
-                </span>
-              </td>
-              <td class="table-cell text-center">
-                <button class="text-red-500 hover:text-red-700">
-                  <i class="fas fa-trash-alt"></i>
+                <div class="user-details">
+                  <h4 class="user-name">{{ customer.firstName }} {{ customer.lastName }}</h4>
+                  <p class="user-role">Customer</p>
+                </div>
+              </div>
+            </td>
+
+            <td class="table-cell">
+              <div class="username-wrapper">
+                <span class="username">{{ customer.username }}</span>
+              </div>
+            </td>
+
+            <td class="table-cell">
+              <div class="contact-info">
+                <div class="contact-item">
+                  <i class="fas fa-envelope contact-icon"></i>
+                  <span class="contact-text">{{ customer.email }}</span>
+                </div>
+                <div class="contact-item" *ngIf="customer.mobileNumber">
+                  <i class="fas fa-phone contact-icon"></i>
+                  <span class="contact-text">{{ customer.mobileNumber }}</span>
+                </div>
+              </div>
+            </td>
+
+            <td class="table-cell">
+              <div class="user-id-badge">
+                <span class="id-text">#{{ customer.userId }}</span>
+              </div>
+            </td>
+
+            <td class="table-cell actions-cell">
+              <div class="action-buttons">
+                <button
+                  (click)="openDeleteModal(customer)"
+                  class="action-btn btn-delete"
+                  title="Delete User"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                       stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M6 7h12M9 7V4h6v3m2 0v13a2 2 0 01-2 2H8a2 2 0 01-2-2V7h12z" />
+                  </svg>
                 </button>
-              </td>
-            </tr>
-            <tr *ngIf="customers.length === 0">
-                <td colspan="5" class="text-center py-10 text-gray-500">
-                    <p>No customers found.</p>
-                </td>
-            </tr>
-          </tbody>
-        </table>
+              </div>
+            </td>
+          </tr>
+
+          <tr *ngIf="paginatedCustomers.length === 0">
+            <td class="empty-cell" colspan="5">
+              <div class="empty-state">
+                <svg class="empty-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512">
+                  <path d="M96 128a128 128 0 1 1 256 0A128 128 0 1 1 96 128zM0 482.3C0 383.8 79.8 304 178.3 304h91.4C368.2 304 448 383.8 448 482.3c0 16.4-13.3 29.7-29.7 29.7H29.7C13.3 512 0 498.7 0 482.3z"/>
+                </svg>
+                <h3 class="empty-title">No users found</h3>
+                <p class="empty-message">Try adjusting your search or filters.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container" *ngIf="totalPages > 1">
+      <div class="pagination">
+        <button
+          (click)="changePage(currentPage - 1)"
+          class="pagination-btn pagination-prev"
+          [disabled]="currentPage === 1"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 320 512">
+            <path d="M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L77.3 256 246.6 86.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-192 192z"/>
+          </svg>
+          Previous
+        </button>
+
+        <button
+          *ngFor="let p of pageNumbers"
+          (click)="changePage(p)"
+          class="pagination-number"
+          [class.active]="p === currentPage"
+        >
+          {{ p }}
+        </button>
+
+        <button
+          (click)="changePage(currentPage + 1)"
+          class="pagination-btn pagination-next"
+          [disabled]="currentPage === totalPages"
+        >
+          Next
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 320 512">
+            <path d="M310.6 233.4c12.5 12.5 12.5 32.8 0 45.3l-192 192c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L242.7 256 73.4 86.6c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0l192 192z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="loading-spinner">
+      <div class="spinner"></div>
+    </div>
+    <div class="loading-text">Loading users...</div>
+  </div>
+
+  <!-- Error -->
+  <div class="error-container" *ngIf="!isLoading && errorMessage">
+    <svg class="error-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
+      <path d="M569.5 440.1C576 460.3 560.9 480 539.9 480H36.08C15.11 480-.0282 460.3 6.516 440.1l54.24-160.1c5.984-17.7 22.5-29.6 41.29-29.6l53.75 0 .125 0 208 0 .125 0 53.75 0c18.79 0 35.31 11.92 41.29 29.6L569.5 440.1zM287.1 352l-160 0L89.59 400l317.7 0-38.28-48L287.1 352zM311.1 304l-47.1 0L263.1 160l47.1 0L311.1 304zM144 160l47.1 0 0 144l-47.1 0L144 160zM432 160l-48 0 0 144l48 0L432 160z"/>
+    </svg>
+    <h3 class="error-title">Failed to load</h3>
+    <p class="error-message">{{ errorMessage }}</p>
+    <button class="btn btn-primary" (click)="refreshData()">Retry</button>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showDeleteModal">
+    <div class="modal-container" role="dialog" aria-modal="true" aria-labelledby="deleteTitle">
+      <div class="modal-header">
+        <h3 class="modal-title" id="deleteTitle">
+          <svg class="modal-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
+            <path d="M569.5 440.1C576 460.3 560.9 480 539.9 480H36.08C15.11 480-.0282 460.3 6.516 440.1l54.24-160.1c5.984-17.7 22.5-29.6 41.29-29.6l53.75 0 .125 0 208 0 .125 0 53.75 0c18.79 0 35.31 11.92 41.29 29.6L569.5 440.1zM287.1 352l-160 0L89.59 400l317.7 0-38.28-48L287.1 352zM311.1 304l-47.1 0L263.1 160l47.1 0L311.1 304zM144 160l47.1 0 0 144l-47.1 0L144 160zM432 160l-48 0 0 144l48 0L432 160z"/>
+          </svg>
+          Confirm Delete
+        </h3>
+        <button (click)="closeDeleteModal()" class="modal-close" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 384 512">
+            <path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 0 45.3L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-message">
+          Are you sure you want to delete
+          <strong>{{ customerToDelete?.firstName }} {{ customerToDelete?.lastName }}</strong>?
+        </p>
+        <p class="modal-warning">
+          This action cannot be undone and will permanently remove the user from the system.
+        </p>
+      </div>
+
+      <div class="modal-footer">
+        <button (click)="closeDeleteModal()" class="btn btn-outline modal-btn">Cancel</button>
+        <button (click)="confirmDelete()" class="btn btn-danger modal-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 448 512">
+            <path fill="currentColor" d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0H284.2c12.1 0 23.2 6.8 28.6 17.7L320 32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 96 0 81.7 0 64S14.3 32 32 32h96l7.2-14.3zM32 128H416V448c0 35.3-28.7 64-64 64H96c-35.3 0-64-28.7-64-64V128zm96 64c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16z"/>
+          </svg>
+          Delete User
+        </button>
       </div>
     </div>
   </div>

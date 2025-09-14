@@ -11,31 +11,33 @@ import { finalize } from 'rxjs/operators';
   styleUrls: ['./driver.component.css']
 })
 export class DriverComponent implements OnInit {
-  
+
   // State for the component
-  allDrivers: Driver[] = []; // Stores the complete list of drivers
-  filteredDrivers: Driver[] = []; // The list of drivers currently being displayed
+  allDrivers: Driver[] = [];
+  filteredDrivers: Driver[] = [];
   isLoading = true;
   errorMessage = '';
-  currentView: 'all' | 'pending' = 'all'; // Controls the active filter
+  currentView: 'all' | 'pending' = 'all';
   verificationStatus: { [key: number]: 'VERIFYING' | 'SUCCESS' | 'ERROR' } = {};
 
-  // Stats for the summary cards
+  // Stats
   activeDriversCount = 0;
   pendingDriversCount = 0;
   averageRating = 0;
 
-  Math = Math; // Expose Math object to template
+  // Delete modal state (same pattern as User)
+  showDeleteModal = false;
+  driverToDelete: Driver | null = null;
+  isDeleting = false;
 
-  constructor(private adminService: AdminService) { }
+  Math = Math;
+
+  constructor(private adminService: AdminService) {}
 
   ngOnInit(): void {
     this.loadAllDrivers();
   }
 
-  /**
-   * Fetches all drivers and updates the view.
-   */
   loadAllDrivers(): void {
     this.isLoading = true;
     this.errorMessage = '';
@@ -43,8 +45,8 @@ export class DriverComponent implements OnInit {
       finalize(() => { this.isLoading = false; })
     ).subscribe({
       next: (data) => {
-        this.allDrivers = data;
-        this.applyFilter(); // Apply the current view filter
+        this.allDrivers = data ?? [];
+        this.applyFilter();
         this.calculateStats();
       },
       error: (error) => {
@@ -54,9 +56,6 @@ export class DriverComponent implements OnInit {
     });
   }
 
-  /**
-   * Applies the current filter to the driver list.
-   */
   applyFilter(): void {
     if (this.currentView === 'pending') {
       this.filteredDrivers = this.allDrivers.filter(d => !d.verified);
@@ -65,18 +64,11 @@ export class DriverComponent implements OnInit {
     }
   }
 
-  /**
-   * Sets the current view and applies the filter.
-   * @param view The new view to apply ('all' or 'pending').
-   */
   setView(view: 'all' | 'pending'): void {
     this.currentView = view;
     this.applyFilter();
   }
 
-  /**
-   * Calculates summary stats for the cards.
-   */
   calculateStats(): void {
     this.activeDriversCount = this.allDrivers.filter(d => d.verified).length;
     this.pendingDriversCount = this.allDrivers.length - this.activeDriversCount;
@@ -89,31 +81,69 @@ export class DriverComponent implements OnInit {
     }
   }
 
-  /**
-   * Handles the verification of a driver.
-   * @param driverId The ID of the driver to verify.
-   */
   verifyDriver(driverId: number): void {
     this.verificationStatus[driverId] = 'VERIFYING';
     this.adminService.verifyDriver(driverId).pipe(
-      finalize(() => {
-        // We can remove the status after a delay, or just leave it as success
-      })
+      finalize(() => {})
     ).subscribe({
-      next: (verifiedDriver: Driver) => {
+      next: (message: string) => {
+        console.log('Backend says:', message);
         this.verificationStatus[driverId] = 'SUCCESS';
-        // Update the driver's status in our main list to reflect the change immediately
+
         const driverIndex = this.allDrivers.findIndex(d => d.userId === driverId);
         if (driverIndex > -1) {
           this.allDrivers[driverIndex].verified = true;
         }
-        this.applyFilter(); // Re-apply the filter, which will remove the driver from the 'pending' view
-        this.calculateStats(); // Recalculate the stats cards
+        this.applyFilter();
+        this.calculateStats();
       },
       error: (error) => {
         this.verificationStatus[driverId] = 'ERROR';
         alert(`Failed to verify driver. Please check the console and try again.`);
         console.error(`Error verifying driver ${driverId}:`, error);
+      }
+    });
+  }
+
+  // Delete modal handlers (mirrors User component)
+  openDeleteModal(driver: Driver): void {
+    this.driverToDelete = driver;
+    this.showDeleteModal = true;
+  }
+
+  closeDeleteModal(): void {
+    this.showDeleteModal = false;
+    this.driverToDelete = null;
+  }
+
+  confirmDelete(): void {
+    if (!this.driverToDelete?.username) {
+      alert('Username is missing for the selected driver.');
+      return;
+    }
+
+    const username = this.driverToDelete.username;
+    const displayName =
+      `${this.driverToDelete?.firstName ?? ''} ${this.driverToDelete?.lastName ?? ''}`.trim() ||
+      username;
+
+    this.isDeleting = true;
+
+    // Use the same API as users to delete by username
+    this.adminService.deleteUser(username).pipe(
+      finalize(() => { this.isDeleting = false; })
+    ).subscribe({
+      next: () => {
+        // Remove by username to mirror server identifier
+        this.allDrivers = this.allDrivers.filter(d => d.username !== username);
+        this.applyFilter();
+        this.calculateStats();
+        this.closeDeleteModal();
+        alert(`Driver ${displayName} has been deleted successfully.`);
+      },
+      error: (err) => {
+        console.error('Driver delete failed:', err);
+        alert('Failed to delete the driver. Please try again.');
       }
     });
   }
@@ -126,4 +156,3 @@ export class DriverComponent implements OnInit {
     return driver.userId;
   }
 }
-

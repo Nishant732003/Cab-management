@@ -9,8 +9,6 @@ import { NavbarComponent } from './components/driver-navbar/navbar.component';
 import { SidebarComponent } from './components/driver-sidebar/sidebar.component';
 import { VehicleComponent } from './pages/vehicle/vehicle.component';
 
-// Page Components
-import { EarningsComponent } from './pages/earnings/earnings.component';
 import { OverviewComponent } from './pages/overview/overview.component';
 import { TripsComponent } from './pages/trips/trip.component';
 
@@ -23,7 +21,6 @@ import { TripsComponent } from './pages/trips/trip.component';
     DriverComponent,
     NavbarComponent,
     SidebarComponent,
-    EarningsComponent,
     OverviewComponent,
     TripsComponent,
     VehicleComponent  // This is now correct since VehicleComponent is standalone: false

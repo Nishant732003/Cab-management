@@ -44,54 +44,7 @@ export class BookRideComponent implements OnInit {
 
   // Location suggestions (demo data)
   locationSuggestions: LocationSuggestion[] = [
-    // { 
-    //   name: 'Mumbai Airport Terminal 1', 
-    //   address: 'Chhatrapati Shivaji International Airport, Andheri East, Mumbai', 
-    //   lat: 19.0896, 
-    //   lng: 72.8656 
-    // },
-    // { 
-    //   name: 'Mumbai Airport Terminal 2', 
-    //   address: 'Chhatrapati Shivaji International Airport, Andheri East, Mumbai', 
-    //   lat: 19.0896, 
-    //   lng: 72.8656 
-    // },
-    // // { 
-    //   name: 'Chhatrapati Shivaji Maharaj Terminus', 
-    //   address: 'CST Railway Station, Fort, Mumbai', 
-    //   lat: 18.9398, 
-    //   lng: 72.8355 
-    // },
-    // { 
-    //   name: 'Bandra Kurla Complex', 
-    //   address: 'BKC Business District, Bandra East, Mumbai', 
-    //   lat: 19.0728, 
-    //   lng: 72.8826 
-    // },
-    // { 
-    //   name: 'Powai Lake', 
-    //   address: 'Powai, Hiranandani Gardens, Mumbai', 
-    //   lat: 19.1197, 
-    //   lng: 72.9073 
-    // },
-    // { 
-    //   name: 'Gateway of India', 
-    //   address: 'Apollo Bandar, Colaba, Mumbai', 
-    //   lat: 18.9220, 
-    //   lng: 72.8347 
-    // },
-    // { 
-    //   name: 'Marine Drive', 
-    //   address: 'Queen\'s Necklace, Marine Drive, Mumbai', 
-    //   lat: 18.9467, 
-    //   lng: 72.8238 
-    // },
-    // { 
-    //   name: 'Juhu Beach', 
-    //   address: 'Juhu Tara Road, Juhu, Mumbai', 
-    //   lat: 19.0990, 
-    //   lng: 72.8269 
-    // }
+  
   ];
 
   constructor(private rideService: RideService) {}

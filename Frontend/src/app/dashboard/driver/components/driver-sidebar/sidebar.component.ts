@@ -20,7 +20,7 @@ export class SidebarComponent implements OnInit {
   // Routes that match the icons available in your template
   routes: Route[] = [
     {
-      label: "Dashboard",
+      label: "Overview",
       icon: "LayoutDashboard",
       href: "/driver/overview"
     },

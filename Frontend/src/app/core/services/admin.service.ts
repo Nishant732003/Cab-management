@@ -1,143 +1,110 @@
+// src/app/core/services/admin.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpEvent, HttpRequest } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface Customer {
   userId: number;
   username: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   mobileNumber: string;
 }
 
-// FIX: Add a new interface for Driver data to match the DTO
 export interface Driver {
   userId: number;
   username: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   mobileNumber: string;
   rating: number;
   licenceNo: string;
   verified: boolean;
-  vehicle?: string; // Vehicle might come from a different source, so optional
+  vehicle?: string;
 }
-// NEW: INTERFACE FOR ADMIN
+
 export interface Admin {
-  id: number; // <-- FIX: Changed from userId to id as backend uses 'id'
+  id: number;
   username: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   mobileNumber: string;
   verified: boolean;
+  profilePhotoUrl?: string | null;
+  address?: string;
+  emailVerified?: boolean;
 }
 
-/**
- * FIX: The 'export' keyword was missing.
- * This interface is for a user (Customer or Driver) within a trip record.
- */
-export interface TripUser {
-  id: number;
-  username: string;
-}
-// NEW: INTERFACE FOR TRIP
-export interface TripBooking {
-  tripBookingId: number;
-  customer: TripUser; // FIX: Uses an interface that has an 'id'
-  driver: TripUser;   // FIX: Uses an interface that has an 'id'
-  fromLocation: string;
-  toLocation: string;
-  fromDateTime: string;
-  toDateTime: string | null;
-  status: string;
-  distanceInKm: number;
-  bill: number;
-  customerRating: number | null;
-}
-
-  // Add other relevant trip properties
-
-
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({ providedIn: 'root' })
 export class AdminService {
-  private apiUrl = `${environment.apiUrl}/api/admin`;
+  private apiUrl = `${environment.apiUrl}`;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
+  // Profiles
+  getAdminProfile(username: string): Observable<Admin> {
+    return this.http.get<Admin>(`${this.apiUrl}/api/profiles/${username}`);
+  } // GET {{url}}/api/profiles/{{username}} returns profile object as shown [21]
+
+  // Upload photo (no ID in URL; backend returns updated profile with profilePhotoUrl)
+  uploadAdminPhoto(file: File): Observable<HttpEvent<Admin>> {
+    const form = new FormData();
+    form.append('file', file);
+    const req = new HttpRequest(
+      'POST',
+      `${this.apiUrl}/api/admin/upload-photo`,
+      form,
+      { reportProgress: true }
+    );
+    return this.http.request<Admin>(req);
+  } // Standard Angular FormData + HttpRequest with progress events [4][3]
+
+  // Optional: If backend adds a delete endpoint for admin photo (adjust path if exists)
+  deleteAdminPhoto(): Observable<Admin> {
+    // Implement only if backend supports deleting the latest profile photo
+    return this.http.delete<Admin>(`${this.apiUrl}/api/drivers/upload-photo`);
+  } // Placeholder; remove if backend has a different delete route [4]
+
+  // Resolve a relative /api/files/... to absolute and insert /view if missing
+  getProfileImageUrl(profilePhotoUrl?: string | null): string | null {
+    if (!profilePhotoUrl) return null;
+    const needsView = profilePhotoUrl.startsWith('/api/files/') && !profilePhotoUrl.includes('/view/');
+    const parts = profilePhotoUrl.split('/');
+    if (needsView) parts.splice(3, 0, 'view');
+    const corrected = parts.join('/');
+    return `${this.apiUrl}${corrected}`;
+  } // Matches your VehicleComponent buildImageUrl logic [22][23]
+
+  // Existing admin APIs
   getAllCustomers(): Observable<Customer[]> {
-    return this.http.get<Customer[]>(`${this.apiUrl}/customers`);
-  }
+    return this.http.get<Customer[]>(`${this.apiUrl}/api/admin/customers`);
+  } // For stats counts [21]
 
-  // FIX: Add the new method to get all drivers
   getAllDrivers(): Observable<Driver[]> {
-    return this.http.get<Driver[]>(`${this.apiUrl}/drivers`);
-  }
-  // --- FIX: ADD METHODS FOR DRIVER VERIFICATION ---
+    return this.http.get<Driver[]>(`${this.apiUrl}/api/admin/drivers`);
+  } // For stats counts and verified filter [21]
 
-  /**
-   * Fetches a list of all drivers who are not yet verified.
-   * This corresponds to GET /api/admin/unverified/drivers
-   * @returns An Observable array of Driver objects.
-   */
   getUnverifiedDrivers(): Observable<Driver[]> {
-    return this.http.get<Driver[]>(`${this.apiUrl}/unverified/drivers`);
-  }
+    return this.http.get<Driver[]>(`${this.apiUrl}/api/admin/unverified/drivers`);
+  } // For verification queues [21]
 
-  /**
-   * Sends a request to verify a specific driver.
-   * This corresponds to POST /api/admin/verify/drivers/{driverId}
-   * @param driverId The unique ID of the driver to verify.
-   * @returns An Observable with the response from the server.
-   */
   verifyDriver(driverId: number): Observable<any> {
-    return this.http.post(`${this.apiUrl}/verify/drivers/${driverId}`, {});
- 
-  }
-   // New methods to add:
+    return this.http.post(`${this.apiUrl}/api/admin/verify/drivers/${driverId}`, {});
+  } // Verify driver [21]
 
-  /**
-   * Fetches all unverified admin accounts.
-   */
   getUnverifiedAdmins(): Observable<Admin[]> {
-    return this.http.get<Admin[]>(`${this.apiUrl}/unverified/admins`);
-  }
+    return this.http.get<Admin[]>(`${this.apiUrl}/api/admin/unverified/admins`);
+  } // For admin verification flows [21]
 
-  /**
-   * Verifies an admin by their ID.
-   * @param adminId The ID of the admin to verify.
-   */
+  deleteUser(username: string): Observable<string> {
+    return this.http.delete(`${this.apiUrl}/api/auth/delete/${username}`, { responseType: 'text' });
+  } // Plain text delete confirmation [21]
+
   verifyAdmin(adminId: number): Observable<any> {
-    // --- FIX: Added { responseType: 'text' } ---
-    // This tells Angular to expect a plain text string as the response,
-    // which prevents the JSON parsing error. as backend returns a simple string message.
-    return this.http.post(`${this.apiUrl}/verify/admins/${adminId}`, {}, { responseType: 'text' });
-  }
-
-  /**
-   * Gets all trips for a specific driver.
-   * @param driverId The ID of the driver.
-   */
-// --- FIX: Correctly typed the return value and the http.get call ---
- /**
-   * FIX: The return type is now explicitly Observable<TripBooking[]>.
-   * This tells TypeScript what kind of data to expect from the API,
-   * fixing the "Type 'unknown' is not assignable" error.
-   */
-  getTripsByDriver(driverId: number): Observable<TripBooking[]> {
-    return this.http.get<TripBooking[]>(`${this.apiUrl}/trips/driver/${driverId}`);
-  }
-
-  /**
-   * FIX: The return type is also explicitly Observable<TripBooking[]>.
-   */
-  getTripsByDate(date: string): Observable<TripBooking[]> {
-    return this.http.get<TripBooking[]>(`${this.apiUrl}/trips/date/${date}`);
-  }
+    return this.http.post(`${this.apiUrl}/api/admin/verify/admins/${adminId}`, {});
+  } // Verify admin [21]
 }
-
-
-
-

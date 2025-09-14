@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { DriverComponent } from './components/driver-dashboard/driver.component';
 import { TripsComponent } from './pages/trips/trip.component';
-import { EarningsComponent } from './pages/earnings/earnings.component';
 import { OverviewComponent } from './pages/overview/overview.component';
 import { VehicleComponent } from './pages/vehicle/vehicle.component';
 const routes: Routes = [
@@ -14,10 +13,6 @@ const routes: Routes = [
         path: '',
         redirectTo: 'overview',
         pathMatch: 'full'
-      },
-      {
-        path: 'earnings',
-        component: EarningsComponent
       },
       {
         path: 'overview',

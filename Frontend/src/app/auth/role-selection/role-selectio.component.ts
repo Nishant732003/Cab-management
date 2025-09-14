@@ -17,14 +17,18 @@ export class RoleSelectionComponent {
     if (role === 'admin') {
       // Admin goes directly to login
       this.router.navigate(['/login'], { queryParams: { role: 'admin' } });
-
     } else if (role === 'user') {
       // User goes to register user page
       this.router.navigate(['/registeruser'], { queryParams: { role: 'user' } });
-
     } else if (role === 'driver') {
       // Driver goes to register driver page
       this.router.navigate(['/registerdriver'], { queryParams: { role: 'driver' } });
     }
+  }
+
+  // Add this method to prevent event bubbling when clicking buttons
+  onCardClick(event: Event, role: 'admin' | 'user' | 'driver') {
+    event.preventDefault();
+    this.selectRole(role);
   }
 }

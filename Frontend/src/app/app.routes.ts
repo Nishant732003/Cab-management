@@ -47,6 +47,6 @@ component:UserRegistrationComponent
   // },
   
   // Default and wildcard routes
-  { path: '', redirectTo: '/login', pathMatch: 'full' },
-  { path: '**', redirectTo: '/login' }
+  { path: '', redirectTo: '/role', pathMatch: 'full' },
+  { path: '**', redirectTo: '/role' }
 ];

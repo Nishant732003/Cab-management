@@ -4,7 +4,9 @@
 
     <div class="stat-card earnings">
       <div class="stat-header">
-        <div class="stat-icon"><i class="fas fa-wallet"></i></div>
+        <div class="stat-icon">  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-emerald-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18M3 7v10a2 2 0 002 2h14a2 2 0 002-2V7M3 7a2 2 0 012-2h14a2 2 0 012 2m-6 5h.01"/>
+      </svg></div>
         <div class="stat-info">
           <h3>Today's Earnings</h3>
           <p class="stat-value">₹{{ (todayStats.earnings || 0) | number:'1.0-0' }}</p>
@@ -17,7 +19,11 @@
 
     <div class="stat-card trips">
       <div class="stat-header">
-        <div class="stat-icon"><i class="fas fa-route"></i></div>
+        <div class="stat-icon">  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-indigo-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h5l2 7h4l2-10h5" />
+        <circle cx="6" cy="19" r="2" />
+        <circle cx="18" cy="19" r="2" />
+      </svg></div>
         <div class="stat-info">
           <h3>Trips Completed</h3>
           <p class="stat-value">{{ todayStats.trips || 0 }}</p>
@@ -30,7 +36,9 @@
 
     <div class="stat-card distance">
       <div class="stat-header">
-        <div class="stat-icon"><i class="fas fa-road"></i></div>
+        <div class="stat-icon"><svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M3 13l2-5a2 2 0 011.9-1.3h10.2A2 2 0 0119 8l2 5m-2 0H5m14 0v5a1 1 0 01-1 1h-1a1 1 0 01-1-1v-1H8v1a1 1 0 01-1 1H6a1 1 0 01-1-1v-5" />
+  </svg></div>
         <div class="stat-info">
           <h3>Distance Covered</h3>
           <p class="stat-value">{{ (todayStats.distanceinKm || 0) | number:'1.1-1' }} km</p>
@@ -151,10 +159,10 @@
       <div class="earnings-summary-card">
         <div class="card-header">
           <h3>
-            <i class="fas fa-chart-line mr-2"></i>
+          
             Earnings Summary
           </h3>
-          <select class="period-selector"
+          <select class="period-selector ml-5"
                   [(ngModel)]="selectedPeriod"
                   (change)="loadEarningsData()"
                   aria-label="Select time period for earnings">
@@ -199,20 +207,26 @@
       </div>
 
       <div class="vehicle-status-card">
-        <div class="card-header">
-          <h3>
-            <i class="fas fa-car mr-2"></i>
-            Vehicle Status
-          </h3>
-          <a routerLink="/driver/vehicle" class="view-details">
-            Details <i class="fas fa-arrow-right ml-1"></i>
-          </a>
-        </div>
+      
+  <div class="card-header flex items-center justify-between">
+    <h3 class="flex items-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 13l2-5a2 2 0 011.9-1.3h10.2A2 2 0 0119 8l2 5m-2 0H5m14 0v5a1 1 0 01-1 1h-1a1 1 0 01-1-1v-1H8v1a1 1 0 01-1 1H6a1 1 0 01-1-1v-5" />
+      </svg>
+      Vehicle Status
+    </h3>
+
+    <a routerLink="/driver/vehicle" class="view-details flex items-center">
+      Details
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 ml-1 text-slate-400 group-hover:text-emerald-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+      </svg>
+    </a>
+  </div>
+
 
         <div class="vehicle-info">
-          <div class="vehicle-image">
-            <i class="fas fa-car"></i>
-          </div>
+        
           <div class="vehicle-details">
             <h4>{{ vehicle?.carType || 'Unknown' }}</h4>
             <p>{{ vehicle?.numberPlate || 'N/A' }} • {{ vehicle?.perKmRate | number:'1.0-2' }} ₹/km</p>
@@ -232,9 +246,7 @@
           <button class="action-btn" (click)="viewTripHistory()" aria-label="View trip history">
             <i class="fas fa-history"></i><span>Trip History</span>
           </button>
-          <button class="action-btn" (click)="viewEarnings()" aria-label="View detailed earnings">
-            <i class="fas fa-chart-line"></i><span>View Earnings</span>
-          </button>
+       
           <button class="action-btn" (click)="reportIssue()" aria-label="Report an issue">
             <i class="fas fa-bug"></i><span>Report Issue</span>
           </button>

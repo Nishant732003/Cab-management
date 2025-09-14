@@ -48,14 +48,7 @@ export class SidebarComponent implements OnInit {
       color: "text-yellow-600",
       bgColor: "bg-yellow-50",
     },
-    {
-      label: "Trip Management",
-      icon: "Route", 
-      // --- FIX: This now matches the path in the routing module ---
-      href: "/admin/trip-management", 
-      color: "text-purple-600",
-      bgColor: "bg-purple-50",
-    },
+
   ];
 
   constructor(private router: Router) {}
@@ -65,7 +58,7 @@ export class SidebarComponent implements OnInit {
 
     this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
-      .subscribe((event: NavigationEnd) => { // <-- CORRECTED THIS LINE
+      .subscribe((event: NavigationEnd) => { 
         this.currentPath = event.url;
       });
   }

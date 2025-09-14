@@ -1,11 +1,9 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { RouterModule, Router } from '@angular/router';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Router } from '@angular/router';
+import { Subject, forkJoin, of } from 'rxjs';
+import { takeUntil, catchError } from 'rxjs/operators';
+import { RideService, BookRideResponse } from '../../../../core/services/user/ride.service';
 
-// Interfaces
 interface Statistics {
   totalRides: number;
   activeDrivers: number;
@@ -16,25 +14,9 @@ interface Statistics {
   revenueChange: number;
   ratingChange: number;
 }
-
-interface ChartPeriod {
-  label: string;
-  value: string;
-}
-
-interface ChartData {
-  label: string;
-  value: number;
-  rides: number;
-}
-
-interface RideStatus {
-  name: string;
-  count: number;
-  percentage: number;
-  color: string;
-}
-
+interface ChartPeriod { label: string; value: '7d' | '1m' | '3m' | '1y'; }
+interface ChartData { label: string; value: number; rides: number; }
+interface RideStatus { name: string; count: number; percentage: number; color: string; }
 interface RecentRide {
   id: string;
   customerName: string;
@@ -45,7 +27,6 @@ interface RecentRide {
   status: 'completed' | 'ongoing' | 'pending' | 'cancelled';
   fare: number;
 }
-
 interface TopDriver {
   id: string;
   name: string;
@@ -55,23 +36,51 @@ interface TopDriver {
   earnings: number;
   isOnline: boolean;
 }
+type TripStatus = 'CONFIRMED' | 'COMPLETED' | 'CANCELLED' | 'IN_PROGRESS';
+interface Trip {
+  tripBookingId: number;
+  fromLocation: string;
+  toLocation: string;
+  fromDateTime: string;
+  toDateTime: string | null;
+  status: TripStatus;
+  distanceInKm: number;
+  bill: number;
+  customerRating: number | null;
+  driver: {
+    id: number;
+    username: string;
+    mobileNumber: string | null;
+    rating: number;
+    profilePhotoUrl: string | null;
+    licenceNo: string;
+  };
+  cab: {
+    cabId: number;
+    carType: string;
+    numberPlate: string | ' ';
+    imageUrl: string | null;
+  };
+}
 
 @Component({
   selector: 'app-overview',
   standalone: false,
-  // imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './overview.component.html',
   styleUrls: ['./overview.component.css']
 })
 export class OverviewComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
-  // Component state
+  // State
   isLoading = false;
-  selectedTimeFrame = 'today';
-  selectedChartPeriod = '7d';
+  selectedTimeFrame: 'today' | 'week' | 'month' | 'year' = 'today';
+  selectedChartPeriod: '7d' | '1m' | '3m' | '1y' = '7d';
 
-  // Chart periods
+  // Data containers
+  allTrips: Trip[] = [];
+  windowTrips: Trip[] = [];
+
   chartPeriods: ChartPeriod[] = [
     { label: '7D', value: '7d' },
     { label: '1M', value: '1m' },
@@ -79,141 +88,23 @@ export class OverviewComponent implements OnInit, OnDestroy {
     { label: '1Y', value: '1y' }
   ];
 
-  // Statistics data
   statistics: Statistics = {
-    totalRides: 1247,
-    activeDrivers: 89,
-    totalRevenue: 245670,
-    avgRating: 4.6,
-    ridesChange: 12.5,
-    driversChange: 8.3,
-    revenueChange: 15.2,
-    ratingChange: 94.5
+    totalRides: 0,
+    activeDrivers: 0,
+    totalRevenue: 0,
+    avgRating: 0,
+    ridesChange: 0,
+    driversChange: 0,
+    revenueChange: 0,
+    ratingChange: 0
   };
 
-  // Chart data
-  chartData: ChartData[] = [
-    { label: 'Mon', value: 85, rides: 134 },
-    { label: 'Tue', value: 92, rides: 147 },
-    { label: 'Wed', value: 78, rides: 123 },
-    { label: 'Thu', value: 95, rides: 152 },
-    { label: 'Fri', value: 88, rides: 140 },
-    { label: 'Sat', value: 100, rides: 160 },
-    { label: 'Sun', value: 75, rides: 120 }
-  ];
+  chartData: ChartData[] = [];
+  rideStatusData: RideStatus[] = [];
+  recentRides: RecentRide[] = [];
+  topDrivers: TopDriver[] = [];
 
-  // Ride status distribution
-  rideStatusData: RideStatus[] = [
-    { name: 'Completed', count: 856, percentage: 68.7, color: '#10b981' },
-    { name: 'Ongoing', count: 234, percentage: 18.8, color: '#3b82f6' },
-    { name: 'Pending', count: 98, percentage: 7.9, color: '#f59e0b' },
-    { name: 'Cancelled', count: 59, percentage: 4.7, color: '#ef4444' }
-  ];
-
-  // Recent rides data
-  recentRides: RecentRide[] = [
-    {
-      id: 'RID001',
-      customerName: 'Rahul Sharma',
-      pickup: 'Andheri West',
-      destination: 'Bandra Kurla Complex',
-      startTime: new Date(Date.now() - 1800000), // 30 minutes ago
-      driverName: 'Suresh Kumar',
-      status: 'completed',
-      fare: 285
-    },
-    {
-      id: 'RID002',
-      customerName: 'Priya Patel',
-      pickup: 'Powai',
-      destination: 'Mumbai Airport T2',
-      startTime: new Date(Date.now() - 3600000), // 1 hour ago
-      driverName: 'Rajesh Singh',
-      status: 'ongoing',
-      fare: 450
-    },
-    {
-      id: 'RID003',
-      customerName: 'Amit Verma',
-      pickup: 'Thane Station',
-      destination: 'Lower Parel',
-      startTime: new Date(Date.now() - 5400000), // 1.5 hours ago
-      driverName: 'Vikram Yadav',
-      status: 'completed',
-      fare: 320
-    },
-    {
-      id: 'RID004',
-      customerName: 'Neha Gupta',
-      pickup: 'Juhu Beach',
-      destination: 'Worli Sea Link',
-      startTime: new Date(Date.now() - 7200000), // 2 hours ago
-      driverName: 'Manoj Tiwari',
-      status: 'pending',
-      fare: 180
-    },
-    {
-      id: 'RID005',
-      customerName: 'Karan Mehta',
-      pickup: 'Ghatkopar East',
-      destination: 'Nariman Point',
-      startTime: new Date(Date.now() - 9000000), // 2.5 hours ago
-      driverName: 'Deepak Joshi',
-      status: 'cancelled',
-      fare: 0
-    }
-  ];
-
-  // Top drivers data
-  topDrivers: TopDriver[] = [
-    {
-      id: 'DRV001',
-      name: 'Suresh Kumar',
-      vehicleNumber: 'MH 12 AB 1234',
-      rating: 4.9,
-      ridesCompleted: 156,
-      earnings: 12450,
-      isOnline: true
-    },
-    {
-      id: 'DRV002',
-      name: 'Rajesh Singh',
-      vehicleNumber: 'MH 14 CD 5678',
-      rating: 4.8,
-      ridesCompleted: 142,
-      earnings: 11280,
-      isOnline: true
-    },
-    {
-      id: 'DRV003',
-      name: 'Vikram Yadav',
-      vehicleNumber: 'MH 16 EF 9012',
-      rating: 4.7,
-      ridesCompleted: 138,
-      earnings: 10950,
-      isOnline: false
-    },
-    {
-      id: 'DRV004',
-      name: 'Manoj Tiwari',
-      vehicleNumber: 'MH 18 GH 3456',
-      rating: 4.6,
-      ridesCompleted: 134,
-      earnings: 10670,
-      isOnline: true
-    },
-    {
-      id: 'DRV005',
-      name: 'Deepak Joshi',
-      vehicleNumber: 'MH 20 IJ 7890',
-      rating: 4.5,
-      ridesCompleted: 128,
-      earnings: 10240,
-      isOnline: true
-    }
-  ];
-
-  constructor(private router: Router) {}
+  constructor(private router: Router, private rideService: RideService) {}
 
   ngOnInit(): void {
     this.loadDashboardData();
@@ -225,223 +116,379 @@ export class OverviewComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // Load dashboard data
-  loadDashboardData(): void {
-    this.isLoading = true;
-    
-    // Simulate API call
-    setTimeout(() => {
-      this.updateStatisticsBasedOnTimeFrame();
-      this.updateChartData();
-      this.isLoading = false;
-    }, 1000);
+  // Utilities reused from TripHistory
+  private getCurrentUserId(): number | null {
+    try {
+      const raw = localStorage.getItem('currentUser');
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      return typeof parsed?.id === 'number' ? parsed.id : null;
+    } catch {
+      return null;
+    }
   }
 
-  // Refresh data
+  private normalizeStatus(s: string): TripStatus {
+    switch ((s || '').toUpperCase()) {
+      case 'COMPLETED': return 'COMPLETED';
+      case 'CANCELLED': return 'CANCELLED';
+      case 'IN_PROGRESS': return 'IN_PROGRESS';
+      case 'CONFIRMED': return 'CONFIRMED';
+      case 'SCHEDULED': return 'CONFIRMED';
+      default: return 'CONFIRMED';
+    }
+  }
+
+  private mapApiResponseToTrip(api: any): Trip {
+    const safeDriver = {
+      id: api.driverId || 0,
+      username: `${api.driverFirstName || 'Driver'} ${api.driverLastName || ''}`.trim() || 'Assigned Soon',
+      mobileNumber: null,
+      rating: 0,
+      profilePhotoUrl: null,
+      licenceNo: 'N/A'
+    };
+    const safeCab = {
+      cabId: api.cabId || 0,
+      carType: api.carType || 'Vehicle',
+      numberPlate: ' ',
+      imageUrl: null
+    };
+    return {
+      tripBookingId: api.tripBookingId,
+      fromLocation: api.fromLocation,
+      toLocation: api.toLocation,
+      fromDateTime: api.fromDateTime,
+      toDateTime: api.toDateTime ?? null,
+      status: this.normalizeStatus(api.status),
+      distanceInKm: api.distanceinKm || 0,
+      bill: api.bill || 0,
+      customerRating: api.customerRating ?? null,
+      driver: safeDriver,
+      cab: safeCab
+    };
+  }
+
+  // Data loading
+  loadDashboardData(): void {
+    this.isLoading = true;
+    const customerId = this.getCurrentUserId();
+    if (!customerId) {
+      this.isLoading = false;
+      return;
+    }
+
+    this.rideService.getCustomerTrips(customerId).pipe(
+      takeUntil(this.destroy$),
+      catchError(err => {
+        console.error('Overview load error', err);
+        // Fallback to empty dataset; optionally reuse TripHistory mock here
+        this.allTrips = [];
+        return of([]);
+      })
+    ).subscribe((trips: BookRideResponse[] | any[]) => {
+      this.allTrips = (trips || []).map(t => this.mapApiResponseToTrip(t));
+      this.recomputeAll();
+      this.isLoading = false;
+    });
+  }
+
   refreshData(): void {
     this.loadDashboardData();
   }
 
-  // Start periodic data refresh
   startDataRefresh(): void {
-    // Refresh data every 5 minutes
-    setInterval(() => {
-      this.refreshStatistics();
-    }, 300000);
+    // Optionally keep a ref to clear on destroy
+    setInterval(() => this.refreshStatisticsRealtime(), 300000);
   }
 
-  // Time frame change handler
   onTimeFrameChange(): void {
-    this.loadDashboardData();
+    this.recomputeAll();
   }
 
-  // Set chart period
-  setChartPeriod(period: string): void {
+  setChartPeriod(period: '7d' | '1m' | '3m' | '1y'): void {
     this.selectedChartPeriod = period;
     this.updateChartData();
   }
 
-  // Update statistics based on time frame
-  updateStatisticsBasedOnTimeFrame(): void {
-    const multipliers = {
-      'today': { rides: 1, revenue: 1 },
-      'week': { rides: 7, revenue: 7 },
-      'month': { rides: 30, revenue: 30 },
-      'year': { rides: 365, revenue: 365 }
-    };
+  // Core recompute pipeline
+  private recomputeAll(): void {
+    this.windowTrips = this.filterTripsByTimeframe(this.allTrips, this.selectedTimeFrame);
+    const compareTrips = this.getComparisonWindowTrips(this.allTrips, this.selectedTimeFrame);
 
-    const multiplier = multipliers[this.selectedTimeFrame as keyof typeof multipliers] || multipliers['today'];
-    
-    this.statistics = {
-      ...this.statistics,
-      totalRides: Math.floor(this.statistics.totalRides * multiplier.rides * (0.8 + Math.random() * 0.4)),
-      totalRevenue: Math.floor(this.statistics.totalRevenue * multiplier.revenue * (0.8 + Math.random() * 0.4)),
-      ridesChange: Number((Math.random() * 30 - 5).toFixed(1)),
-      revenueChange: Number((Math.random() * 25 - 2).toFixed(1))
-    };
+    this.updateStatistics(this.windowTrips, compareTrips);
+    this.updateRideStatusData(this.windowTrips);
+    this.updateRecentRides(this.windowTrips);
+    this.updateTopDrivers(this.windowTrips);
+    this.updateChartData();
   }
 
-  // Update chart data based on selected period
-  updateChartData(): void {
-    const periods = {
-      '7d': [
-        { label: 'Mon', value: 85, rides: 134 },
-        { label: 'Tue', value: 92, rides: 147 },
-        { label: 'Wed', value: 78, rides: 123 },
-        { label: 'Thu', value: 95, rides: 152 },
-        { label: 'Fri', value: 88, rides: 140 },
-        { label: 'Sat', value: 100, rides: 160 },
-        { label: 'Sun', value: 75, rides: 120 }
-      ],
-      '1m': [
-        { label: 'Week 1', value: 85, rides: 890 },
-        { label: 'Week 2', value: 92, rides: 945 },
-        { label: 'Week 3', value: 78, rides: 823 },
-        { label: 'Week 4', value: 95, rides: 1012 }
-      ],
-      '3m': [
-        { label: 'Jan', value: 85, rides: 3420 },
-        { label: 'Feb', value: 92, rides: 3680 },
-        { label: 'Mar', value: 78, rides: 3125 }
-      ],
-      '1y': [
-        { label: 'Q1', value: 85, rides: 10890 },
-        { label: 'Q2', value: 92, rides: 11450 },
-        { label: 'Q3', value: 78, rides: 9823 },
-        { label: 'Q4', value: 95, rides: 12012 }
-      ]
-    };
-
-    this.chartData = periods[this.selectedChartPeriod as keyof typeof periods] || periods['7d'];
-  }
-
-  // Refresh statistics with real-time data
-  refreshStatistics(): void {
-    // Simulate real-time updates
-    this.statistics = {
-      ...this.statistics,
-      totalRides: this.statistics.totalRides + Math.floor(Math.random() * 5),
-      activeDrivers: Math.max(70, this.statistics.activeDrivers + Math.floor(Math.random() * 6 - 3)),
-      totalRevenue: this.statistics.totalRevenue + Math.floor(Math.random() * 1000)
-    };
-
-    // Update ride status data
-    this.updateRideStatusData();
-    
-    // Add new recent rides occasionally
-    if (Math.random() < 0.3) {
-      this.addNewRecentRide();
+  // Timeframe helpers
+  private filterTripsByTimeframe(trips: Trip[], tf: 'today' | 'week' | 'month' | 'year'): Trip[] {
+    const now = new Date();
+    const start = new Date(now);
+    if (tf === 'today') {
+      start.setHours(0, 0, 0, 0);
+    } else if (tf === 'week') {
+      const day = now.getDay(); // 0 Sun
+      const diff = (day === 0 ? 6 : day - 1); // Monday start
+      start.setDate(now.getDate() - diff);
+      start.setHours(0, 0, 0, 0);
+    } else if (tf === 'month') {
+      start.setDate(1);
+      start.setHours(0, 0, 0, 0);
+    } else {
+      start.setMonth(0, 1);
+      start.setHours(0, 0, 0, 0);
     }
+    return trips.filter(t => new Date(t.fromDateTime) >= start && new Date(t.fromDateTime) <= now);
   }
 
-  // Update ride status distribution
-  updateRideStatusData(): void {
-    const total = this.statistics.totalRides;
+  private getComparisonWindowTrips(trips: Trip[], tf: 'today' | 'week' | 'month' | 'year'): Trip[] {
+    const now = new Date();
+    let startPrev = new Date();
+    let endPrev = new Date();
+
+    if (tf === 'today') {
+      // previous day
+      startPrev = new Date(now); startPrev.setDate(now.getDate() - 1); startPrev.setHours(0,0,0,0);
+      endPrev = new Date(now); endPrev.setDate(now.getDate() - 1); endPrev.setHours(23,59,59,999);
+    } else if (tf === 'week') {
+      // previous 7 days window ending last week
+      endPrev = new Date(now); endPrev.setDate(now.getDate() - (now.getDay() === 0 ? 7 : now.getDay())); // end last Sunday
+      startPrev = new Date(endPrev); startPrev.setDate(endPrev.getDate() - 6); startPrev.setHours(0,0,0,0);
+      endPrev.setHours(23,59,59,999);
+    } else if (tf === 'month') {
+      // previous calendar month
+      startPrev = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0,0,0,0);
+      endPrev = new Date(now.getFullYear(), now.getMonth(), 0, 23,59,59,999);
+    } else {
+      // previous calendar year
+      startPrev = new Date(now.getFullYear() - 1, 0, 1, 0,0,0,0);
+      endPrev = new Date(now.getFullYear() - 1, 11, 31, 23,59,59,999);
+    }
+
+    return trips.filter(t => {
+      const d = new Date(t.fromDateTime);
+      return d >= startPrev && d <= endPrev;
+    });
+  }
+
+  // KPIs
+  private updateStatistics(current: Trip[], previous: Trip[]): void {
+    const totalRides = current.length;
+    const activeDrivers = new Set(current.filter(t => t.status === 'IN_PROGRESS').map(t => t.driver.id)).size;
+    const totalRevenue = current.filter(t => t.status === 'COMPLETED').reduce((s, t) => s + (t.bill || 0), 0);
+    const ratings = current.map(t => t.customerRating).filter((r): r is number => typeof r === 'number');
+    const avgRating = ratings.length ? Number((ratings.reduce((a,b)=>a+b,0) / ratings.length).toFixed(1)) : 0;
+
+    // Changes vs previous window (percent)
+    const pct = (cur: number, prev: number) => {
+      if (prev === 0) return cur > 0 ? 100 : 0;
+      return Number((((cur - prev) / prev) * 100).toFixed(1));
+    };
+    const prevRides = previous.length;
+    const prevActiveDrivers = new Set(previous.filter(t => t.status === 'IN_PROGRESS').map(t => t.driver.id)).size;
+    const prevRevenue = previous.filter(t => t.status === 'COMPLETED').reduce((s, t) => s + (t.bill || 0), 0);
+    const prevRatings = previous.map(t => t.customerRating).filter((r): r is number => typeof r === 'number');
+    const prevAvgRating = prevRatings.length ? (prevRatings.reduce((a,b)=>a+b,0) / prevRatings.length) : 0;
+
+    this.statistics = {
+      totalRides,
+      activeDrivers,
+      totalRevenue,
+      avgRating,
+      ridesChange: pct(totalRides, prevRides),
+      driversChange: pct(activeDrivers, prevActiveDrivers),
+      revenueChange: pct(totalRevenue, prevRevenue),
+      ratingChange: pct(avgRating, prevAvgRating || 0)
+    };
+  }
+
+  // Status distribution
+  private updateRideStatusData(trips: Trip[]): void {
+    const total = Math.max(trips.length, 1);
+    const count = (s: TripStatus) => trips.filter(t => t.status === s).length;
+
+    const completed = count('COMPLETED');
+    const ongoing = count('IN_PROGRESS');
+    const confirmed = count('CONFIRMED');
+    const cancelled = count('CANCELLED');
+
     this.rideStatusData = [
-      { name: 'Completed', count: Math.floor(total * 0.687), percentage: 68.7, color: '#10b981' },
-      { name: 'Ongoing', count: Math.floor(total * 0.188), percentage: 18.8, color: '#3b82f6' },
-      { name: 'Pending', count: Math.floor(total * 0.079), percentage: 7.9, color: '#f59e0b' },
-      { name: 'Cancelled', count: Math.floor(total * 0.047), percentage: 4.6, color: '#ef4444' }
+      { name: 'Completed', count: completed, percentage: Number(((completed/total)*100).toFixed(1)), color: '#10b981' },
+      { name: 'Ongoing', count: ongoing, percentage: Number(((ongoing/total)*100).toFixed(1)), color: '#3b82f6' },
+      { name: 'Pending', count: confirmed, percentage: Number(((confirmed/total)*100).toFixed(1)), color: '#f59e0b' },
+      { name: 'Cancelled', count: cancelled, percentage: Number(((cancelled/total)*100).toFixed(1)), color: '#ef4444' }
     ];
   }
 
-  // Add new recent ride
-  addNewRecentRide(): void {
-    const customers = ['Arjun Shah', 'Sneha Reddy', 'Rohit Agarwal', 'Kavya Nair', 'Aditya Jain'];
-    const drivers = ['Ramesh Patil', 'Sandeep Kaur', 'Naveen Kumar', 'Pooja Desai', 'Ashish Pandey'];
-    const locations = [
-      { pickup: 'Malad West', destination: 'Goregaon East' },
-      { pickup: 'Kandivali', destination: 'Borivali Station' },
-      { pickup: 'Santacruz', destination: 'Ville Parle' },
-      { pickup: 'Jogeshwari', destination: 'Andheri Metro' }
-    ];
+  // Recent rides
+  private updateRecentRides(trips: Trip[]): void {
+    const latest = [...trips].sort((a, b) => new Date(b.fromDateTime).getTime() - new Date(a.fromDateTime).getTime()).slice(0, 5);
+    this.recentRides = latest.map(t => ({
+      id: `RID${t.tripBookingId}`,
+      customerName: this.deriveCustomerName(t) ?? 'Customer',
+      pickup: t.fromLocation,
+      destination: t.toLocation,
+      startTime: new Date(t.fromDateTime),
+      driverName: t.driver.username,
+      status: this.toUiStatus(t.status),
+      fare: t.bill || 0
+    }));
+  }
 
-    const location = locations[Math.floor(Math.random() * locations.length)];
-    const newRide: RecentRide = {
-      id: 'RID' + Date.now().toString().slice(-3),
-      customerName: customers[Math.floor(Math.random() * customers.length)],
-      pickup: location.pickup,
-      destination: location.destination,
-      startTime: new Date(),
-      driverName: drivers[Math.floor(Math.random() * drivers.length)],
-      status: 'ongoing',
-      fare: Math.floor(Math.random() * 400) + 100
-    };
+  private deriveCustomerName(t: Trip): string | null {
+    // If API later provides customer names, map here; else null
+    return null;
+  }
 
-    this.recentRides.unshift(newRide);
-    if (this.recentRides.length > 5) {
-      this.recentRides.pop();
+  private toUiStatus(s: TripStatus): RecentRide['status'] {
+    switch (s) {
+      case 'COMPLETED': return 'completed';
+      case 'IN_PROGRESS': return 'ongoing';
+      case 'CANCELLED': return 'cancelled';
+      default: return 'pending'; // CONFIRMED
     }
   }
 
-  // Navigation methods
+  // Top drivers
+  private updateTopDrivers(trips: Trip[]): void {
+    const byDriver = new Map<number, {
+      name: string; ridesCompleted: number; earnings: number; ratingSum: number; ratingCount: number; isOnline: boolean;
+    }>();
+
+    for (const t of trips) {
+      const id = t.driver.id || 0;
+      if (!byDriver.has(id)) {
+        byDriver.set(id, {
+          name: t.driver.username || `Driver ${id || ''}`,
+          ridesCompleted: 0,
+          earnings: 0,
+          ratingSum: 0,
+          ratingCount: 0,
+          isOnline: false
+        });
+      }
+      const agg = byDriver.get(id)!;
+      if (t.status === 'COMPLETED') {
+        agg.ridesCompleted += 1;
+        agg.earnings += t.bill || 0;
+      }
+      if (typeof t.customerRating === 'number') {
+        agg.ratingSum += t.customerRating;
+        agg.ratingCount += 1;
+      }
+      if (t.status === 'IN_PROGRESS') {
+        agg.isOnline = true;
+      }
+    }
+
+    const items = Array.from(byDriver.entries()).map(([id, v]) => ({
+      id: id ? String(id) : '0',
+      name: v.name,
+      vehicleNumber: '', // not in API
+      rating: v.ratingCount ? Number((v.ratingSum / v.ratingCount).toFixed(1)) : 0,
+      ridesCompleted: v.ridesCompleted,
+      earnings: v.earnings,
+      isOnline: v.isOnline
+    }));
+
+    this.topDrivers = items.sort((a, b) => b.earnings - a.earnings).slice(0, 5);
+  }
+
+  // Charts
+  private updateChartData(): void {
+    const trips = this.windowTrips;
+    const groupKey = this.selectedChartPeriod;
+
+    const buckets: { label: string; keyStart: number; rides: number }[] = this.buildChartBuckets(groupKey);
+    const byBucket = new Map<number, number>(); // startTimeMs -> rides
+    for (const t of trips) {
+      const d = new Date(t.fromDateTime);
+      const bucketStart = this.bucketStart(d, groupKey).getTime();
+      byBucket.set(bucketStart, (byBucket.get(bucketStart) || 0) + 1);
+    }
+
+    const filled = buckets.map(b => {
+      const rides = byBucket.get(b.keyStart) || 0;
+      // value as percentage scale for bar height
+      return { label: b.label, value: this.scaleValue(rides, buckets, byBucket), rides };
+    });
+
+    this.chartData = filled;
+  }
+
+  private buildChartBuckets(period: '7d' | '1m' | '3m' | '1y') {
+    const now = new Date();
+    const list: { label: string; keyStart: number; rides: number }[] = [];
+    if (period === '7d') {
+      // last 7 days labels Mon..Sun by date
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now); d.setDate(now.getDate() - i); d.setHours(0,0,0,0);
+        list.push({ label: d.toLocaleDateString('en-US', { weekday: 'short' }), keyStart: d.getTime(), rides: 0 });
+      }
+    } else if (period === '1m') {
+      // week buckets for current month
+      const start = new Date(now.getFullYear(), now.getMonth(), 1); start.setHours(0,0,0,0);
+      for (let w = 1; w <= 5; w++) {
+        const wk = new Date(start); wk.setDate(start.getDate() + (w-1)*7);
+        list.push({ label: `Week ${w}`, keyStart: wk.getTime(), rides: 0 });
+      }
+    } else if (period === '3m') {
+      // last 3 months
+      for (let i = 2; i >= 0; i--) {
+        const m = new Date(now.getFullYear(), now.getMonth() - i, 1); m.setHours(0,0,0,0);
+        list.push({ label: m.toLocaleString('en-US', { month: 'short' }), keyStart: m.getTime(), rides: 0 });
+      }
+    } else {
+      // quarters in current year
+      const quarters = [0,3,6,9];
+      for (let qi = 0; qi < quarters.length; qi++) {
+        const q = new Date(now.getFullYear(), quarters[qi], 1); q.setHours(0,0,0,0);
+        list.push({ label: `Q${qi+1}`, keyStart: q.getTime(), rides: 0 });
+      }
+    }
+    return list;
+  }
+
+  private bucketStart(d: Date, period: '7d' | '1m' | '3m' | '1y'): Date {
+    if (period === '7d') { const x = new Date(d); x.setHours(0,0,0,0); return x; }
+    if (period === '1m') {
+      // approximate to week-of-month starting from day 1
+      const start = new Date(d.getFullYear(), d.getMonth(), 1); start.setHours(0,0,0,0);
+      const diffDays = Math.floor((d.getTime() - start.getTime()) / (1000*60*60*24));
+      const weekIndex = Math.floor(diffDays / 7);
+      const wk = new Date(start); wk.setDate(start.getDate() + weekIndex*7);
+      return wk;
+    }
+    if (period === '3m') { const x = new Date(d.getFullYear(), d.getMonth(), 1); x.setHours(0,0,0,0); return x; }
+    // '1y' -> quarter start
+    const qStartMonth = Math.floor(d.getMonth()/3) * 3;
+    const x = new Date(d.getFullYear(), qStartMonth, 1); x.setHours(0,0,0,0); return x;
+  }
+
+  private scaleValue(rides: number, buckets: {keyStart:number}[], byBucket: Map<number, number>): number {
+    const max = Math.max(1, ...buckets.map(b => byBucket.get(b.keyStart) || 0));
+    return Math.round((rides / max) * 100);
+  }
+
+  // Light realtime touch-up (optional)
+  private refreshStatisticsRealtime(): void {
+    if (!this.allTrips.length) return;
+    // No mutation of backend data; could refetch instead
+    this.recomputeAll();
+  }
+
+  // Navigation
   navigateTo(route: string): void {
     this.router.navigate([route]);
   }
 
-  // Utility methods
-  getTotalActiveRides(): number {
-    return this.recentRides.filter(ride => ride.status === 'ongoing').length;
-  }
-
-  getTotalOnlineDrivers(): number {
-    return this.topDrivers.filter(driver => driver.isOnline).length;
-  }
-
-  getAverageRideValue(): number {
-    const completedRides = this.recentRides.filter(ride => ride.status === 'completed');
-    if (completedRides.length === 0) return 0;
-    
-    const total = completedRides.reduce((sum, ride) => sum + ride.fare, 0);
-    return Math.round(total / completedRides.length);
-  }
-
-  // Export data methods
-  exportRidesData(): void {
-    // Implementation for exporting rides data
-    console.log('Exporting rides data...');
-  }
-
-  exportDriversData(): void {
-    // Implementation for exporting drivers data
-    console.log('Exporting drivers data...');
-  }
-
-  exportRevenueData(): void {
-    // Implementation for exporting revenue data
-    console.log('Exporting revenue data...');
-  }
-
-  // Filter methods
-  filterRidesByStatus(status: string): RecentRide[] {
-    return this.recentRides.filter(ride => ride.status === status);
-  }
-
-  filterDriversByStatus(isOnline: boolean): TopDriver[] {
-    return this.topDrivers.filter(driver => driver.isOnline === isOnline);
-  }
-
-  // Format methods
+  // Formatters (reuse existing)
   formatCurrency(amount: number): string {
     return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 0
     }).format(amount);
-  }
-
-  formatPercentage(value: number): string {
-    return `${value > 0 ? '+' : ''}${value.toFixed(1)}%`;
-  }
-
-  formatNumber(value: number): string {
-    return new Intl.NumberFormat('en-IN').format(value);
-  }
-
-  // Error handling
-  handleError(error: any): void {
-    console.error('Dashboard error:', error);
-    // Implement error handling logic
   }
 }

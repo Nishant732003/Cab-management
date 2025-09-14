@@ -7,7 +7,7 @@ import { UserComponent } from './pages/user/user.component';
 // import { UsersManagementComponent } from './pages/users-management/users-management.component';
 import { DriverComponent } from './pages/driver/driver.component';
 import { AdminVerificationComponent } from './pages/admin-verification/admin-verification.component'; // Import new component
-import { TripsComponent } from './pages/trips/trips.component'; // Import new component
+// Import new component
 
 const routes: Routes = [
   {
@@ -23,7 +23,7 @@ const routes: Routes = [
       // --- Route for managing drivers ---
       { path: 'drivers', component: DriverComponent },
       // --- CORRECTED ROUTE for trip management ---
-      { path: 'trip-management', component: TripsComponent },
+
       // --- CORRECTED ROUTE for admin verification ---
       { path: 'admin-verification', component: AdminVerificationComponent },
       // --- CRITICAL FIX: The wildcard route MUST be last ---

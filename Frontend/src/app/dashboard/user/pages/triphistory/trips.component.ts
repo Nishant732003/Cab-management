@@ -237,14 +237,26 @@ mapApiResponseToTrip(api: any): Trip {
   onSortChange(): void { this.applyFilters(); }
   onSearchChange(): void { this.applyFilters(); }
 
-  viewTripDetails(trip: Trip): void {
+  viewTripDetails(event:any,trip: Trip): void {
+    const target = event.target as HTMLElement;
+  const interactiveElements = ['BUTTON', 'A', 'INPUT', 'SELECT', 'TEXTAREA'];
+  
+  if (interactiveElements.includes(target.tagName) || 
+      target.closest('button') || 
+      target.closest('a')) {
+    // Click was on an interactive element, don't open trip details
+    return;
+  }
+  
+     event.stopPropagation();
     this.selectedTrip = trip;
   }
   closeTripDetails(): void {
     this.selectedTrip = null;
   }
 
-  openRatingModal(trip: Trip): void {
+  openRatingModal(event:any,trip: Trip): void {
+    event.stopPropagation();
     this.ratingTrip = trip;
     this.currentRating = trip.customerRating || 0;
     this.showRatingModal = true;

@@ -104,22 +104,22 @@ export class RideService {
   }
 
 geocodeAddress(address: string): Observable<{ lat: number, lng: number }> {
+  const encodedAddress = encodeURIComponent(address);
+  const url = `/api/google/maps/api/geocode/json?address=${encodedAddress}&key=${environment.googleMapsApiKey}`;
 
-const url = `/api/ors/geocode/search?api_key=${this.orsApiKey}&text=${encodeURIComponent(address)}&size=1`;
- 
-return this.http.get<any>(url).pipe(
- map(res => {
-const coords: [number, number] | undefined =
- res?.features?.[0]?.geometry?.coordinates;
 
- if (Array.isArray(coords) && coords.length >= 2) {
-const [lon, lat] = coords;
- return { lat, lng: lon };
+  return this.http.get<any>(url).pipe(
+    map(res => {
+      if (res.status === 'OK' && res.results.length > 0) {
+        console.log('Geocode response:', res);
+        const location = res.results[0].geometry.location;
+        return { lat: location.lat, lng: location.lng };
+      }
+      throw new Error('Location not found');
+    })
+  );
 }
- throw new Error('Location not found');
- })
- );
-}
+
 
 getDistance(fromLat: number, fromLng: number, toLat: number, toLng: number): Observable<number> {
   // Update to use the proxy path

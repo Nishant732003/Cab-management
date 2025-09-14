@@ -4,7 +4,6 @@ import { UsersCustomerComponent } from './components/user-dashboard/user.compone
 
 // Import page components
 import { BookRideComponent } from './pages/book-ride/bookRide.component';
-import { CurrentRidesComponent } from './pages/current-ride/currentRide.component';
 import { OverviewComponent } from './pages/overview/overview.component';
 import { TripHistoryComponent } from './pages/triphistory/trips.component';
 
@@ -29,10 +28,7 @@ const routes: Routes = [
         path: 'book-ride',
         component: BookRideComponent
       },
-      {
-        path: 'current-ride',
-        component: CurrentRidesComponent
-      },
+
       {
         path: 'trip-history',
         component: TripHistoryComponent

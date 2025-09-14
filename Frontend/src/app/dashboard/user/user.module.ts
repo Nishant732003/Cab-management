@@ -12,13 +12,12 @@ import { UsersCustomerComponent } from './components/user-dashboard/user.compone
 
 // Page components
 import { BookRideComponent } from './pages/book-ride/bookRide.component';
-import { CurrentRidesComponent } from './pages/current-ride/currentRide.component';
 import { OverviewComponent } from './pages/overview/overview.component';
 import { TripHistoryComponent } from './pages/triphistory/trips.component';
 
 // Dashboard components
 
-import { UserNavbarComponent } from './components/user-navbar/user-navbar.component';
+import { NavbarComponent } from './components/user-navbar/user-navbar.component';
 import { UserSidebarComponent } from './components/user-sidebar/user-sidebar.component';
 
 // Services (if any user-specific services)
@@ -34,13 +33,12 @@ import { UserSidebarComponent } from './components/user-sidebar/user-sidebar.com
     // Page components\
     UsersCustomerComponent,
     BookRideComponent,
-    CurrentRidesComponent,
     OverviewComponent,
     TripHistoryComponent,
     
     // Dashboard components
   
-    UserNavbarComponent,
+    NavbarComponent,
     UserSidebarComponent
   ],
   imports: [
@@ -48,7 +46,7 @@ import { UserSidebarComponent } from './components/user-sidebar/user-sidebar.com
     UserRoutingModule,
     FormsModule,
     ReactiveFormsModule,
-      RouterModule,
+    RouterModule,
    
   ],
   providers: [
