@@ -1,0 +1,218 @@
+<div class="p-6 space-y-6 bg-gray-50 min-h-screen">
+  <!-- Header -->
+  <div class="flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-gray-900">Driver Management</h1>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <!-- Total Drivers Card -->
+    <div class="bg-white rounded-xl shadow-sm p-6 flex items-start">
+      <div class="p-3 rounded-lg mr-4 bg-blue-100 text-blue-600">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+      </div>
+      <div>
+        <p class="text-gray-500 text-sm">Total Drivers</p>
+        <h3 class="text-2xl font-bold text-gray-900">{{ isLoading ? '...' : allDrivers.length }}</h3>
+      </div>
+    </div>
+
+    <!-- Pending Verification Card -->
+    <div class="bg-white rounded-xl shadow-sm p-6 flex items-start">
+      <div class="p-3 rounded-lg mr-4 bg-yellow-100 text-yellow-600">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      </div>
+      <div>
+        <p class="text-gray-500 text-sm">Pending Verification</p>
+        <h3 class="text-2xl font-bold text-gray-900">{{ isLoading ? '...' : pendingDriversCount }}</h3>
+      </div>
+    </div>
+
+    <!-- Verified Drivers Card -->
+    <div class="bg-white rounded-xl shadow-sm p-6 flex items-start">
+      <div class="p-3 rounded-lg mr-4 bg-green-100 text-green-600">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      </div>
+      <div>
+        <p class="text-gray-500 text-sm">Verified Drivers</p>
+        <h3 class="text-2xl font-bold text-gray-900">{{ isLoading ? '...' : activeDriversCount }}</h3>
+      </div>
+    </div>
+
+    <!-- Average Rating Card -->
+    <div class="bg-white rounded-xl shadow-sm p-6 flex items-start">
+      <div class="p-3 rounded-lg mr-4 bg-amber-100 text-amber-600">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+        </svg>
+      </div>
+      <div>
+        <p class="text-gray-500 text-sm">Average Rating</p>
+        <h3 class="text-2xl font-bold text-gray-900">{{ (averageRating | number:'1.1-1') || 'N/A' }}</h3>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="text-center py-10">
+    <div class="spinner border-t-4 border-b-4 border-indigo-500 rounded-full w-12 h-12 mx-auto"></div>
+    <p class="mt-2 text-gray-600">Loading...</p>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage && !isLoading" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative my-4" role="alert">
+    <strong class="font-bold">Error:</strong>
+    <span class="block sm:inline ml-2">{{ errorMessage }}</span>
+  </div>
+
+  <!-- Drivers Table -->
+  <div *ngIf="!isLoading && !errorMessage" class="bg-white rounded-xl shadow-sm overflow-hidden">
+    <div class="p-4 sm:p-6 border-b border-gray-200">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+        <h3 class="text-lg font-semibold text-gray-900 mb-4 sm:mb-0">Driver List</h3>
+
+        <!-- Filter Tabs -->
+        <div class="flex space-x-1 p-1 bg-gray-200 rounded-lg">
+          <button (click)="setView('all')"
+                  [class.bg-white]="currentView === 'all'"
+                  [class.text-gray-800]="currentView === 'all'"
+                  class="px-3 py-1 text-sm font-medium text-gray-500 rounded-md focus:outline-none transition-colors">
+            All Drivers ({{ allDrivers.length }})
+          </button>
+          <button (click)="setView('pending')"
+                  [class.bg-white]="currentView === 'pending'"
+                  [class.text-gray-800]="currentView === 'pending'"
+                  class="px-3 py-1 text-sm font-medium text-gray-500 rounded-md focus:outline-none transition-colors">
+            Pending ({{ pendingDriversCount }})
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Driver ID</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr *ngFor="let driver of filteredDrivers; trackBy: trackByDriverId" class="hover:bg-gray-50 transition-colors duration-150">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-600">{{ driver.userId }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{{ driver.firstName }} {{ driver.lastName }}</td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+              <div>{{ driver.mobileNumber || 'N/A' }}</div>
+              <div class="text-gray-500">{{ driver.email }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex items-center">
+                <div class="flex items-center">
+                  <svg *ngFor="let star of [1,2,3,4,5]"
+                       [ngClass]="{'text-yellow-400': star <= Math.floor(driver.rating), 'text-gray-300': star > Math.floor(driver.rating)}"
+                       class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                  </svg>
+                </div>
+                <span class="ml-1 text-xs text-gray-500">{{ (driver.rating || 0) | number:'1.1-1' }}</span>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span [ngClass]="getStatusClass(driver.verified)" class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full border">
+                {{ driver.verified ? 'Verified' : 'Pending' }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+              <!-- Conditional Verify action -->
+              <ng-container *ngIf="!driver.verified">
+                <button (click)="verifyDriver(driver.userId)"
+                        [disabled]="verificationStatus[driver.userId] === 'VERIFYING' || verificationStatus[driver.userId] === 'SUCCESS'"
+                        class="text-green-600 hover:text-green-900">
+                  <span *ngIf="!verificationStatus[driver.userId]">Verify</span>
+                  <span *ngIf="verificationStatus[driver.userId] === 'VERIFYING'">Verifying...</span>
+                  <span *ngIf="verificationStatus[driver.userId] === 'SUCCESS'">✔ Verified</span>
+                  <span *ngIf="verificationStatus[driver.userId] === 'ERROR'">Retry</span>
+                </button>
+              </ng-container>
+
+              <!-- Delete action -->
+              <button class="text-red-600 hover:text-red-900 ml-4"
+                      (click)="openDeleteModal(driver)">
+                Delete
+              </button>
+            </td>
+          </tr>
+
+          <!-- Empty State -->
+          <tr *ngIf="filteredDrivers.length === 0">
+            <td colspan="7" class="text-center py-10 text-gray-500">
+              <p *ngIf="currentView === 'all'">No drivers found.</p>
+              <p *ngIf="currentView === 'pending'">No drivers are currently pending verification.</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
+      <div class="text-sm text-gray-500">
+        Showing <span class="font-medium">{{ filteredDrivers.length }}</span> of <span class="font-medium">{{ allDrivers.length }}</span> total drivers
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showDeleteModal">
+    <div class="modal-container" role="dialog" aria-modal="true" aria-labelledby="deleteDriverTitle">
+      <div class="modal-header">
+        <h3 class="modal-title" id="deleteDriverTitle">
+          <svg class="modal-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
+            <path d="M569.5 440.1C576 460.3 560.9 480 539.9 480H36.08C15.11 480-.0282 460.3 6.516 440.1l54.24-160.1c5.984-17.7 22.5-29.6 41.29-29.6l53.75 0 .125 0 208 0 .125 0 53.75 0c18.79 0 35.31 11.92 41.29 29.6L569.5 440.1zM287.1 352l-160 0L89.59 400l317.7 0-38.28-48L287.1 352zM311.1 304l-47.1 0L263.1 160l47.1 0L311.1 304zM144 160l-48 0 0 144l-48 0L144 160zM432 160l-48 0 0 144l48 0L432 160z"/>
+          </svg>
+          Confirm Delete
+        </h3>
+        <button (click)="closeDeleteModal()" class="modal-close" aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 384 512">
+            <path d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="modal-message">
+          Are you sure you want to delete
+          <strong>{{ driverToDelete?.firstName }} {{ driverToDelete?.lastName }}</strong>?
+        </p>
+        <p class="modal-warning">
+          This action cannot be undone and will permanently remove the driver from the system.
+        </p>
+      </div>
+
+      <div class="modal-footer">
+        <button (click)="closeDeleteModal()" class="btn btn-outline modal-btn" [disabled]="isDeleting">Cancel</button>
+        <button (click)="confirmDelete()" class="btn btn-danger modal-btn" [disabled]="isDeleting">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 448 512" class="mr-1">
+            <path fill="currentColor"
+                  d="M135.2 17.7C140.6 6.8 151.7 0 163.8 0H284.2c12.1 0 23.2 6.8 28.6 17.7L320 32h96c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 96 0 81.7 0 64S14.3 32 32 32h96l7.2-14.3zM32 128H416V448c0 35.3-28.7 64-64 64H96c-35.3 0-64-28.7-64-64V128zm96 64c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16zm96 0c-8.8 0-16 7.2-16 16V432c0 8.8 7.2 16 16 16s16-7.2 16-16V208c0-8.8-7.2-16-16-16z"/>
+          </svg>
+          {{ isDeleting ? 'Deleting...' : 'Delete Driver' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

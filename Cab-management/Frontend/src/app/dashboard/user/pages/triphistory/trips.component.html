@@ -1,0 +1,362 @@
+<div class="trip-history-container">
+  <div class="header">
+  <div class="flex items-center space-x-3 p-5 bg-white shadow rounded-2xl">
+  
+  
+  <div>
+    <h2 class="text-xl font-semibold text-gray-800 mt-3">Trip History</h2>
+    <p class="text-sm text-gray-500 mb-3">View and manage your past trips</p>
+  </div>
+</div>
+
+  </div>
+
+  <div class="loading-spinner" *ngIf="isLoading">
+    <div class="spinner-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 12a9 9 0 11-6.219-8.56"/>
+      </svg>
+    </div>
+    <p>Loading your trips...</p>
+  </div>
+
+  <div class="controls-section" *ngIf="!isLoading">
+    <div class="search-box">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (input)="onSearchChange()"
+        placeholder="Search trips, locations, or drivers..."
+        class="search-input">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="m21 21-4.35-4.35"/>
+      </svg>
+    </div>
+
+    <div class="filters">
+      <div class="filter-group">
+        <label for="status-filter">Status</label>
+        <select id="status-filter" [(ngModel)]="filterStatus" (change)="onFilterChange()" class="filter-select">
+          <option value="all">All Status</option>
+          <option value="completed">Completed</option>
+          <option value="ongoing">Ongoing</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="sort-filter">Sort by</label>
+        <select id="sort-filter" [(ngModel)]="sortBy" (change)="onSortChange()" class="filter-select">
+          <option value="date">Date</option>
+          <option value="fare">Fare</option>
+          <option value="rating">Rating</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="trips-list" *ngIf="filteredTrips.length > 0 && !isLoading">
+    <div class="trip-card"
+         *ngFor="let trip of filteredTrips"
+         (click)="viewTripDetails($event,trip)">
+      <div class="trip-header">
+        <div class="trip-id">
+          <svg class="trip-id-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14,2 14,8 20,8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10,9 9,9 8,9"/>
+          </svg>
+          Trip #{{trip.tripBookingId}}
+        </div>
+        <div class="trip-status" [ngClass]="getStatusClass(trip.status)">
+          <svg class="status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <ng-container [ngSwitch]="trip.status">
+              <circle *ngSwitchCase="'COMPLETED'" cx="12" cy="12" r="10"/>
+              <polyline *ngSwitchCase="'COMPLETED'" points="9,11 12,14 22,4"/>
+              
+              <circle *ngSwitchCase="'IN_PROGRESS'" cx="12" cy="12" r="10"/>
+              <polyline *ngSwitchCase="'IN_PROGRESS'" points="12,6 12,12 16,14"/>
+              
+              <circle *ngSwitchCase="'CONFIRMED'" cx="12" cy="12" r="10"/>
+              <polyline *ngSwitchCase="'CONFIRMED'" points="12,6 12,12 16,14"/>
+              
+              <circle *ngSwitchCase="'CANCELLED'" cx="12" cy="12" r="10"/>
+              <line *ngSwitchCase="'CANCELLED'" x1="15" y1="9" x2="9" y2="15"/>
+              <line *ngSwitchCase="'CANCELLED'" x1="9" y1="9" x2="15" y2="15"/>
+            </ng-container>
+          </svg>
+          <span class="status-text">{{getStatusDisplayText(trip.status)}}</span>
+        </div>
+      </div>
+
+      <div class="trip-route">
+        <div class="route-point pickup">
+          <div class="route-icon pickup-icon"></div>
+          <span class="route-text">{{trip.fromLocation}}</span>
+        </div>
+        <div class="route-line">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12,5 19,12 12,19"/>
+          </svg>
+        </div>
+        <div class="route-point destination">
+          <div class="route-icon destination-icon"></div>
+          <span class="route-text">{{trip.toLocation}}</span>
+        </div>
+      </div>
+
+      <div class="trip-details">
+        <div class="detail-item">
+          <span class="detail-label">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            Date
+          </span>
+          <span class="detail-value">{{formatDate(trip.fromDateTime)}}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12,6 12,12 16,14"/>
+            </svg>
+            Time
+          </span>
+          <span class="detail-value">{{formatTime(trip.fromDateTime)}}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">
+            <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            Driver
+          </span>
+          <span class="detail-value">{{trip.driver.username}}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">
+            <!-- <svg class="detail-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="1" x2="12" y2="23"/>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg> -->
+            Fare
+          </span>
+          <span class="detail-value" [class.cancelled-fare]="trip.status === 'CANCELLED'">
+            {{trip.status === 'CANCELLED' ? 'N/A' :  + trip.bill}}
+          </span>
+        </div>
+      </div>
+
+      <div class="trip-rating" *ngIf="trip.status === 'COMPLETED'">
+        <div class="rating" *ngIf="trip.customerRating">
+          <div class="stars">
+            <svg *ngFor="let star of getStarArray(trip.customerRating)" 
+                 [class.filled]="star.filled" 
+                 class="star" 
+                 viewBox="0 0 24 24" 
+                 [attr.fill]="star.filled ? 'currentColor' : 'none'" 
+                 stroke="currentColor" 
+                 stroke-width="2">
+              <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+            </svg>
+          </div>
+          <span class="rating-text">{{trip.customerRating}}/5</span>
+        </div>
+        <button class="rate-btn"
+                *ngIf="!trip.customerRating"
+                (click)="openRatingModal($event,trip);$event.stopImmediatePropagation()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+          </svg>
+          Rate Trip
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="no-results" *ngIf="filteredTrips.length === 0 && !isLoading">
+    <div class="no-results-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+      </svg>
+    </div>
+    <h3>No trips found</h3>
+    <p>Try adjusting your search or filter criteria</p>
+  </div>
+
+  <!-- Trip Details Modal -->
+  <div class="modal-overlay" *ngIf="selectedTrip" (click)="closeTripDetails()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Trip Details</h3>
+        <button class="close-btn" (click)="closeTripDetails()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="trip-info-section">
+          <h4>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="10" r="3"/>
+              <path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 6.9 8 11.7z"/>
+            </svg>
+            Route Information
+          </h4>
+          <div class="route-details">
+            <p><strong>From:</strong> {{selectedTrip.fromLocation}}</p>
+            <p><strong>To:</strong> {{selectedTrip.toLocation}}</p>
+            <p><strong>Distance:</strong> {{selectedTrip.distanceInKm}} km</p>
+            <p><strong>Booked at:</strong> {{formatDateTime(selectedTrip.fromDateTime)}}</p>
+            <p *ngIf="selectedTrip.toDateTime"><strong>Completed at:</strong> {{formatDateTime(selectedTrip.toDateTime)}}</p>
+          </div>
+        </div>
+
+        <div class="trip-info-section">
+          <!-- <h4>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+            Driver Information
+          </h4> -->
+          <!-- <div class="driver-details">
+            <div class="driver-avatar">
+              <img [src]="rideService.getDriverImage(selectedTrip.driver)" [alt]="selectedTrip.driver.username"
+                   onerror="this.src='assets/driver.avif'">
+            </div>
+            <div class="driver-info">
+              <p><strong>{{selectedTrip.driver.username}}</strong></p>
+              <div class="rating">
+              
+                <div class="stars">
+                  <svg *ngFor="let star of getStarArray(selectedTrip.driver.rating)" 
+                       [class.filled]="star.filled" 
+                       class="star" 
+                       viewBox="0 0 24 24" 
+                       [attr.fill]="star.filled ? 'currentColor' : 'none'" 
+                       stroke="currentColor" 
+                       stroke-width="2">
+                    <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+                  </svg>
+                </div>
+                <span class="rating-text">{{selectedTrip.driver.rating}}</span>
+              </div>
+              <p>{{selectedTrip.cab.carType}} • {{selectedTrip.cab.numberPlate}}</p>
+              <p>License: {{selectedTrip.driver.licenceNo}}</p>
+            </div>
+          </div>
+        </div> -->
+
+        <div class="trip-info-section">
+          <h4>
+            <!-- <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="1" x2="12" y2="23"/>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+            </svg> -->
+            Payment Information
+          </h4>
+          <div class="payment-details">
+            <p><strong>Fare:</strong>
+              <span [class.cancelled-fare]="selectedTrip.status === 'CANCELLED'">
+                {{selectedTrip.status === 'CANCELLED' ? 'N/A' : + selectedTrip.bill}}
+              </span>
+            </p>
+            <p><strong>Distance:</strong> {{selectedTrip.distanceInKm}} km</p>
+            <p><strong>Trip Date:</strong> {{formatDate(selectedTrip.fromDateTime)}} at {{formatTime(selectedTrip.fromDateTime)}}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <!-- <button class="action-btn secondary" (click)="rebookTrip(selectedTrip); $event.stopPropagation()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 4v6h6"/>
+            <path d="M3.51 15a9 9 0 102.13-9.36L1 10"/>
+          </svg>
+          Rebook
+        </button> -->
+        <button class="action-btn primary" (click)="callDriver(selectedTrip); $event.stopPropagation()"
+                [disabled]="!selectedTrip.driver.mobileNumber">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+          </svg>
+          Call Driver
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rating Modal -->
+  <div class="modal-overlay" *ngIf="showRatingModal" (click)="closeRatingModal()">
+    <div class="modal-content rating-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Rate Your Trip</h3>
+        <button class="close-btn" (click)="closeRatingModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body" *ngIf="ratingTrip">
+        <div class="rating-driver">
+          <div class="driver-avatar">
+            <!-- <img [src]="rideService.getDriverImage(ratingTrip.driver)" [alt]="ratingTrip.driver.username"
+                 onerror="this.src='assets/images/driver.avif'"> -->
+          </div>
+          <h4>{{ratingTrip.driver.username}}</h4>
+          <p>{{ratingTrip.cab.carType}}</p>
+        </div>
+
+        <div class="rating-stars">
+          <svg *ngFor="let i of [1,2,3,4,5]"
+               class="rating-star"
+               [class.active]="i <= currentRating"
+               (click)="setRating(i)"
+               viewBox="0 0 24 24" 
+               [attr.fill]="i <= currentRating ? 'currentColor' : 'none'"
+               stroke="currentColor"
+               stroke-width="2">
+            <polygon points="12,2 15.09,8.26 22,9.27 17,14.14 18.18,21.02 12,17.77 5.82,21.02 7,14.14 2,9.27 8.91,8.26"/>
+          </svg>
+        </div>
+
+        <div class="rating-text">
+          <span *ngIf="currentRating === 0">Tap stars to rate</span>
+          <span *ngIf="currentRating === 1">Poor</span>
+          <span *ngIf="currentRating === 2">Fair</span>
+          <span *ngIf="currentRating === 3">Good</span>
+          <span *ngIf="currentRating === 4">Very Good</span>
+          <span *ngIf="currentRating === 5">Excellent</span>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="action-btn secondary" (click)="closeRatingModal()">Cancel</button>
+        <button class="action-btn primary"
+                [disabled]="currentRating === 0"
+                (click)="submitRating()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20,6 9,17 4,12"/>
+          </svg>
+          Submit Rating
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

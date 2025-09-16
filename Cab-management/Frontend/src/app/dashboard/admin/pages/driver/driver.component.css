@@ -1,0 +1,285 @@
+/* driver.component.css */
+/* Custom scrollbar */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 6px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Hover effects */
+.hover\:bg-gray-50:hover {
+  transition: background-color 0.2s ease;
+}
+
+/* Rating stars */
+.rating-stars {
+  display: inline-flex;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .stats-card {
+    padding: 1rem;
+  }
+  
+  .search-input {
+    width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .table-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .table-actions {
+    width: 100%;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .table-actions > * {
+    width: 100%;
+  }
+}
+/* driver.component.css */
+
+/* ---------------------- */
+/* Custom scrollbar       */
+/* ---------------------- */
+.overflow-x-auto::-webkit-scrollbar {
+  height: 6px;
+}
+.overflow-x-auto::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+.overflow-x-auto::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+.overflow-x-auto::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ---------------------- */
+/* Hover effects          */
+/* ---------------------- */
+.hover\:bg-gray-50:hover {
+  transition: background-color 0.2s ease;
+}
+
+/* ---------------------- */
+/* Rating stars           */
+/* ---------------------- */
+.rating-stars {
+  display: inline-flex;
+}
+
+/* ---------------------- */
+/* Responsive tweaks      */
+/* ---------------------- */
+@media (max-width: 768px) {
+  .stats-card {
+    padding: 1rem;
+  }
+  .search-input {
+    width: 100%;
+  }
+}
+@media (max-width: 640px) {
+  .table-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .table-actions {
+    width: 100%;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .table-actions > * {
+    width: 100%;
+  }
+}
+
+/* ===================================================== */
+/* Modal styles                                          */
+/* ===================================================== */
+
+/* Page scroll lock (optional helper class). 
+   Toggle this on the body when modal is open in TS:
+   document.body.classList.add('modal-open') / remove on close. */
+.modal-open {
+  overflow: hidden; /* Prevent background scroll while modal is open */ /* [web:49][web:50] */
+}
+
+/* Overlay covers the entire viewport */
+.modal-overlay {
+  position: fixed;         /* keep pinned to viewport */ /* [web:61] */
+  inset: 0;                /* top:0 right:0 bottom:0 left:0 */
+  background: rgba(0, 0, 0, 0.5); /* dim backdrop */
+  z-index: 9999;           /* above other content */ /* [web:40][web:58] */
+  display: flex;           /* center container */
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;           /* gutter for small screens */
+}
+
+/* Modal container */
+.modal-container {
+  position: relative;        /* for close button alignment */
+  width: 100%;
+  max-width: 28rem;          /* ~448px */
+  background: #ffffff;
+  color: #111827;            /* gray-900 */
+  border-radius: 0.75rem;    /* rounded-xl */
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  overflow: hidden;          /* clip header radius */
+  /* Constrain height and allow inner scroll on small viewports */ /* [web:52] */
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Modal header */
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e5e7eb; /* gray-200 */
+}
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 700;
+  font-size: 1.125rem; /* text-lg */
+  color: #111827;      /* gray-900 */
+}
+.modal-icon {
+  width: 20px;
+  height: 20px;
+  color: #ef4444; /* red-500 */
+}
+
+/* Close button */
+.modal-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 0.5rem;
+  background: transparent;
+  border: none;
+  color: #6b7280; /* gray-500 */
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.modal-close:hover {
+  background: #f3f4f6; /* gray-100 */
+  color: #374151;      /* gray-700 */
+}
+.modal-close:focus-visible {
+  outline: 2px solid #2563eb; /* blue-600 focus ring */
+  outline-offset: 2px; /* accessibility */ /* [web:63][web:60] */
+}
+
+/* Modal body */
+.modal-body {
+  padding: 1rem 1.25rem;
+  overflow-y: auto; /* scroll inside modal if content too tall */ /* [web:52] */
+}
+.modal-message {
+  color: #111827; /* gray-900 */
+  margin: 0 0 0.5rem 0;
+}
+.modal-warning {
+  color: #6b7280; /* gray-500 */
+  margin: 0;
+}
+
+/* Modal footer */
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid #e5e7eb; /* gray-200 */
+  background: #f9fafb; /* gray-50 */
+}
+
+/* Buttons inside modal */
+.modal-btn {
+  min-width: 8rem;
+}
+
+/* Generic button styles if needed in modal context */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  font-weight: 600;
+  transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.btn.btn-outline {
+  background: #ffffff;
+  color: #374151; /* gray-700 */
+  border-color: #d1d5db; /* gray-300 */
+}
+.btn.btn-outline:hover {
+  background: #f9fafb; /* gray-50 */
+}
+.btn.btn-danger {
+  background: #ef4444;    /* red-500 */
+  color: #ffffff;
+  border-color: #ef4444;
+}
+.btn.btn-danger:hover {
+  background: #dc2626;    /* red-600 */
+  border-color: #dc2626;
+}
+
+/* Small viewport refinements */
+@media (max-width: 420px) {
+  .modal-container {
+    max-width: 22rem; /* ~352px */
+  }
+  .modal-btn {
+    min-width: 7rem;
+  }
+}
+
+/* Optional: subtle open/close animation */
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.modal-container {
+  animation: modalFadeIn 120ms ease-out;
+}

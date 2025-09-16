@@ -1,0 +1,7 @@
+# pack-refs with: peeled fully-peeled sorted 
+856526e4daaca5946ca344548bf7aaef92db57f3 refs/remotes/origin/feat/feat-User
+d0dec81c6f2f34224e4f60399b7073531b1a1cd9 refs/remotes/origin/feat/frontend-layout
+281d45869fbd05a2d79a7cb41b1f12b4c031f5f2 refs/remotes/origin/feat/frontend-layout-backup
+1f6565db21ae928c5cd3a1f4139b046b732b2f5a refs/remotes/origin/feat/login
+771ae58f7d6b2f210553fd36ffe7ecba42fd214a refs/remotes/origin/main
+771ae58f7d6b2f210553fd36ffe7ecba42fd214a refs/remotes/origin/staging

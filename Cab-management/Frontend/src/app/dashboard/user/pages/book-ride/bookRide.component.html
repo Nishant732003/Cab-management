@@ -1,0 +1,411 @@
+<div class="book-ride-container">
+  <div class="header">
+    <div class="header-icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11C5.84 5 5.28 5.42 5.08 6.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-1.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z" fill="currentColor"/>
+      </svg>
+    </div>
+    <h2>Book Your Ride</h2>
+    <p>Enter your trip details to find available vehicles</p>
+  </div>
+
+  <!-- Step 1: Location -->
+  <div class="booking-step" *ngIf="currentStep === 'location'">
+    <div class="step-indicator">
+      <div class="step active">
+        <div class="step-number">1</div>
+        <span>Location</span>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <span>Vehicle</span>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <span>Confirm</span>
+      </div>
+    </div>
+
+    <div class="booking-form">
+      <div class="form-group">
+        <label for="pickup">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/>
+          </svg>
+          Pickup Location
+        </label>
+        <input id="pickup" type="text" [(ngModel)]="pickupLocation" placeholder="Enter pickup location" class="form-input">
+        <div class="suggestions" *ngIf="pickupLocation">
+          <div *ngFor="let s of locationSuggestions" class="suggestion-item" (click)="selectLocationSuggestion(s, 'pickup')">
+            <div class="suggestion-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/>
+              </svg>
+            </div>
+            <div class="suggestion-content">
+              <div class="suggestion-name">{{s.name}}</div>
+              <div class="suggestion-address">{{s.address}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="destination">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6h-5.6z" fill="currentColor"/>
+          </svg>
+          Destination
+        </label>
+        <input id="destination" type="text" [(ngModel)]="destinationLocation" placeholder="Enter destination" class="form-input">
+        <div class="suggestions" *ngIf="destinationLocation">
+          <div *ngFor="let s of locationSuggestions" class="suggestion-item" (click)="selectLocationSuggestion(s, 'destination')">
+            <div class="suggestion-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6h-5.6z" fill="currentColor"/>
+              </svg>
+            </div>
+            <div class="suggestion-content">
+              <div class="suggestion-name">{{s.name}}</div>
+              <div class="suggestion-address">{{s.address}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="isScheduled" (change)="toggleScheduled()">
+          <span class="checkmark">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="white"/>
+            </svg>
+          </span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z" fill="currentColor"/>
+          </svg>
+          Schedule for later
+        </label>
+      </div>
+
+      <div class="form-row" *ngIf="isScheduled">
+        <div class="form-group">
+          <label for="date">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z" fill="currentColor"/>
+          </svg>
+          Date
+        </label>
+        <input id="date" type="date" [(ngModel)]="selectedDate" class="form-input">
+      </div>
+      <div class="form-group">
+        <label for="time">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z" fill="currentColor"/>
+            <path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="currentColor"/>
+          </svg>
+          Time
+        </label>
+        <input id="time" type="time" [(ngModel)]="selectedTime" class="form-input">
+      </div>
+      </div>
+
+      <button class="primary-btn" (click)="proceedToVehicleSelection()" [disabled]="!pickupLocation || !destinationLocation || isLoading">
+        <span *ngIf="!isLoading">Continue to Vehicle Selection</span>
+        <span *ngIf="isLoading" class="loading-text">
+          <svg class="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Processing...
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Step 2: Vehicle -->
+  <div class="booking-step" *ngIf="currentStep === 'vehicle'">
+    <div class="step-indicator">
+      <div class="step completed">
+        <div class="step-number">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="white"/>
+          </svg>
+        </div>
+        <span>Location</span>
+      </div>
+      <div class="step-connector completed"></div>
+      <div class="step active">
+        <div class="step-number">2</div>
+        <span>Vehicle</span>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <span>Confirm</span>
+      </div>
+    </div>
+
+    <div class="trip-summary">
+      <div class="trip-summary-header">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M13 1.07V9h7c0-4.08-3.05-7.44-7-7.93zM4 15c0 4.42 3.58 8 8 8s8-3.58 8-8v-4H4v4zm0-6h8V1.07C7.95 1.56 4.95 4.92 4 9z" fill="currentColor"/>
+        </svg>
+        <h3>Trip Summary</h3>
+      </div>
+      <div class="trip-info">
+        <div class="trip-route">
+          <div class="route-point">
+            <div class="route-dot pickup"></div>
+            <span>{{pickupLocation}}</span>
+          </div>
+          <div class="route-line"></div>
+          <div class="route-point">
+            <div class="route-dot destination"></div>
+            <span>{{destinationLocation}}</span>
+          </div>
+        </div>
+        <div class="trip-details">
+          <div class="detail-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M13 1.07V9h7c0-4.08-3.05-7.44-7-7.93zM4 15c0 4.42 3.58 8 8 8s8-3.58 8-8v-4H4v4zm0-6h8V1.07C7.95 1.56 4.95 4.92 4 9z" fill="currentColor"/>
+            </svg>
+            <span>{{estimatedDistanceText}}</span>
+          </div>
+          <div class="detail-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z" fill="currentColor"/>
+              <path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67V7z" fill="currentColor"/>
+            </svg>
+            <span>{{estimatedDurationText}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vehicle-selection">
+      <h3>Choose Your Vehicle</h3>
+      <div class="vehicle-options">
+        <div *ngFor="let cab of availableCabs" class="vehicle-card" [class.selected]="selectedCab?.cabId === cab.cabId" (click)="selectCab(cab)">
+          <div class="vehicle-info">
+            <div class="vehicle-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11C5.84 5 5.28 5.42 5.08 6.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-1.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z" fill="currentColor"/>
+              </svg>
+            </div>
+            <div class="vehicle-details">
+              <h4>{{cab.carType}}</h4>
+              <p class="rate-info">{{formatCurrency(cab.perKmRate)}} per km</p>
+              <div class="availability" [class.available]="cab.isAvailable">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="12" cy="12" r="10" fill="currentColor"/>
+                </svg>
+                {{cab.isAvailable ? 'Available' : 'Unavailable'}}
+              </div>
+            </div>
+          </div>
+          <div class="fare-display">
+            <div class="fare-amount">{{formatCurrency(baseFare + (estimatedDistanceKm * cab.perKmRate))}}</div>
+            <div class="fare-label">Total Estimate</div>
+          </div>
+          <div class="selection-indicator" *ngIf="selectedCab?.cabId === cab.cabId">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="currentColor"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button class="secondary-btn" (click)="goBack()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="currentColor"/>
+        </svg>
+        Back
+      </button>
+      <button class="primary-btn" (click)="proceedToConfirmation()" [disabled]="!selectedCab">
+        Continue to Confirmation
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 11h12.17l-5.59-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4v-2z" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Step 3: Confirmation -->
+  <div class="booking-step" *ngIf="currentStep === 'confirmation'">
+    <div class="step-indicator">
+      <div class="step completed">
+        <div class="step-number">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="white"/>
+          </svg>
+        </div>
+        <span>Location</span>
+      </div>
+      <div class="step-connector completed"></div>
+      <div class="step completed">
+        <div class="step-number">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="white"/>
+          </svg>
+        </div>
+        <span>Vehicle</span>
+      </div>
+      <div class="step-connector completed"></div>
+      <div class="step active">
+        <div class="step-number">3</div>
+        <span>Confirm</span>
+      </div>
+    </div>
+
+    <div class="confirmation-card">
+      <div class="confirmation-header">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="currentColor"/>
+        </svg>
+        <h3>Confirm Your Booking</h3>
+      </div>
+
+      <div class="booking-summary">
+        <div class="summary-section">
+          <h4>Trip Details</h4>
+          <div class="detail-row">
+            <span class="label">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="currentColor"/>
+              </svg>
+              From
+            </span>
+            <span class="value">{{pickupLocation}}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6h-5.6z" fill="currentColor"/>
+              </svg>
+              To
+            </span>
+            <span class="value">{{destinationLocation}}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11C5.84 5 5.28 5.42 5.08 6.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-1.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z" fill="currentColor"/>
+              </svg>
+              Vehicle
+            </span>
+            <span class="value">{{selectedCab?.carType}}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M13 1.07V9h7c0-4.08-3.05-7.44-7-7.93zM4 15c0 4.42 3.58 8 8 8s8-3.58 8-8v-4H4v4zm0-6h8V1.07C7.95 1.56 4.95 4.92 4 9z" fill="currentColor"/>
+              </svg>
+              Distance
+            </span>
+            <span class="value">{{estimatedDistanceText}}</span>
+          </div>
+          <div class="detail-row" *ngIf="isScheduled && selectedDate && selectedTime">
+            <span class="label">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z" fill="currentColor"/>
+              </svg>
+              Scheduled
+            </span>
+            <span class="value">{{selectedDate}} at {{selectedTime}}</span>
+          </div>
+        </div>
+
+        <div class="fare-breakdown">
+          <h4>Fare Breakdown</h4>
+          <div class="fare-item">
+            <span>Base Fare</span>
+            <span>{{formatCurrency(baseFare)}}</span>
+          </div>
+          <div class="fare-item">
+            <span>Distance ({{estimatedDistanceText}} × {{formatCurrency(selectedCab?.perKmRate || 0)}})</span>
+            <span>{{formatCurrency((estimatedDistanceKm * (selectedCab?.perKmRate || 0)))}}</span>
+          </div>
+          <div class="fare-total">
+            <span>Total Estimated Fare</span>
+            <span>{{formatCurrency(estimatedFare)}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-buttons">
+      <button class="secondary-btn" (click)="goBack()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" fill="currentColor"/>
+        </svg>
+        Back
+      </button>
+      <button class="primary-btn" (click)="confirmBooking()" [disabled]="isLoading">
+        <span *ngIf="!isLoading">
+          <!-- <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="currentColor"/>
+          </svg> -->
+          Confirm Booking
+        </span>
+        <span *ngIf="isLoading" class="loading-text">
+          <svg class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Processing...
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" *ngIf="isLoading && currentStep === 'location'">
+    <div class="loading-content">
+      <svg class="loading-spinner" width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <p>Processing your request...</p>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Modal Component -->
+<div class="modal-overlay" *ngIf="showModal" (click)="onModalCancel()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header" [class]="'modal-header-' + modalConfig.type">
+      <h3>{{modalConfig.title}}</h3>
+      <button class="modal-close" (click)="onModalCancel()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-icon" [class]="'modal-icon-' + modalConfig.type">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" *ngIf="modalConfig.type === 'error'">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" fill="currentColor"/>
+        </svg>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" *ngIf="modalConfig.type === 'success'">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"/>
+        </svg>
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" *ngIf="modalConfig.type === 'info'">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" fill="currentColor"/>
+        </svg>
+      </div>
+      <p>{{modalConfig.message}}</p>
+    </div>
+    <div class="modal-footer">
+      <button *ngIf="modalConfig.showCancel" class="secondary-btn" (click)="onModalCancel()">
+        {{modalConfig.cancelText}}
+      </button>
+      <button class="primary-btn" (click)="onModalConfirm()" [class]="'modal-btn-' + modalConfig.type">
+        {{modalConfig.confirmText}}
+      </button>
+    </div>
+  </div>
+</div>

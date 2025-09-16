@@ -1,0 +1,133 @@
+<div class="overview-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="header-content">
+      <h1 class="page-title">Dashboard Overview</h1>
+      <div class="header-actions">
+        <button class="refresh-btn" (click)="refreshData()">
+          <i class="icon-refresh"></i>
+          Refresh
+        </button>
+        <div class="date-filter">
+          <select [(ngModel)]="selectedTimeFrame" (change)="onTimeFrameChange()">
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+            <option value="year">This Year</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="stats-grid">
+    <div class="stat-card total-rides">
+      <div class="stat-icon">
+        <i class="icon-car"></i>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-number">{{ statistics.totalRides | number }}</h3>
+        <p class="stat-label">Total Rides</p>
+        <div class="stat-change" [ngClass]="{'positive': statistics.ridesChange >= 0, 'negative': statistics.ridesChange < 0}">
+          <i class="icon-arrow" [ngClass]="statistics.ridesChange >= 0 ? 'up' : 'down'"></i>
+          {{ statistics.ridesChange }}% vs last {{ selectedTimeFrame }}
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card active-drivers">
+      <div class="stat-icon">
+        <i class="icon-users"></i>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-number">{{ statistics.activeDrivers | number }}</h3>
+        <p class="stat-label">Active Drivers</p>
+        <div class="stat-change positive">
+          <i class="icon-arrow up"></i>
+          {{ statistics.driversChange }}% online now
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card revenue">
+      <div class="stat-icon">
+        <i class="icon-money"></i>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-number">₹{{ statistics.totalRevenue | number:'1.0-0' }}</h3>
+        <p class="stat-label">Total Spending</p>
+        <div class="stat-change" [ngClass]="{'positive': statistics.revenueChange >= 0, 'negative': statistics.revenueChange < 0}">
+          <i class="icon-arrow" [ngClass]="statistics.revenueChange >= 0 ? 'up' : 'down'"></i>
+          {{ statistics.revenueChange }}% vs last {{ selectedTimeFrame }}
+        </div>
+      </div>
+    </div>
+
+    <div class="stat-card customer-satisfaction">
+      <div class="stat-icon">
+        <i class="icon-star"></i>
+      </div>
+      <div class="stat-content">
+        <h3 class="stat-number">{{ statistics.avgRating | number:'1.1-1' }}</h3>
+        <p class="stat-label">Avg Rating</p>
+        <div class="stat-change positive">
+          <i class="icon-arrow up"></i>
+          {{ statistics.ratingChange }}% customer satisfaction
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts and Analytics Section -->
+  <div class="analytics-section">
+    <div class="chart-container">
+      <div class="chart-header">
+        <h2>Rides Overview</h2>
+        <div class="chart-filters">
+          <button 
+            *ngFor="let period of chartPeriods" 
+            [class.active]="selectedChartPeriod === period.value"
+            (click)="setChartPeriod(period.value)"
+            class="period-btn">
+            {{ period.label }}
+          </button>
+        </div>
+      </div>
+      <div class="chart-content">
+        <!-- Chart placeholder - you can integrate with Chart.js, D3, or Angular Charts -->
+        <div class="chart-placeholder">
+          <div class="chart-bars">
+            <div *ngFor="let data of chartData" class="chart-bar" [style.height.%]="data.value">
+              <span class="bar-label">{{ data.label }}</span>
+              <span class="bar-value">{{ data.rides }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-overview">
+      <h2>Ride Status Distribution</h2>
+      <div class="status-chart">
+        <div class="status-item" *ngFor="let status of rideStatusData">
+          <div class="status-indicator" [style.background-color]="status.color"></div>
+          <div class="status-details">
+            <span class="status-name">{{ status.name }}</span>
+            <span class="status-count">{{ status.count }}</span>
+            <span class="status-percentage">{{ status.percentage }}%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+  
+  <!-- Loading Overlay -->
+  <div *ngIf="isLoading" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <p>Loading data...</p>
+  </div>
+</div>

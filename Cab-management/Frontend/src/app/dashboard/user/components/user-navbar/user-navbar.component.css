@@ -1,0 +1,300 @@
+/* User Status Badge Styles */
+.badge-online {
+  @apply bg-green-100 text-green-800 border-green-200;
+}
+
+.badge-offline {
+  @apply bg-gray-100 text-gray-600 border-gray-200;
+}
+
+.badge-rider {
+  @apply bg-blue-100 text-blue-800 border-blue-200;
+}
+
+/* Active Ride Status Styles */
+.ride-status-active {
+  @apply bg-green-100 text-green-800;
+}
+
+.ride-status-waiting {
+  @apply bg-yellow-100 text-yellow-800;
+}
+
+.ride-status-completed {
+  @apply bg-blue-100 text-blue-800;
+}
+
+/* Loading animation */
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Pulse animation for active ride indicator */
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}
+
+/* Mobile sidebar animation */
+.transform {
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Custom scrollbar for mobile sidebar */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 2px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #a1a1a1;
+}
+
+/* Emergency button pulse effect */
+.bg-red-600:hover {
+  animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+  0% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+/* Notification badge animation */
+.bg-red-500 {
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 53%, 80%, 100% {
+    animation-timing-function: cubic-bezier(0.215, 0.610, 0.355, 1.000);
+    transform: translate3d(0,0,0);
+  }
+  40%, 43% {
+    animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+    transform: translate3d(0, -8px, 0);
+  }
+  70% {
+    animation-timing-function: cubic-bezier(0.755, 0.050, 0.855, 0.060);
+    transform: translate3d(0, -4px, 0);
+  }
+  90% {
+    transform: translate3d(0,-1px,0);
+  }
+}
+
+/* Book Ride button hover effect */
+.bg-blue-600:hover {
+  background-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+  transition: all 0.2s ease-in-out;
+}
+
+/* User avatar hover effect */
+.user-avatar:hover {
+  transform: scale(1.05);
+  transition: transform 0.2s ease-in-out;
+}
+
+/* Search input focus effects */
+input[type="search"]:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #3b82f6;
+}
+
+/* Location indicator animation */
+.location-pulse {
+  animation: location-pulse 3s ease-in-out infinite;
+}
+
+@keyframes location-pulse {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Rating stars styling */
+.rating-star {
+  color: #fbbf24;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+/* Active ride status indicator */
+.active-ride-indicator {
+  background: linear-gradient(90deg, #10b981, #059669);
+  background-size: 200% 200%;
+  animation: gradient 2s ease infinite;
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Wallet balance highlight */
+.wallet-balance {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 600;
+}
+
+/* Quick action buttons */
+.quick-action-btn {
+  transition: all 0.2s ease-in-out;
+}
+
+.quick-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Mobile menu slide-in animation */
+.mobile-menu-enter {
+  transform: translateX(100%);
+}
+
+.mobile-menu-enter-active {
+  transform: translateX(0);
+  transition: transform 300ms ease-in-out;
+}
+
+.mobile-menu-exit {
+  transform: translateX(0);
+}
+
+.mobile-menu-exit-active {
+  transform: translateX(100%);
+  transition: transform 300ms ease-in-out;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .mobile-sidebar {
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+  
+  .navbar-search {
+    max-width: 200px;
+  }
+}
+
+@media (max-width: 640px) {
+  .navbar-title {
+    font-size: 1rem;
+  }
+  
+  .user-info {
+    display: none;
+  }
+  
+  .navbar-search {
+    max-width: 150px;
+  }
+}
+
+/* Accessibility improvements */
+.focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .bg-gray-100 {
+    background-color: #f3f4f6;
+  }
+  
+  .text-gray-600 {
+    color: #374151;
+  }
+  
+  .border-gray-300 {
+    border-color: #6b7280;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin,
+  .animate-pulse,
+  .animate-bounce {
+    animation: none;
+  }
+  
+  .transition-all,
+  .transition-colors,
+  .transition-transform {
+    transition: none;
+  }
+}
+
+/* Dark mode support (if needed) */
+@media (prefers-color-scheme: dark) {
+  .dark\:bg-gray-800 {
+    background-color: #1f2937;
+  }
+  
+  .dark\:text-white {
+    color: #ffffff;
+  }
+  
+  .dark\:text-gray-300 {
+    color: #d1d5db;
+  }
+  
+  .dark\:border-gray-600 {
+    border-color: #4b5563;
+  }
+}

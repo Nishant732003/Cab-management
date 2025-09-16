@@ -1,0 +1,195 @@
+package com.cabbooking.dto;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+/**
+ * DTO for registering a new driver user.
+ */
+public class DriverRegistrationRequest {
+
+    /**
+     * The username chosen by the driver.
+     *
+     * This field is mandatory and must not be blank. It is used as the driver's
+     * unique login identifier.
+     */
+    @NotBlank(message = "Username is required")
+    private String username;
+
+    /*
+     * The first name of the driver.
+     */
+    @NotBlank(message = "First name is required")
+    private String firstName;
+
+    /*
+     * The last name of the driver.
+     */
+    @NotBlank(message = "Last name is required")
+    private String lastName;
+
+    /**
+     * The password chosen by the driver.
+     *
+     * Must not be blank and should have a minimum length of 6 characters.
+     * Passwords should be securely hashed when stored.
+     */
+    @NotBlank(message = "Password is required")
+    @Size(min = 6, message = "Password must be at least 6 characters")
+    private String password;
+
+    /**
+     * The email address of the driver.
+     */
+    @NotBlank(message = "Email is required")
+    @Email(message = "Email should be valid")
+    private String email;
+
+    /**
+     * The address of the driver.
+     *
+     * Optional field containing contact or residential address.
+     */
+    private String address;
+
+    /**
+     * The driver's mobile phone number.
+     *
+     * Optional; may be used for contact or verification purposes.
+     */
+    private String mobileNumber;
+
+    /**
+     * The driver's license number.
+     *
+     * This is a mandatory field and cannot be blank. It is essential for the
+     * verification and legal compliance of the driver.
+     */
+    @NotBlank(message = "License number is required")
+    private String licenceNo;
+
+    /**
+     * The driver's rating.
+     *
+     * Optional field representing the driver's overall rating from users.
+     */
+    private Float rating;
+
+    /**
+     * Indicates if the driver's account has been verified by an admin.
+     *
+     * Defaults to false upon registration. A verified driver is eligible for
+     * trips.
+     */
+    private Integer totalRatings;
+
+    /*
+     * Driver's current latitude coordinate.
+     */
+    private Double latitude;
+
+    /*
+      * Driver's current longitude coordinate.
+     */
+    private Double longitude;
+
+    // ======= Getters and Setters =======
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getMobileNumber() {
+        return mobileNumber;
+    }
+
+    public void setMobileNumber(String mobileNumber) {
+        this.mobileNumber = mobileNumber;
+    }
+
+    public String getLicenceNo() {
+        return licenceNo;
+    }
+
+    public void setLicenceNo(String licenceNo) {
+        this.licenceNo = licenceNo;
+    }
+
+    public Float getRating() {
+        return rating;
+    }
+
+    public void setRating(Float rating) {
+        this.rating = rating;
+    }
+
+    public Integer getTotalRatings() {
+        return totalRatings;
+
+    }
+
+    public void setTotalRatings(Integer totalRatings) {
+        this.totalRatings = totalRatings;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+}
